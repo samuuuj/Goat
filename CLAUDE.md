@@ -44,6 +44,9 @@ Web en HTML, CSS y JavaScript instalada como app en el iPhone (PWA) + Atajos de 
 - `docs/ROADMAP.md` · `docs/ARQUITECTURA.md` · `docs/DISENO.md` · `docs/SESIONES.md` · `docs/SETUP.md`
 - `docs/modulos/NN-*.md`: especificación de cada módulo. `docs/contexto/`: material que trajo Samuel (chat web).
 
+## En la nube o en una rama `goat/*` (D-051)
+`docs/` no existe en GitHub. Las sesiones y agentes que trabajan en la nube leen **`.claude/objetivos/`** (empezar por `LEEME.md` y `00-comun.md`): plan aprobado, reglas de diseño y seguridad, y la ficha de cada objetivo. Un objetivo por rama `goat/<objetivo>`; todo se une en `goat/integracion`; `main` solo cambia cuando Samuel dice "publica".
+
 ## Protocolo entre sesiones
 Cada módulo tiene su propia sesión ("01 · Finanzas", "02 · Comidas", …). La sesión "00 · Central" coordina e integra.
 1. Al empezar: leer este archivo, `docs/ESTADO.md`, `docs/DECISIONES.md`, `docs/DISENO.md` y el doc del módulo.

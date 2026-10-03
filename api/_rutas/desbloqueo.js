@@ -108,7 +108,8 @@ export default {
     // Un aviso que no se pudo guardar no cierra la puerta.
     await avisarNivel(db, estado, datos.hoy, ahora).catch(() => {});
 
-    const faltan = faltanParaAtajo(estado.faltan, origenWeb(encabezados));
+    const web = origenWeb(encabezados);
+    const faltan = faltanParaAtajo(estado.faltan, web);
     const mensaje = mensajeGate(estado);
     return ok(mensaje, {
       app,
@@ -123,7 +124,8 @@ export default {
       minutos_pase: estado.pase,
       pase_disponible: estado.paseDisponible,
       faltan,
-      abrir: faltan[0]?.abrir ?? null,
+      // "📝 Registrar ahora" en el atajo: lo primero que falta; si no falta nada (se acabó el tiempo), la página Tu tiempo.
+      abrir: faltan[0]?.abrir ?? (web && !estado.permitido ? `${web}/desbloqueo.html` : null),
       puntaje: estado.score,
       nivel: { nombre: estado.nivel.nombre, minutos: estado.nivel.minutos },
       siguiente: estado.siguienteNivel ? { puntaje: estado.siguienteNivel.puntaje, minutos: estado.siguienteNivel.minutos } : null,

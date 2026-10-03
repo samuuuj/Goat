@@ -120,6 +120,28 @@ test("al día → 30 min; con el uso de hoy quedan los restantes", async () => {
   sinMontos(r);
 });
 
+test("se acabó el tiempo (al día): bloquea sin 'Falta' y 'Registrar ahora' abre Tu tiempo", async () => {
+  const falso = base({
+    apps_eventos: [
+      { user_id: A, app: "tiktok", evento: "abrir", momento: iso("06:00"), fecha: F },
+      { user_id: A, app: "tiktok", evento: "cerrar", momento: iso("07:00"), fecha: F },
+    ],
+  });
+  const token = await conToken(falso);
+  const r = await llamarCon(falso, "GET desbloqueo/gate", {
+    token,
+    query: { app: "tiktok" },
+    ahora: en("09:00"),
+    encabezados: { "x-forwarded-host": "goat.example.app", host: "interno" },
+  });
+  assert.equal(r.cuerpo.mensaje, "⏳ Se acabó TikTok por hoy");
+  assert.equal(r.cuerpo.datos.accion, "bloquear");
+  assert.equal(r.cuerpo.datos.abrir, "https://goat.example.app/desbloqueo.html");
+  // Un Host raro no se usa para armar enlaces.
+  const raro = await llamarCon(falso, "GET desbloqueo/gate", { token, query: { app: "tiktok" }, ahora: en("09:01"), encabezados: { host: "evil.com/x?y" } });
+  assert.equal(raro.cuerpo.datos.abrir, null);
+});
+
 test("puntaje 100 → 90 min y un solo aviso 🎉 por día y nivel", async () => {
   const falso = base(DIA_COMPLETO);
   const token = await conToken(falso);

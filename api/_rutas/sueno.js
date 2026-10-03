@@ -53,11 +53,14 @@ function leerMomento(valor, ahora) {
   return fecha;
 }
 
-/** Lo que hace falta para resumenSueno(): metas, eventos y muestras de las últimas 3 semanas. */
+/**
+ * Lo que hace falta para resumenSueno(): metas, eventos y muestras de las últimas 3 semanas.
+ * Metas = perfil.metas con encima perfil.ajustes.sueno (lo que se cambia en sueno.html), igual que web/js/sueno/datos.js.
+ */
 async function cargar(db, ahora) {
   const desde = new Date(ahora.getTime() - DIAS_HISTORIA * DIA_MS).toISOString();
   const [perfil, eventos, muestras] = await Promise.all([
-    db.select("perfil", { columnas: "metas", limite: 1 }),
+    db.select("perfil", { columnas: "metas,ajustes", limite: 1 }),
     db.select("sueno_eventos", {
       columnas: "tipo,fuente,momento,creado_en",
       filtros: { momento: `gte.${desde}` },
@@ -65,7 +68,7 @@ async function cargar(db, ahora) {
     }),
     db.select("sueno_muestras", { columnas: "inicio,fin,tipo", filtros: { fin: `gte.${desde}` }, orden: "inicio.asc" }),
   ]);
-  return { metas: perfil[0]?.metas ?? {}, eventos, muestras };
+  return { metas: { ...(perfil[0]?.metas ?? {}), ...(perfil[0]?.ajustes?.sueno ?? {}) }, eventos, muestras };
 }
 
 /** Guarda las muestras sin duplicar (única por usuario + inicio + tipo). Devuelve cuántas eran nuevas. */

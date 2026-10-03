@@ -1,0 +1,15 @@
+{
+  "name": "goat",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Goat: el sistema personal de Samuel. Web en HTML, CSS y JavaScript con Supabase.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "local": "node scripts/servidor-local.mjs",
+    "config": "node scripts/construir.mjs --solo-config",
+    "build": "node scripts/construir.mjs"
+  }
+}

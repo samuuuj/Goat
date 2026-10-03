@@ -1,0 +1,7 @@
+Letras que usa Goat (copiadas sin cambios de Google Fonts, subconjunto latino):
+
+archivo.woff2  Archivo · Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo)
+inter.woff2    Inter   · Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter)
+
+Ambas se distribuyen con la licencia SIL Open Font License 1.1: https://openfontlicense.org
+(Cada archivo trae su aviso de copyright y licencia dentro de sus metadatos.)

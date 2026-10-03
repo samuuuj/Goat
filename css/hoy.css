@@ -1,0 +1,910 @@
+/* Goat · pantalla de inicio (index.html). */
+
+/* ── Cargando ──────────────────────────────────────────────────────────── */
+
+.cargando {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.cargando-anillo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 7px solid var(--acento);
+  animation: latir 1.2s ease-in-out infinite;
+}
+
+@keyframes latir {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.88);
+  }
+}
+
+/* ── Portada ───────────────────────────────────────────────────────────── */
+
+.portada {
+  position: relative;
+  display: flex;
+  height: 100svh;
+  min-height: 480px;
+  flex-direction: column;
+  padding: calc(var(--arriba) + 14px) var(--margen) 0;
+  /* --p va de 0 a 1 mientras haces scroll fuera de la portada (js/hoy.js). */
+  --p: 0;
+}
+
+.barra {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.boton-circulo {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--linea);
+  color: var(--texto-2);
+  transition: color 0.2s;
+}
+
+.boton-circulo:hover {
+  color: var(--texto);
+}
+
+.portada-contenido {
+  margin-top: auto;
+  padding-bottom: calc(var(--abajo) + 112px);
+  opacity: calc(1 - var(--p) / 0.75);
+}
+
+.portada-titulo {
+  position: relative;
+}
+
+/* Cada línea ocupa el ancho de la pantalla según su largo (js/ui.js › ajustarAlAncho). */
+.linea {
+  display: block;
+  overflow: hidden;
+  padding-top: 0.1em;
+  line-height: 0.92;
+}
+
+/* Al hacer scroll: las líneas pares se van a la izquierda, las impares a la derecha, y se comprimen. */
+.linea-cinetica {
+  display: block;
+  white-space: nowrap;
+  line-height: 0.92;
+  --dir: -1;
+  transform: translateX(calc(var(--p) * var(--dir) * 110px));
+  font-stretch: calc(100% - var(--p) * 38%);
+}
+
+.linea:nth-child(even) .linea-cinetica {
+  --dir: 1;
+}
+
+.linea-cinetica.acento {
+  color: var(--acento);
+}
+
+/* Entran deslizando desde abajo, una tras otra. */
+.linea-texto {
+  display: block;
+  animation: desde-abajo 0.95s var(--curva) both;
+  animation-delay: calc(0.15s + var(--i, 0) * 0.09s);
+}
+
+.portada-pie {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  animation: subir 0.8s var(--curva) both;
+  animation-delay: var(--retraso-pie, 0.7s);
+}
+
+.portada-texto {
+  font-size: 1rem;
+  line-height: 1.375;
+  color: var(--texto-2);
+}
+
+.bloque {
+  display: block;
+}
+
+.sin-cortar {
+  white-space: nowrap;
+}
+
+.flecha-abajo {
+  font-size: 1.5rem;
+  color: var(--texto-3);
+  animation: rebotar 1.8s ease-in-out infinite;
+}
+
+/* ── Anillos y pendientes ──────────────────────────────────────────────── */
+
+.anillos {
+  padding: 6rem var(--margen);
+}
+
+.anillos > .etiqueta {
+  margin-bottom: 3rem;
+}
+
+.anillos-cuerpo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3.5rem;
+}
+
+.anillos-svg {
+  width: min(72vw, 280px);
+  transform: rotate(-90deg);
+}
+
+.anillos-svg circle {
+  fill: none;
+  stroke-width: 26;
+}
+
+.anillo-fondo {
+  stroke-opacity: 0.16;
+}
+
+.anillo-progreso {
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.7s var(--curva);
+}
+
+/* Sin avance no se dibuja nada (la punta redonda dejaría un punto). */
+.anillo-progreso.vacio {
+  visibility: hidden;
+}
+
+.color-registro {
+  stroke: var(--anillo-registro);
+}
+
+.color-cuerpo {
+  stroke: var(--anillo-cuerpo);
+}
+
+.color-mente {
+  stroke: var(--anillo-mente);
+}
+
+.anillo-progreso.color-cuerpo {
+  transition-delay: 0.15s;
+}
+
+.anillo-progreso.color-mente {
+  transition-delay: 0.3s;
+}
+
+.anillos-lista {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.anillo-color {
+  display: block;
+  width: 1.75rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--color);
+}
+
+.anillo-porcentaje {
+  margin-top: 1rem;
+  font-size: 2.6rem;
+}
+
+.anillo-nombre {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.anillo-detalle {
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  line-height: 1.375;
+  color: var(--texto-2);
+}
+
+.pendientes {
+  border-top: 1px solid var(--linea);
+  padding: 5rem var(--margen);
+}
+
+.pendientes > .etiqueta {
+  margin-bottom: 1.5rem;
+}
+
+.todo-al-dia {
+  font-size: 3.75rem;
+}
+
+.pendiente + .pendiente {
+  border-top: 1px solid var(--linea);
+}
+
+.pendiente {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s var(--curva), transform 0.8s var(--curva);
+  transition-delay: calc(var(--i, 0) * 0.08s);
+}
+
+.pendiente.visto {
+  opacity: 1;
+  transform: none;
+}
+
+.pendiente button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 0;
+  text-align: left;
+  transition: transform 0.15s var(--curva);
+}
+
+.pendiente button:active {
+  transform: scale(0.97);
+}
+
+.pendiente-izquierda {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pendiente-emoji {
+  font-size: 1.875rem;
+}
+
+.pendiente-texto {
+  font-size: 2.4rem;
+}
+
+.pendiente-flecha {
+  font-size: 1.5rem;
+  color: var(--acento);
+  transition: transform 0.3s;
+}
+
+.pendiente button:hover .pendiente-flecha {
+  transform: translateX(4px);
+}
+
+/* ── Métricas: una a pantalla casi completa ────────────────────────────── */
+
+.metrica {
+  display: flex;
+  min-height: 78svh;
+  flex-direction: column;
+  justify-content: center;
+  border-top: 1px solid var(--linea);
+  padding: 5rem var(--margen);
+  /* --q va de 0 a 1 mientras la sección cruza la pantalla (js/hoy.js). */
+  --q: 0.5;
+}
+
+.metrica-cabeza {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.metrica-orden {
+  color: var(--texto-3);
+}
+
+/* El tamaño exacto lo pone js/hoy.js según el largo del número. */
+.metrica-numero {
+  margin-top: 2rem;
+  white-space: nowrap;
+  text-transform: none;
+  transform: translateY(calc(70px - var(--q) * 140px));
+}
+
+.metrica-unidad {
+  margin-left: 0.5rem;
+  font-size: 0.3em;
+  color: var(--texto-2);
+}
+
+.metrica-meta {
+  margin-top: 2.5rem;
+}
+
+.progreso {
+  height: 3px;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+}
+
+.progreso-relleno {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--acento);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.4s var(--curva);
+}
+
+.metrica-meta-texto {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--texto-2);
+}
+
+.metrica-frase {
+  max-width: 24ch;
+  margin-top: 2rem;
+  font-size: 1.5rem;
+  line-height: 1.375;
+  color: var(--texto-2);
+}
+
+.metrica-valor-caja {
+  display: inline-block;
+}
+
+/* Modo discreto: el dinero se ve borroso hasta que lo tocas (3 s). */
+.sensible {
+  transition: filter 0.35s var(--curva), opacity 0.35s var(--curva);
+}
+
+.discreto .sensible {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.discreto .sensible:not(.revelado) {
+  filter: blur(16px);
+  opacity: 0.5;
+}
+
+/* ── Semana ────────────────────────────────────────────────────────────── */
+
+.semana {
+  border-top: 1px solid var(--linea);
+  padding: 6rem var(--margen);
+}
+
+.semana-etiqueta {
+  margin-bottom: 2.5rem;
+}
+
+.semana-cifras {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.semana-numero {
+  font-size: clamp(4rem, 22vw, 7.5rem);
+}
+
+.semana-numero.positivo {
+  color: var(--acento);
+}
+
+.semana-texto {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--texto-2);
+}
+
+.barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-top: 3.5rem;
+}
+
+.dia {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dia-puntos,
+.dia-letra {
+  font-size: 0.75rem;
+  color: var(--texto-3);
+}
+
+.dia-letra {
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.dia-carril {
+  display: flex;
+  width: 100%;
+  height: 8rem;
+  align-items: flex-end;
+}
+
+.dia-barra {
+  width: 100%;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.15);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.9s var(--curva);
+  transition-delay: calc(var(--i, 0) * 0.06s);
+}
+
+.barras.visto .dia-barra {
+  transform: scaleY(1);
+}
+
+.dia.hoy .dia-puntos {
+  color: var(--texto);
+}
+
+.dia.hoy .dia-barra {
+  background: var(--acento);
+}
+
+.dia.hoy .dia-letra {
+  color: var(--acento);
+}
+
+/* ── Pie ───────────────────────────────────────────────────────────────── */
+
+.pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--linea);
+  padding: 3rem var(--margen) 11rem;
+  font-size: 0.875rem;
+  color: var(--texto-3);
+}
+
+.ancho-justo {
+  width: fit-content;
+}
+
+/* ── Dock: barra flotante de vidrio ────────────────────────────────────── */
+
+.dock {
+  position: fixed;
+  inset: auto 0 calc(var(--abajo) + 14px);
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  padding: 0 1.25rem;
+  pointer-events: none;
+  animation: dock-entra 0.9s var(--resorte) 1s both;
+}
+
+.dock-vidrio {
+  display: flex;
+  gap: 0.25rem;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  padding: 0.375rem;
+  background: rgb(255 255 255 / 0.07);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.7);
+  -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: blur(40px);
+  pointer-events: auto;
+}
+
+.dock button {
+  display: flex;
+  width: 70px;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  padding: 0.5rem 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--texto-2);
+  transition: background-color 0.2s, color 0.2s, transform 0.15s var(--curva);
+}
+
+.dock button span {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.dock button:hover {
+  background: rgb(255 255 255 / 0.1);
+  color: var(--texto);
+}
+
+.dock button:active {
+  transform: scale(0.88);
+}
+
+/* ── Hoja inferior estilo iOS ──────────────────────────────────────────── */
+
+.velo {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(0 0 0 / 0.6);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0s 0.3s;
+}
+
+.velo.abierto {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s, visibility 0s;
+}
+
+.hoja {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 50;
+  max-width: 36rem;
+  max-height: 88svh;
+  margin-inline: auto;
+  overflow-y: auto;
+  border-radius: 30px 30px 0 0;
+  border-top: 1px solid var(--linea);
+  padding: 0 1.5rem calc(var(--abajo) + 28px);
+  background: rgb(28 28 30 / 0.9);
+  -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: blur(40px);
+  transform: translateY(calc(100% + 2rem));
+  visibility: hidden;
+  transition: transform 0.45s var(--curva), visibility 0s 0.45s;
+}
+
+.hoja.abierta {
+  transform: translateY(var(--arrastre, 0px));
+  visibility: visible;
+  transition: transform 0.5s var(--resorte), visibility 0s;
+}
+
+/* Mientras la arrastras, sigue al dedo sin retraso. */
+.hoja.arrastrando {
+  transition: none;
+}
+
+.hoja-manija {
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 0 1.25rem;
+  cursor: grab;
+  touch-action: none;
+}
+
+.hoja-manija:active {
+  cursor: grabbing;
+}
+
+.hoja-manija span {
+  width: 2.5rem;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.25);
+}
+
+.hoja-titulo {
+  margin-bottom: 1.5rem;
+  font-size: 3rem;
+}
+
+/* ── Formularios de registro ───────────────────────────────────────────── */
+
+.form-registro {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.campo-titulo {
+  margin-bottom: 0.75rem;
+}
+
+.campo-grande {
+  display: block;
+}
+
+.entrada-grande,
+.entrada-mediana {
+  width: 100%;
+  margin-top: 0.5rem;
+  text-transform: none;
+  outline: none;
+}
+
+.entrada-grande {
+  font-size: 4.5rem;
+}
+
+.entrada-mediana {
+  font-size: 3.75rem;
+}
+
+.entrada-grande::placeholder,
+.entrada-mediana::placeholder {
+  color: var(--texto-3);
+}
+
+.montos-rapidos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.montos-rapidos button {
+  border-radius: 999px;
+  padding: 0.375rem 0.75rem;
+  background: rgb(255 255 255 / 0.06);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--texto-2);
+  transition: color 0.2s;
+}
+
+.montos-rapidos button:hover {
+  color: var(--texto);
+}
+
+.dos-columnas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.botones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.boton-secundario {
+  width: 100%;
+  border-radius: 999px;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--texto-2);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  transition: color 0.2s, opacity 0.2s;
+}
+
+.boton-secundario:hover {
+  color: var(--texto);
+}
+
+.boton-secundario:disabled {
+  opacity: 0.3;
+}
+
+/* Selector de una opción: la elegida se vuelve una píldora blanca. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--texto-2);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  transition: background-color 0.25s var(--curva), color 0.25s, transform 0.15s var(--curva);
+}
+
+.chip:hover {
+  color: var(--texto);
+}
+
+.chip:active {
+  transform: scale(0.95);
+}
+
+.chip[aria-checked="true"] {
+  background: var(--texto);
+  color: #000;
+  animation: elegir 0.35s var(--resorte);
+}
+
+/* ── Aviso flotante ────────────────────────────────────────────────────── */
+
+.aviso-zona {
+  position: fixed;
+  inset: calc(var(--arriba) + 12px) 0 auto;
+  z-index: 70;
+  display: flex;
+  justify-content: center;
+  padding: 0 1.25rem;
+  pointer-events: none;
+}
+
+.aviso {
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  padding: 0.75rem 1.25rem;
+  background: rgb(28 28 30 / 0.9);
+  -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: blur(40px);
+  font-size: 0.875rem;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(-40px) scale(0.94);
+  transition: opacity 0.3s, transform 0.45s var(--resorte);
+}
+
+.aviso:empty {
+  display: none;
+}
+
+.aviso.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Tablet ────────────────────────────────────────────────────────────── */
+
+@media (min-width: 48rem) {
+  .portada-texto {
+    font-size: 1.125rem;
+  }
+
+  .anillos-svg {
+    width: 320px;
+  }
+
+  .metrica {
+    min-height: 62svh;
+  }
+
+  .metrica-frase {
+    font-size: 1.875rem;
+  }
+
+  .dia-carril {
+    height: 11rem;
+  }
+
+  .hoja {
+    bottom: 1.5rem;
+    max-height: 82svh;
+    border: 1px solid var(--linea);
+    border-radius: 30px;
+    padding-inline: 2rem;
+  }
+}
+
+/* ── Computador ────────────────────────────────────────────────────────── */
+
+@media (min-width: 64rem) {
+  .anillos-y-pendientes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--linea);
+  }
+
+  .pendientes {
+    border-top: 0;
+    border-left: 1px solid var(--linea);
+    padding-block: 6rem;
+  }
+
+  .todo-al-dia {
+    font-size: 4.5rem;
+  }
+
+  .metrica {
+    min-height: 54svh;
+  }
+
+  /* El número a la izquierda; la meta y la frase a la derecha. */
+  .metrica-cuerpo {
+    display: grid;
+    grid-template-columns: 55fr 45fr;
+    align-items: end;
+    gap: 4rem;
+  }
+
+  .metrica-lado {
+    padding-bottom: 1rem;
+  }
+
+  .metrica-meta {
+    margin-top: 0;
+  }
+
+  .semana {
+    display: grid;
+    grid-template-columns: 2fr 3fr;
+    align-items: end;
+    gap: 5rem;
+  }
+
+  .barras {
+    gap: 1rem;
+    margin-top: 0;
+  }
+
+  .dia-carril {
+    height: 14rem;
+  }
+}
+
+/* ── Animaciones ───────────────────────────────────────────────────────── */
+
+@keyframes desde-abajo {
+  from {
+    transform: translateY(110%);
+  }
+}
+
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes rebotar {
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes dock-entra {
+  from {
+    opacity: 0;
+    transform: translateY(120px);
+  }
+}
+
+@keyframes elegir {
+  from {
+    transform: scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .linea-cinetica,
+  .metrica-numero {
+    transform: none;
+    font-stretch: 100%;
+  }
+}

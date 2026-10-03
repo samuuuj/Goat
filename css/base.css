@@ -1,0 +1,329 @@
+/* Goat · estilos compartidos por todas las páginas.
+   Sistema de diseño: docs/DISENO.md. Siempre oscuro, un solo acento naranja. */
+
+/* ── Letras (en la carpeta fuentes/, licencias en fuentes/LICENCIAS.txt) ── */
+
+@font-face {
+  font-family: "Archivo";
+  src: url("../fuentes/archivo.woff2") format("woff2");
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("../fuentes/inter.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Colores y medidas ─────────────────────────────────────────────────── */
+
+:root {
+  --fondo: #000000;
+  --superficie: #0d0d0f;
+  --superficie-2: #1c1c1e;
+  --linea: rgb(255 255 255 / 0.09);
+  --texto: #f5f5f7;
+  --texto-2: #a1a1a6;
+  --texto-3: #6e6e73;
+  --acento: #ff6a1f;
+  --anillo-registro: #ff6a1f;
+  --anillo-cuerpo: #b4f03c;
+  --anillo-mente: #3cd2ff;
+
+  --fuente-titular: "Archivo", "Arial Narrow", sans-serif;
+  --fuente: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+
+  /* Todo se mueve con el mismo "carácter". */
+  --curva: cubic-bezier(0.22, 1, 0.36, 1);
+  --resorte: cubic-bezier(0.32, 1.25, 0.6, 1);
+
+  /* Zonas seguras del iPhone (notch y barra de inicio). */
+  --arriba: env(safe-area-inset-top, 0px);
+  --abajo: env(safe-area-inset-bottom, 0px);
+
+  color-scheme: dark;
+}
+
+/* ── Base ──────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+  background: var(--fondo);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100%;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--fuente);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+h1,
+h2,
+p {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+
+button {
+  cursor: pointer;
+  text-align: inherit;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+ul {
+  list-style: none;
+}
+
+img,
+svg {
+  display: block;
+}
+
+::selection {
+  background: var(--acento);
+  color: #000;
+}
+
+:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 3px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Texto solo para lectores de pantalla (VoiceOver). */
+.solo-lector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── Tipografía ────────────────────────────────────────────────────────── */
+
+/* Titulares editoriales: Archivo con eje de ancho variable (font-stretch). */
+.titular {
+  font-family: var(--fuente-titular);
+  font-weight: 800;
+  font-stretch: 100%;
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+/* Sonda invisible con la que js/ui.js mide el ancho natural de un titular. */
+.sonda {
+  position: absolute;
+  visibility: hidden;
+  white-space: nowrap;
+  font-size: 100px;
+  font-stretch: 100%;
+}
+
+.etiqueta {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--texto-2);
+}
+
+.cifras {
+  font-variant-numeric: tabular-nums;
+}
+
+.acento {
+  color: var(--acento);
+}
+
+/* ── Responsive (docs/DISENO.md › Responsive) ──────────────────────────────
+   Celular por defecto; tablet desde 48rem (768 px); computador desde 64rem (1024 px). */
+
+.contenedor {
+  --ancho: min(100vw, 36rem);
+  --margen: 1.25rem;
+  /* Ancho y tope de los números gigantes de las métricas. */
+  --ancho-cifra: calc(var(--ancho) - 2 * var(--margen));
+  --tope-cifra: 9rem;
+  width: 100%;
+  max-width: var(--ancho);
+  margin-inline: auto;
+}
+
+@media (min-width: 48rem) {
+  .contenedor {
+    --ancho: min(100vw, 52rem);
+    --margen: 2.5rem;
+    --tope-cifra: 12rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .contenedor {
+    --ancho: min(100vw, 80rem);
+    --margen: 3.5rem;
+    --ancho-cifra: calc((var(--ancho) - 2 * var(--margen)) * 0.55);
+    --tope-cifra: 13rem;
+  }
+}
+
+/* ── Piezas compartidas ────────────────────────────────────────────────── */
+
+/* Grano de película muy sutil sobre el negro. */
+.grano::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.sin-scrollbar {
+  scrollbar-width: none;
+}
+
+.sin-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Botón naranja grande ("Entrar", "Guardar"). */
+.boton-principal {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border-radius: 999px;
+  background: var(--acento);
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #000;
+  transition: opacity 0.2s, transform 0.15s var(--curva);
+}
+
+.boton-principal:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.boton-principal:disabled {
+  opacity: 0.3;
+}
+
+/* Botón de contorno ("No he gastado nada", "Cerrar sesión"). */
+.boton-borde {
+  border-radius: 999px;
+  padding: 0.375rem 0.75rem;
+  color: var(--texto-3);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  transition: color 0.2s;
+}
+
+.boton-borde:hover {
+  color: var(--texto);
+}
+
+/* Ícono de ojo: tachado cuando el botón está presionado (contraseña visible, montos ocultos). */
+.ojo .tachado {
+  display: none;
+}
+
+[aria-pressed="true"] .ojo .tachado {
+  display: inline;
+}
+
+/* Rueda de "cargando". */
+.girando {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 2px solid rgb(0 0 0 / 0.3);
+  border-top-color: #000;
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pantallas de una sola idea: "Falta un paso", "Algo falló". */
+.pantalla-simple {
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 2rem;
+  padding: calc(var(--arriba) + 1.5rem) var(--margen) calc(var(--abajo) + 40px);
+}
+
+.pantalla-simple h1 {
+  font-size: clamp(3.5rem, 16vw, 8rem);
+}
+
+.pantalla-simple .explicacion {
+  max-width: 34ch;
+  font-size: 1.125rem;
+  line-height: 1.35;
+  color: var(--texto-2);
+}
+
+.pantalla-simple .boton-principal {
+  width: fit-content;
+  padding: 0.75rem 1.5rem;
+}
+
+/* Si el iPhone tiene "Reducir movimiento", casi todo aparece sin animar. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}

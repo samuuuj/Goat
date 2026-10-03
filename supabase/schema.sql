@@ -445,6 +445,65 @@ create policy gym_sesiones_propias on public.gym_sesiones
 -- Aperturas y cierres de apps, minutos ganados por puntaje y pases.
 -- #####################################################################
 
+-- ---------------------------------------------------------------------
+-- Aperturas y cierres de apps (TikTok, Instagram, YouTube, juegos).
+-- Los envían las automatizaciones "App › Se abre / Se cierra" del iPhone
+-- (atajos "🔒 Puerta" y "🔓 Cerré app"). Compartida con Ocio (D-016).
+--   app       → slug: 'tiktok', 'instagram', 'clash-royale'
+--   permitido → lo que respondió la puerta al abrir (null si no pasó por ella)
+-- Las reglas (minutos usados, ganados y restantes) viven en
+-- web/js/desbloqueo/logica.js, no aquí.
+-- ---------------------------------------------------------------------
+create table if not exists public.apps_eventos (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  app        text not null check (char_length(app) <= 40 and app ~ '^[a-z0-9][a-z0-9-]*$'),
+  evento     text not null check (evento in ('abrir','cerrar')),
+  permitido  boolean,
+  momento    timestamptz not null default now(),
+  fecha      date generated always as (public.dia_logico(momento)) stored,
+  origen     text not null default 'web' check (origen in ('atajo','web','automatizacion','widget')),
+  id_cliente uuid unique,
+  creado_en  timestamptz not null default now()
+);
+create index if not exists apps_eventos_user_fecha_app_idx on public.apps_eventos (user_id, fecha, app);
+
+revoke all on table public.apps_eventos from anon, authenticated;
+grant select, insert, update, delete on table public.apps_eventos to authenticated;
+alter table public.apps_eventos enable row level security;
+
+drop policy if exists apps_eventos_propios on public.apps_eventos;
+create policy apps_eventos_propios on public.apps_eventos
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+
+-- ---------------------------------------------------------------------
+-- Pase de emergencia: 10 min extra para una app, UNO por día lógico.
+-- El índice único (user_id, fecha) lo garantiza aunque lleguen dos a la vez.
+-- ---------------------------------------------------------------------
+create table if not exists public.desbloqueo_pases (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  app        text not null check (char_length(app) <= 40 and app ~ '^[a-z0-9][a-z0-9-]*$'),
+  minutos    int not null default 10 check (minutos between 1 and 30),
+  momento    timestamptz not null default now(),
+  fecha      date generated always as (public.dia_logico(momento)) stored,
+  origen     text not null default 'web' check (origen in ('atajo','web','automatizacion','widget')),
+  id_cliente uuid unique,
+  creado_en  timestamptz not null default now()
+);
+create unique index if not exists desbloqueo_pases_uno_por_dia_idx on public.desbloqueo_pases (user_id, fecha);
+
+revoke all on table public.desbloqueo_pases from anon, authenticated;
+grant select, insert, update, delete on table public.desbloqueo_pases to authenticated;
+alter table public.desbloqueo_pases enable row level security;
+
+drop policy if exists desbloqueo_pases_propios on public.desbloqueo_pases;
+create policy desbloqueo_pases_propios on public.desbloqueo_pases
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
 
 
 -- #####################################################################

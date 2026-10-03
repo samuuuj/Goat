@@ -25,7 +25,8 @@ web/                 la página (lo único que se publica)
   js/supabase/       sesión y base de datos
   js/vendor/         librería de Supabase
   img/ fuentes/      íconos y letras
-supabase/schema.sql  toda la base de datos
+supabase/schema.sql  toda la base de datos (crea tablas y reglas; se puede repetir)
+supabase/borrar-datos.sql  borra todos los registros y deja la app en cero (no se puede deshacer)
 scripts/             escribir y revisar web/js/config.js, servidor de prueba
 vercel.json          seguridad y publicación en Vercel
 ```

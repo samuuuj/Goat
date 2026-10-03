@@ -37,7 +37,7 @@ Web en HTML, CSS y JavaScript instalada como app en el iPhone (PWA) + Atajos de 
   - `web/js/paginas/`: `login.js`, `hoy.js` (lo que carga cada HTML) · `web/js/piezas/`: `registros.js` (hojas de registro), `ui.js` (piezas reutilizables) · `web/js/logica/`: `calculo.js` (resumen y puntuación), `dia.js`, `formato.js`, `catalogos.js` (funciones puras, sin pantalla ni internet) · `web/js/supabase/`: `sesion.js` (conexión y "mantener sesión"), `datos.js` (leer y guardar) · `web/js/vendor/supabase.js`.
   - `web/js/config.js`: URL y clave publicable de Supabase. Se sube (D-050); se cambia con `npm run config`.
 - `supabase/schema.sql` · `scripts/` (`crear-config.mjs`, `servidor-local.mjs`) · `vercel.json` (cabeceras de seguridad y publicación) · `.vscode/settings.json` (Live Server solo sirve `web/`).
-- `supabase/schema.sql`: **toda la base de datos en un solo archivo** (D-045), una sección por módulo. Se pega completo en Supabase › SQL Editor › Run; es repetible.
+- `supabase/schema.sql`: **toda la base de datos en un solo archivo** (D-045), una sección por módulo. Se pega completo en Supabase › SQL Editor › Run; es repetible. `supabase/borrar-datos.sql`: vacía todos los registros (menos festivos) y deja el perfil en las metas de arranque; no se puede deshacer.
 - `docs/ESTADO.md`: tablero compartido. **Leer al empezar, actualizar al terminar.**
 - `docs/DECISIONES.md`: decisiones tomadas y preguntas abiertas para Samuel.
 - `docs/SEGURIDAD.md`: **leer antes de tocar login, tablas, API o cabeceras.**

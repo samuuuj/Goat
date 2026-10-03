@@ -3,38 +3,65 @@
 
 const valores = (opciones) => new Set(opciones.map((o) => o.valor));
 
-// ── Finanzas ─────────────────────────────────────────────────────────────
+// ── Finanzas (D-053; reglas en js/finanzas/logica.js) ───────────────────
+// En la base de datos "Gasto" sigue siendo `egreso`. Solo `egreso` cuenta para el presupuesto.
 
 export const TIPOS_MOVIMIENTO = [
-  { valor: "egreso", texto: "Egreso" },
-  { valor: "ingreso", texto: "Ingreso" },
+  { valor: "egreso", texto: "Gasto", emoji: "💸" },
+  { valor: "ingreso", texto: "Ingreso", emoji: "💰" },
+  { valor: "transferencia", texto: "Transferencia", emoji: "🔁" },
+  { valor: "retiro", texto: "Retiro", emoji: "🏧" },
 ];
 
 export const CATEGORIAS = {
   egreso: [
-    { valor: "comida_fuera", texto: "Comida fuera" },
-    { valor: "mercado", texto: "Mercado" },
-    { valor: "transporte", texto: "Transporte" },
-    { valor: "universidad", texto: "Universidad" },
-    { valor: "ocio", texto: "Ocio" },
-    { valor: "suscripciones", texto: "Suscripciones" },
-    { valor: "salud", texto: "Salud" },
-    { valor: "ropa", texto: "Ropa" },
-    { valor: "otros", texto: "Otros" },
+    { valor: "comida", texto: "Comida", emoji: "🍔" },
+    { valor: "transporte", texto: "Transporte", emoji: "🚌" },
+    { valor: "compras", texto: "Compras", emoji: "🛍️" },
+    { valor: "hogar", texto: "Hogar", emoji: "🏠" },
+    { valor: "ocio", texto: "Ocio", emoji: "🎮" },
+    { valor: "salud", texto: "Salud", emoji: "💊" },
+    { valor: "estudio", texto: "Estudio", emoji: "📚" },
+    { valor: "servicios", texto: "Servicios", emoji: "💡" },
+    { valor: "intereses", texto: "Intereses y cuotas", emoji: "💳" },
+    { valor: "otros", texto: "Otros", emoji: "📦" },
   ],
   ingreso: [
-    { valor: "mesada", texto: "Mesada" },
-    { valor: "trabajo", texto: "Trabajo" },
-    { valor: "beca", texto: "Beca" },
-    { valor: "otros", texto: "Otros" },
+    { valor: "salario", texto: "Salario", emoji: "💼" },
+    { valor: "trabajo", texto: "Trabajo", emoji: "🛠️" },
+    { valor: "venta", texto: "Venta", emoji: "🏷️" },
+    { valor: "devolucion", texto: "Devolución", emoji: "↩️" },
+    { valor: "regalo", texto: "Regalo", emoji: "🎁" },
   ],
 };
 
+/** "Otro": la categoría se escribe a mano (ej. Gasto · Otro → "Cita"). Se guarda con categoria_libre = true. */
+export const CATEGORIA_OTRA = { valor: "otro", texto: "Otro…", emoji: "✏️" };
+
+/** Las cuentas con las que arranca todo usuario (se crean en finanzas_cuentas la primera vez). */
 export const CUENTAS = [
-  { valor: "efectivo", texto: "Efectivo" },
-  { valor: "nequi", texto: "Nequi" },
-  { valor: "debito", texto: "Débito" },
-  { valor: "credito", texto: "Crédito" },
+  { valor: "efectivo", texto: "Efectivo", tipo: "efectivo", banco: null },
+  { valor: "nu", texto: "Nu", tipo: "banco", banco: "Nu" },
+  { valor: "nequi", texto: "Nequi", tipo: "billetera", banco: "Nequi" },
+];
+
+export const TIPOS_CUENTA = [
+  { valor: "efectivo", texto: "Efectivo", emoji: "💵" },
+  { valor: "banco", texto: "Banco", emoji: "🏦" },
+  { valor: "billetera", texto: "Billetera", emoji: "📱" },
+  { valor: "tarjeta_credito", texto: "Tarjeta de crédito", emoji: "💳" },
+];
+
+export const DIRECCIONES_DEUDA = [
+  { valor: "debo", texto: "Debo" },
+  { valor: "me_deben", texto: "Me deben" },
+];
+
+export const TIPOS_DEUDA = [
+  { valor: "persona", texto: "Persona", emoji: "👤" },
+  { valor: "prestamo", texto: "Préstamo", emoji: "🏦" },
+  { valor: "tarjeta_credito", texto: "Tarjeta", emoji: "💳" },
+  { valor: "otro", texto: "Otro", emoji: "📒" },
 ];
 
 /** Montos rápidos: con un presupuesto menor a $500.000, los gastos hormiga pesan (D-034). */
@@ -91,6 +118,9 @@ export const VALIDOS = {
   tipoMovimiento: valores(TIPOS_MOVIMIENTO),
   categoria: { egreso: valores(CATEGORIAS.egreso), ingreso: valores(CATEGORIAS.ingreso) },
   cuenta: valores(CUENTAS),
+  tipoCuenta: valores(TIPOS_CUENTA),
+  direccionDeuda: valores(DIRECCIONES_DEUDA),
+  tipoDeuda: valores(TIPOS_DEUDA),
   tipoComida: valores(TIPOS_COMIDA),
   frecuente: valores(FRECUENTES),
   materia: valores(MATERIAS),

@@ -37,7 +37,7 @@
   animation: subir 0.8s var(--curva) 0.5s both;
 }
 
-/* "GOAT." ocupa todo el ancho; js/login.js ajusta el tamaño exacto. */
+/* "GOAT." ocupa todo el ancho; js/paginas/login.js ajusta el tamaño exacto. */
 .linea-marca {
   display: block;
   overflow: hidden;
@@ -251,12 +251,6 @@
 /* Se sacude en cada intento fallido. */
 .login-error p.sacudir {
   animation: sacudir 0.45s ease-in-out;
-}
-
-.login-nota {
-  font-size: 0.75rem;
-  line-height: 1.625;
-  color: var(--texto-3);
 }
 
 /* Luz naranja que flota lenta detrás de todo (ambiente Apple). */

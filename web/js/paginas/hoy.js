@@ -1,13 +1,13 @@
 // Pantalla de inicio (index.html): lo primero que ves al abrir la app.
-// Lee tus registros, calcula el resumen del día (js/calculo.js) y lo pinta en las plantillas del HTML.
+// Lee tus registros, calcula el resumen del día (logica/calculo.js) y lo pinta en las plantillas del HTML.
 
-import { cerrarSesion, requerirSesion } from "./sesion.js";
-import { BaseSinInstalar, SesionVencida, cargarRegistros } from "./datos.js";
-import { construirResumen } from "./calculo.js";
-import { diaYMes, horaBogota, nombreDia } from "./dia.js";
-import { formatearValor, unidad } from "./formato.js";
-import { ajustarAlAncho, alVerse, avisar, clonar, contar, iniciarDiscreto, limitar, reducirMovimiento } from "./ui.js";
-import { iniciarRegistros } from "./registros.js";
+import { cerrarSesion, requerirSesion } from "../supabase/sesion.js";
+import { BaseSinInstalar, SesionVencida, cargarRegistros } from "../supabase/datos.js";
+import { construirResumen } from "../logica/calculo.js";
+import { diaYMes, horaBogota, nombreDia } from "../logica/dia.js";
+import { formatearValor, unidad } from "../logica/formato.js";
+import { ajustarAlAncho, alVerse, avisar, clonar, contar, iniciarDiscreto, limitar, reducirMovimiento } from "../piezas/ui.js";
+import { iniciarRegistros } from "../piezas/registros.js";
 
 const $ = (id) => document.getElementById(id);
 

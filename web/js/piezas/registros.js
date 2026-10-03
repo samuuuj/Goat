@@ -1,10 +1,10 @@
 // Formularios de registro rápido en la hoja inferior: gasto, comida, estudio y gym.
 // Validan con los catálogos antes de guardar; la base de datos vuelve a validar (checks y RLS).
 
-import { SesionVencida, guardar } from "./datos.js";
-import { cerrarSesion } from "./sesion.js";
-import { horaDecimal } from "./dia.js";
-import { formatoCOP } from "./formato.js";
+import { SesionVencida, guardar } from "../supabase/datos.js";
+import { cerrarSesion } from "../supabase/sesion.js";
+import { horaDecimal } from "../logica/dia.js";
+import { formatoCOP } from "../logica/formato.js";
 import { avisar, clonar, nuevoId } from "./ui.js";
 import {
   CATEGORIAS,
@@ -18,7 +18,7 @@ import {
   TIPOS_COMIDA,
   TIPOS_MOVIMIENTO,
   VALIDOS,
-} from "./catalogos.js";
+} from "../logica/catalogos.js";
 
 const TITULO = { comida: "Comí", gasto: "Gasto", estudio: "Estudio", gym: "Gym" };
 

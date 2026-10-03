@@ -1,0 +1,4 @@
+{
+  // Live Server muestra solo la carpeta web/: así nadie en tu misma red Wi-Fi puede abrir docs/, .git ni las claves.
+  "liveServer.settings.root": "/web"
+}

@@ -11,15 +11,15 @@ Web en HTML, CSS y JavaScript instalada como app en el iPhone (PWA) + Atajos de 
 **Mecánica clave: registrar desbloquea ocio.** Si los registros del día no están al día, abrir TikTok, Instagram, YouTube o un videojuego dispara un atajo que pide registrar primero (D-033).
 
 ## Stack (D-046)
-- **HTML + CSS + JavaScript** sin frameworks ni compilación (módulos ES en `js/`). Se abre con **Live Server** de VS Code.
+- **HTML + CSS + JavaScript** sin frameworks ni compilación (módulos ES). Todo lo que ve el navegador está en **`web/`**; se abre con **Live Server** de VS Code, configurado para servir solo esa carpeta (`.vscode/settings.json`).
 - Supabase (Postgres + Auth) desde el navegador con la clave publicable; la protección está en la base de datos (RLS). Vercel publica el sitio estático.
 - Atajos de iOS → `/api/v1/...` con token personal (`Authorization: Bearer`): funciones de Vercel en `api/v1/` (JavaScript), por construir.
 - Widgets: **Scriptable** leyendo `/api/v1/widget`. Una PWA no puede crear widgets nativos.
 - Datos de Salud (sueño, pasos, entrenos) **solo llegan vía Atajos**: no existe API web de HealthKit.
-- Comandos (PowerShell; si `node` no aparece, refrescar el PATH): `npm run local` (servidor en http://localhost:3000 con las cabeceras de Vercel) · `npm run config` (crea `js/config.js` desde `.env.local`) · `npm run build` (lo corre Vercel). Vista previa de Claude: `.claude/launch.json` → "web".
+- Comandos (PowerShell; si `node` no aparece, refrescar el PATH): `npm run local` (servidor en http://localhost:3000 con las cabeceras de Vercel) · `npm run config` (crea `web/js/config.js` desde `.env.local`; Vercel corre lo mismo al publicar). Vista previa de Claude: `.claude/launch.json` → "web".
 
 ## Principios (no romper sin registrarlo en docs/DECISIONES.md)
-1. **Las reglas viven en un solo lugar.** El cálculo del día está en `js/calculo.js` y lo usarán también las funciones de `api/v1/`. Los atajos son clientes delgados: piden menús y mensajes a la API.
+1. **Las reglas viven en un solo lugar.** El cálculo del día está en `web/js/logica/calculo.js` y lo usarán también las funciones de `api/v1/`. Los atajos son clientes delgados: piden menús y mensajes a la API.
 2. **Registrar debe tomar menos de 15 segundos**, y **máximo 4 registros manuales al día**; lo demás, automático.
 3. **El desbloqueo exige registros, no metas.** Registrar algo "malo" cuenta como registro completo. Nunca incentivar mentir.
 4. **Siempre existe "nada que registrar"** (hoy no gasté, no desayuné) como registro válido.
@@ -32,10 +32,11 @@ Web en HTML, CSS y JavaScript instalada como app en el iPhone (PWA) + Atajos de 
 11. **Git:** no hacer commit ni push hasta que Samuel lo pida.
 
 ## Mapa del proyecto
-- `index.html` (inicio) · `login.html` (entrada) · `manifest.webmanifest` · `robots.txt` · `img/` · `fuentes/`
-- `css/`: `base.css` (colores, letras, responsive, piezas compartidas) · `login.css` · `hoy.css`.
-- `js/`: `sesion.js` (Supabase y "mantener sesión") · `datos.js` (leer y guardar) · `calculo.js` (resumen y puntuación) · `dia.js` · `formato.js` · `catalogos.js` · `ui.js` (piezas reutilizables) · `login.js` · `hoy.js` · `registros.js` (hojas de registro) · `vendor/supabase.js`. `js/config.js` no se sube (se crea con `npm run config`).
-- `vercel.json` (cabeceras de seguridad y publicación) · `scripts/` (`construir.mjs` para Vercel, `servidor-local.mjs` para probar).
+- **`web/`** (la página; lo único que se publica): `index.html` (inicio) · `login.html` (entrada) · `manifest.webmanifest` · `robots.txt` · `img/` · `fuentes/`
+  - `web/css/`: `base.css` (colores, letras, responsive, piezas compartidas) · `login.css` · `hoy.css`.
+  - `web/js/paginas/`: `login.js`, `hoy.js` (lo que carga cada HTML) · `web/js/piezas/`: `registros.js` (hojas de registro), `ui.js` (piezas reutilizables) · `web/js/logica/`: `calculo.js` (resumen y puntuación), `dia.js`, `formato.js`, `catalogos.js` (funciones puras, sin pantalla ni internet) · `web/js/supabase/`: `sesion.js` (conexión y "mantener sesión"), `datos.js` (leer y guardar) · `web/js/vendor/supabase.js`.
+  - `web/js/config.js` no se sube (se crea con `npm run config`).
+- `supabase/schema.sql` · `scripts/` (`crear-config.mjs`, `servidor-local.mjs`) · `vercel.json` (cabeceras de seguridad y publicación) · `.vscode/settings.json` (Live Server solo sirve `web/`).
 - `supabase/schema.sql`: **toda la base de datos en un solo archivo** (D-045), una sección por módulo. Se pega completo en Supabase › SQL Editor › Run; es repetible.
 - `docs/ESTADO.md`: tablero compartido. **Leer al empezar, actualizar al terminar.**
 - `docs/DECISIONES.md`: decisiones tomadas y preguntas abiertas para Samuel.

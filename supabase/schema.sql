@@ -23,7 +23,7 @@
 -- Las 01:30 del 3 de octubre pertenecen al 2 de octubre.
 -- Inmutable para usarla en columnas generadas:
 --   fecha date generated always as (public.dia_logico(momento)) stored
--- Debe coincidir con diaLogico() de js/dia.js.
+-- Debe coincidir con diaLogico() de web/js/logica/dia.js.
 -- ---------------------------------------------------------------------
 create or replace function public.dia_logico(momento timestamptz)
 returns date

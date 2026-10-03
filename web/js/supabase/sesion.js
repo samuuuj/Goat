@@ -5,10 +5,10 @@
 const CLAVE_RECORDAR = "goat:recordar";
 const CLAVE_SESION = "goat-sesion";
 
-// js/config.js no está en GitHub; si falta, el login lo avisa (docs/SETUP.md).
+// web/js/config.js no está en GitHub (se crea con `npm run config`); si falta, el login lo avisa.
 let config = null;
 try {
-  config = await import("./config.js");
+  config = await import("../config.js");
 } catch {
   config = null;
 }

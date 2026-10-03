@@ -1,12 +1,14 @@
 // Servidor de prueba en http://localhost:3000 con las mismas cabeceras de seguridad que Vercel (vercel.json).
-// Alternativa a Live Server:  node scripts/servidor-local.mjs
-// Solo sirve los archivos de la web (DEL_SITIO); nunca .env.local, docs/ ni supabase/. Solo escucha en este computador.
+// Alternativa a Live Server:  npm run local
+// Solo entrega la carpeta web/ (nunca .env.local, docs/ ni .git) y solo escucha en este computador.
 
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
-import { extname, join, normalize, sep } from "node:path";
-import { DEL_SITIO, RAIZ } from "./sitio.mjs";
+import { dirname, extname, join, normalize, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
+const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
+const WEB = join(RAIZ, "web");
 const PUERTO = Number(process.env.PORT) || 3000;
 
 const TIPOS = {
@@ -43,14 +45,11 @@ const servidor = createServer(async (req, res) => {
   }
   if (ruta === "/") ruta = "/index.html";
 
-  // Nada de "..", archivos ocultos, barras invertidas ni unidades (C:): solo lo que está dentro de DEL_SITIO.
+  // Nada de "..", archivos ocultos, barras invertidas ni unidades (C:): solo lo que está dentro de web/.
   const partes = ruta.split("/").filter(Boolean);
-  if (!DEL_SITIO.includes(partes[0]) || partes.some((p) => p.startsWith(".") || /[\\:\0]/.test(p))) {
-    return responder(res, 404, "No encontrado");
-  }
-  const base = join(RAIZ, partes[0]);
-  const archivo = normalize(join(RAIZ, ...partes));
-  if (archivo !== base && !archivo.startsWith(base + sep)) return responder(res, 404, "No encontrado");
+  if (partes.some((p) => p.startsWith(".") || /[\\:\0]/.test(p))) return responder(res, 404, "No encontrado");
+  const archivo = normalize(join(WEB, ...partes));
+  if (!archivo.startsWith(WEB + sep)) return responder(res, 404, "No encontrado");
 
   try {
     if (!(await stat(archivo)).isFile()) return responder(res, 404, "No encontrado");

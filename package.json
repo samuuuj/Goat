@@ -9,7 +9,7 @@
   },
   "scripts": {
     "local": "node scripts/servidor-local.mjs",
-    "config": "node scripts/construir.mjs --solo-config",
-    "build": "node scripts/construir.mjs"
+    "config": "node scripts/crear-config.mjs",
+    "build": "node scripts/crear-config.mjs"
   }
 }

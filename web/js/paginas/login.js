@@ -1,7 +1,7 @@
 // Pantalla de entrada (login.html): correo, contraseña y "Mantener sesión iniciada".
 
-import { configFaltante, elegirRecordar, quiereRecordar, sesionActual, supabase } from "./sesion.js";
-import { ajustarAlAncho, reducirMovimiento } from "./ui.js";
+import { configFaltante, elegirRecordar, quiereRecordar, sesionActual, supabase } from "../supabase/sesion.js";
+import { ajustarAlAncho, reducirMovimiento } from "../piezas/ui.js";
 
 const FRASES = ["Registra.", "Gana tu ocio.", "Cumple.", "Repite."];
 
@@ -77,7 +77,7 @@ formulario.addEventListener("submit", async (evento) => {
 });
 
 if (configFaltante) {
-  mostrarError("Falta el archivo js/config.js (mira docs/SETUP.md).");
+  mostrarError("Falta web/js/config.js: en la terminal corre npm run config.");
 } else if (await sesionActual()) {
   // Ya habías entrado en este dispositivo.
   location.replace("index.html");

@@ -6,11 +6,10 @@
 # Claves y configuración local
 .env*
 !.env.example
-js/config.js
+/web/js/config.js
 *.pem
 
-# Lo que genera la publicación en Vercel
-/dist/
+# Vercel
 .vercel
 
 # Herramientas

@@ -148,7 +148,7 @@ svg {
   text-transform: uppercase;
 }
 
-/* Sonda invisible con la que js/ui.js mide el ancho natural de un titular. */
+/* Sonda invisible con la que js/piezas/ui.js mide el ancho natural de un titular. */
 .sonda {
   position: absolute;
   visibility: hidden;

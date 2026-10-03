@@ -2,8 +2,8 @@
 // user_id lo pone la base de datos (auth.uid()).
 
 import { supabase } from "./sesion.js";
-import { diaLogico } from "./dia.js";
-import { DIAS_HISTORIA, inicioDeMes, leerMetas, sumarDias } from "./calculo.js";
+import { diaLogico } from "../logica/dia.js";
+import { DIAS_HISTORIA, inicioDeMes, leerMetas, sumarDias } from "../logica/calculo.js";
 
 /** La base de datos todavía no tiene las tablas (falta correr supabase/schema.sql en Supabase). */
 export class BaseSinInstalar extends Error {}

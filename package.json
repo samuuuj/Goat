@@ -1,6 +1,6 @@
 {
   "name": "goat",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "description": "Goat: el sistema personal de Samuel. Web en HTML, CSS y JavaScript con Supabase.",
@@ -10,6 +10,10 @@
   "scripts": {
     "local": "node scripts/servidor-local.mjs",
     "config": "node scripts/crear-config.mjs",
-    "build": "node scripts/crear-config.mjs"
+    "build": "node scripts/crear-config.mjs",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8"
   }
 }

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es" class="discreto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Goat · Conectar</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Goat" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="img/icono-512.png" type="image/png" />
+    <link rel="apple-touch-icon" href="img/icono-180.png" />
+    <link rel="preload" href="fuentes/archivo.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/comun.css" />
+    <link rel="stylesheet" href="css/conectar.css" />
+    <script src="js/vendor/supabase.js" defer></script>
+    <script type="module" src="js/conectar/pagina.js"></script>
+  </head>
+
+  <body class="grano">
+    <div id="cargando" class="cargando" role="status">
+      <span class="cargando-anillo" aria-hidden="true"></span>
+      <span class="solo-lector">Cargando…</span>
+    </div>
+
+    <main id="contenido" class="contenedor" data-fondo-hoja hidden>
+      <header class="barra-seccion">
+        <a class="volver" href="index.html"><span aria-hidden="true">‹</span>Hoy</a>
+        <div class="barra-acciones"></div>
+      </header>
+
+      <section class="cabecera-seccion">
+        <p class="etiqueta">Goat · Conectar</p>
+        <h1 class="titular">Conectar iPhone.</h1>
+        <p class="cabecera-texto">Pronto.</p>
+      </section>
+
+      <footer class="pie-seccion"></footer>
+    </main>
+
+    <!-- Si la base de datos aún no tiene tablas -->
+    <main id="falta-base" class="contenedor pantalla-simple" hidden>
+      <p class="etiqueta">Goat · casi listo</p>
+      <h1 class="titular">Falta <span class="acento">un paso.</span></h1>
+      <p class="explicacion">
+        La base de datos todavía no tiene las tablas de esta sección. Pega todo supabase/schema.sql en Supabase › SQL Editor y
+        presiona Run. Después recarga esta página.
+      </p>
+      <a class="boton-borde ancho-justo" href="index.html">Volver a Hoy</a>
+    </main>
+
+    <!-- Si algo falla al cargar -->
+    <main id="fallo" class="contenedor pantalla-simple" hidden>
+      <p class="etiqueta">Goat</p>
+      <h1 class="titular">Algo <span class="acento">falló.</span></h1>
+      <p class="explicacion">Revisa tu conexión e intenta otra vez. Tus registros están a salvo.</p>
+      <button type="button" id="reintentar" class="boton-principal">Reintentar</button>
+    </main>
+
+    <div class="aviso-zona">
+      <p id="aviso" class="aviso" role="status" aria-live="polite"></p>
+    </div>
+
+    <template id="plantilla-chip">
+      <button type="button" class="chip" role="radio" aria-checked="false"></button>
+    </template>
+  </body>
+</html>

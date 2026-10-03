@@ -14,7 +14,8 @@ export class SesionVencida extends Error {}
 // PostgREST: tabla inexistente (PGRST205) · Postgres: relación inexistente (42P01).
 const SIN_TABLA = new Set(["PGRST205", "42P01"]);
 
-function revisar(respuesta) {
+/** Convierte el error de una respuesta de supabase-js en BaseSinInstalar, SesionVencida o Error. */
+export function revisar(respuesta) {
   const { error, status } = respuesta;
   if (!error) return;
   if (SIN_TABLA.has(error.code)) throw new BaseSinInstalar(error.message);
@@ -59,6 +60,13 @@ export async function cargarRegistros(userId, ahora = new Date()) {
     gym: gym.data ?? [],
     festivos: festivos.data ?? [],
   };
+}
+
+/** Lee con supabase-js y revisa el error: `await leer(supabase.from("tabla").select("*"))` devuelve data. */
+export async function leer(consulta) {
+  const respuesta = await consulta;
+  revisar(respuesta);
+  return respuesta.data;
 }
 
 /** Inserta una fila. Un id_cliente repetido (doble toque) cuenta como guardado. Devuelve true si quedó guardada. */

@@ -8,6 +8,8 @@ import { diaYMes, horaBogota, nombreDia } from "../logica/dia.js";
 import { formatearValor, unidad } from "../logica/formato.js";
 import { ajustarAlAncho, alVerse, avisar, clonar, contar, iniciarDiscreto, limitar, reducirMovimiento } from "../piezas/ui.js";
 import { iniciarRegistros } from "../piezas/registros.js";
+import { revisarBienvenida } from "../conectar/bienvenida.js";
+import { iniciarCampana } from "../notificaciones/campana.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -32,6 +34,12 @@ const TAMANO_MAXIMO_PORTADA = 240;
 
 const sesion = await requerirSesion();
 
+// La primera vez en este dispositivo, el asistente "Conectar iPhone" (js/conectar/bienvenida.js).
+if (await revisarBienvenida(sesion).catch(() => false)) {
+  location.replace("conectar.html");
+  await new Promise(() => {});
+}
+
 let registros = null; // Lo último que llegó de Supabase.
 let resumen = null; // Lo último que se pintó.
 let pintado = ""; // El mismo resumen en texto, para no repintar si nada cambió.
@@ -42,6 +50,7 @@ let scrollProgramado = false;
 iniciarDiscreto($("boton-discreto"));
 document.querySelectorAll("#cerrar-sesion, [data-cerrar-sesion]").forEach((boton) => boton.addEventListener("click", cerrarSesion));
 $("reintentar").addEventListener("click", () => cargar());
+iniciarCampana($("campana"), $("campana-contador"));
 
 const registro = iniciarRegistros({
   alGuardar: async (mensaje) => {
@@ -54,6 +63,7 @@ document.querySelectorAll("#dock [data-accion]").forEach((boton) =>
 );
 
 await cargar();
+pintarMinis();
 
 // El reloj de la barra y lo que falta cambian con la hora, aunque no registres nada.
 window.setInterval(() => {
@@ -110,6 +120,8 @@ function pintar(nuevo) {
   pintarMetricas(nuevo.metricas, animar);
   pintarSemana(nuevo, animar);
   programarScroll();
+  // Para la campana y otras piezas que necesitan el resumen sin recalcularlo.
+  document.dispatchEvent(new CustomEvent("goat:resumen", { detail: nuevo }));
 }
 
 // ── Portada ──────────────────────────────────────────────────────────────
@@ -290,6 +302,21 @@ function pintarSemana(datos, animar) {
   );
   if (animar) alVerse(barras, () => barras.classList.add("visto"));
   else barras.classList.add("visto");
+}
+
+// ── Secciones ────────────────────────────────────────────────────────────
+
+/** Dato corto de cada sección (js/<modulo>/mini.js), sin montos. Si un módulo falla, su tarjeta queda sin dato. */
+function pintarMinis() {
+  document.querySelectorAll(".seccion-tarjeta[data-modulo]").forEach(async (tarjeta) => {
+    try {
+      const { miniDato } = await import(`../${tarjeta.dataset.modulo}/mini.js`);
+      const texto = await miniDato(sesion);
+      if (texto) tarjeta.querySelector("[data-mini]").textContent = texto;
+    } catch (error) {
+      console.warn(`[secciones] ${tarjeta.dataset.modulo}`, error);
+    }
+  });
 }
 
 // ── Efectos al hacer scroll ──────────────────────────────────────────────

@@ -5,7 +5,9 @@ import { SesionVencida, guardar } from "../supabase/datos.js";
 import { cerrarSesion } from "../supabase/sesion.js";
 import { horaDecimal } from "../logica/dia.js";
 import { formatoCOP } from "../logica/formato.js";
-import { avisar, clonar, nuevoId } from "./ui.js";
+import { avisar, nuevoId } from "./ui.js";
+import { chips } from "./chips.js";
+import { crearHoja } from "./hoja.js";
 import {
   CATEGORIAS,
   CUENTAS,
@@ -29,42 +31,6 @@ const entero = (valor, minimo, maximo) => Number.isInteger(valor) && valor >= mi
 function esHoraDeCierre(ahora) {
   const hora = horaDecimal(ahora);
   return hora >= 22 || hora < 4;
-}
-
-/** Selector de una opción hecho con botones (los "chips"). */
-function chips(contenedor, alCambiar = () => {}) {
-  let valor = null;
-  const marcar = () =>
-    contenedor.querySelectorAll(".chip").forEach((chip) => chip.setAttribute("aria-checked", String(chip.dataset.valor === valor)));
-
-  contenedor.addEventListener("click", (evento) => {
-    const chip = evento.target.closest(".chip");
-    if (!chip) return;
-    valor = chip.dataset.valor;
-    marcar();
-    alCambiar(valor);
-  });
-
-  return {
-    get valor() {
-      return valor;
-    },
-    poner(nuevo) {
-      valor = nuevo;
-      marcar();
-    },
-    opciones(lista) {
-      contenedor.replaceChildren(
-        ...lista.map((opcion) => {
-          const chip = clonar("plantilla-chip");
-          chip.dataset.valor = opcion.valor;
-          chip.textContent = opcion.texto;
-          return chip;
-        }),
-      );
-      marcar();
-    },
-  };
 }
 
 // ── Gasto ────────────────────────────────────────────────────────────────
@@ -268,15 +234,21 @@ function formularioGym(form, enviar) {
  * (la pantalla de inicio muestra el aviso y vuelve a cargar los datos).
  */
 export function iniciarRegistros({ alGuardar }) {
-  const hoja = document.getElementById("hoja");
-  const velo = document.getElementById("velo");
   const titulo = document.getElementById("hoja-titulo");
-  const fondo = [document.getElementById("hoy"), document.getElementById("dock")];
+  // Lo que queda detrás de la hoja se vuelve inerte mientras está abierta.
+  const fondo = [...document.querySelectorAll("[data-fondo-hoja]")];
 
   let abierta = null;
   let idCliente = null; // Uno por cada vez que se abre: un doble toque no guarda dos veces.
   let enviando = false;
-  let focoPrevio = null;
+
+  const hoja = crearHoja({
+    hoja: document.getElementById("hoja"),
+    velo: document.getElementById("velo"),
+    manija: document.getElementById("hoja-manija"),
+    fondo,
+    alCerrar: () => (abierta = null),
+  });
 
   async function enviar(tabla, fila, mensaje) {
     if (enviando) return;
@@ -320,62 +292,14 @@ export function iniciarRegistros({ alGuardar }) {
     if (!formularios[accion]) return;
     abierta = accion;
     idCliente = nuevoId();
-    focoPrevio = document.activeElement;
     titulo.textContent = TITULO[accion];
     for (const nombre of Object.keys(formularios)) document.getElementById(`form-${nombre}`).hidden = nombre !== accion;
     formularios[accion].preparar(sugerencia, new Date());
     formularios[accion].revisar();
-    hoja.scrollTop = 0;
-    hoja.classList.add("abierta");
-    velo.classList.add("abierto");
-    fondo.forEach((el) => (el.inert = true));
-    hoja.focus({ preventScroll: true });
+    hoja.abrir();
   }
 
-  function cerrar() {
-    if (!abierta) return;
-    abierta = null;
-    hoja.classList.remove("abierta");
-    hoja.style.removeProperty("--arrastre");
-    velo.classList.remove("abierto");
-    fondo.forEach((el) => (el.inert = false));
-    focoPrevio?.focus?.({ preventScroll: true });
-  }
-
-  velo.addEventListener("click", cerrar);
-  window.addEventListener("keydown", (evento) => {
-    if (evento.key === "Escape") cerrar();
-  });
-  arrastrarParaCerrar(document.getElementById("hoja-manija"), hoja, cerrar);
+  const cerrar = () => hoja.cerrar();
 
   return { abrir, cerrar };
-}
-
-/** Arrastrar la manija hacia abajo cierra la hoja (más de 110 px o un gesto rápido). */
-function arrastrarParaCerrar(manija, hoja, cerrar) {
-  let inicio = null;
-
-  manija.addEventListener("pointerdown", (evento) => {
-    inicio = { y: evento.clientY, t: performance.now() };
-    manija.setPointerCapture(evento.pointerId);
-    hoja.classList.add("arrastrando");
-  });
-
-  manija.addEventListener("pointermove", (evento) => {
-    if (!inicio) return;
-    const bajada = Math.max(0, evento.clientY - inicio.y) * 0.7;
-    hoja.style.setProperty("--arrastre", `${bajada}px`);
-  });
-
-  const soltar = (evento) => {
-    if (!inicio) return;
-    const bajada = Math.max(0, evento.clientY - inicio.y);
-    const velocidad = bajada / Math.max(performance.now() - inicio.t, 1); // px por ms
-    inicio = null;
-    hoja.classList.remove("arrastrando");
-    if (bajada > 110 || velocidad > 0.6) cerrar();
-    else hoja.style.removeProperty("--arrastre");
-  };
-  manija.addEventListener("pointerup", soltar);
-  manija.addEventListener("pointercancel", soltar);
 }

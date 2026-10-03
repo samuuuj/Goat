@@ -251,6 +251,62 @@ create policy log_api_ver_propio on public.log_api
   for select to authenticated
   using (user_id = (select auth.uid()));
 
+-- ---------------------------------------------------------------------
+-- Ajustes personales (D-051): bienvenida, atajos listos, reglas del
+-- desbloqueo… Cada módulo usa su propia clave de primer nivel.
+-- ---------------------------------------------------------------------
+alter table public.perfil add column if not exists ajustes jsonb not null default '{}'::jsonb;
+
+-- Guarda una clave sin pisar las demás. Corre con los permisos de quien
+-- la llama: RLS de perfil decide (solo tu fila).
+create or replace function public.ajustes_poner(clave text, valor jsonb)
+returns void
+language sql
+security invoker
+set search_path = ''
+as $$
+  update public.perfil
+     set ajustes = jsonb_set(coalesce(ajustes, '{}'::jsonb), array[clave], valor, true)
+   where user_id = (select auth.uid())
+     and char_length(clave) between 1 and 40;
+$$;
+revoke execute on function public.ajustes_poner(text, jsonb) from public, anon;
+grant execute on function public.ajustes_poner(text, jsonb) to authenticated;
+
+-- ---------------------------------------------------------------------
+-- Centro de notificaciones de la app (D-057). Sin montos (D-020).
+-- clave evita duplicados ("racha:7:2026-10-03"); url solo rutas internas.
+-- ---------------------------------------------------------------------
+create table if not exists public.notificaciones (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  modulo        text not null check (modulo in ('finanzas','comidas','desbloqueo','sueno','ejercicio','universidad',
+                                                'ocio','rutina','puntuacion','diario','notificaciones','conectar')),
+  emoji         text not null default '🔔' check (char_length(emoji) between 1 and 8),
+  titulo        text not null check (char_length(titulo) between 1 and 60),
+  cuerpo        text check (char_length(cuerpo) <= 160),
+  url           text check (char_length(url) <= 200 and url !~ '^([a-zA-Z][a-zA-Z0-9+.-]*:|//)'),
+  clave         text check (char_length(clave) <= 80),
+  leida_en      timestamptz,
+  descartada_en timestamptz,
+  momento       timestamptz not null default now(),
+  fecha         date generated always as (public.dia_logico(momento)) stored,
+  origen        text not null default 'web' check (origen in ('atajo','web','automatizacion','widget')),
+  creado_en     timestamptz not null default now(),
+  unique (user_id, clave)
+);
+create index if not exists notificaciones_user_momento_idx on public.notificaciones (user_id, momento desc);
+
+revoke all on table public.notificaciones from anon, authenticated;
+grant select, insert, update, delete on table public.notificaciones to authenticated;
+alter table public.notificaciones enable row level security;
+
+drop policy if exists notificaciones_propias on public.notificaciones;
+create policy notificaciones_propias on public.notificaciones
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+
 
 -- #####################################################################
 -- 2. FINANZAS · dueña: 01 · Finanzas (v1 creada por Central, D-040)
@@ -375,6 +431,35 @@ create policy gym_sesiones_propias on public.gym_sesiones
   for all to authenticated
   using (user_id = (select auth.uid()))
   with check (user_id = (select auth.uid()));
+
+
+-- #####################################################################
+-- 6. SUEÑO · dueña: 04 · Sueño (D-055)
+-- Acostarse y despertar desde automatizaciones del iPhone + muestras de Salud.
+-- #####################################################################
+
+
+
+-- #####################################################################
+-- 7. DESBLOQUEO · dueña: 03 · Desbloqueo (D-054)
+-- Aperturas y cierres de apps, minutos ganados por puntaje y pases.
+-- #####################################################################
+
+
+
+-- #####################################################################
+-- 8. RUTINA · dueña: 08 · Rutina (D-056)
+-- Plantilla semanal de bloques, chequeos hecho/saltado.
+-- (Las tareas de la universidad van al final de la sección 4.)
+-- #####################################################################
+
+
+
+-- #####################################################################
+-- 9. NOTIFICACIONES · dueña: 00 · Central (D-057)
+-- La tabla vive en el núcleo; aquí solo lo extra de sus reglas.
+-- #####################################################################
+
 
 
 -- #####################################################################

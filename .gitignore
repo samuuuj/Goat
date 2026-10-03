@@ -4,9 +4,9 @@
 /docs/
 
 # Claves y configuración local
+# (web/js/config.js SÍ se sube: solo lleva la clave publicable, que es pública por diseño. D-050)
 .env*
 !.env.example
-/web/js/config.js
 *.pem
 
 # Vercel

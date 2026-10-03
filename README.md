@@ -4,10 +4,14 @@ Asistente diario de Samuel: registrar en segundos, ganar el ocio y cumplir metas
 HTML + CSS + JavaScript (PWA) + Supabase (Postgres + Auth) + Atajos de iOS.
 
 ## Abrir en tu computador
-1. Copia `.env.example` como `.env.local` y llena `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY` (solo la clave publicable).
-2. `npm run config` → crea `web/js/config.js` (no se sube a GitHub).
-3. Crea las tablas: pega todo `supabase/schema.sql` en Supabase › SQL Editor › Run (se puede repetir sin romper nada).
-4. En VS Code, **Go Live** (Live Server ya está configurado para mostrar `web/`) o `npm run local` → http://localhost:3000. Entra con tu correo y contraseña.
+1. Crea las tablas: pega todo `supabase/schema.sql` en Supabase › SQL Editor › Run (se puede repetir sin romper nada).
+2. En VS Code, **Go Live** (Live Server ya está configurado para mostrar `web/`) o `npm run local` → http://localhost:3000. Entra con tu correo y contraseña.
+
+`web/js/config.js` trae la URL de Supabase y la clave **publicable**, que es pública por diseño: los datos los protegen las reglas RLS de la base.
+Para usar otro proyecto de Supabase: copia `.env.example` como `.env.local`, llénalo y corre `npm run config`. La clave secreta nunca va aquí.
+
+## Publicar
+Cada push a `main` lo publica Vercel (sirve `web/` con las cabeceras de `vercel.json`). Al publicar, `scripts/crear-config.mjs` revisa `web/js/config.js` y frena si encuentra una clave secreta.
 
 ## Carpetas
 ```
@@ -22,7 +26,7 @@ web/                 la página (lo único que se publica)
   js/vendor/         librería de Supabase
   img/ fuentes/      íconos y letras
 supabase/schema.sql  toda la base de datos
-scripts/             crear web/js/config.js y servidor de prueba
+scripts/             escribir y revisar web/js/config.js, servidor de prueba
 vercel.json          seguridad y publicación en Vercel
 ```
 

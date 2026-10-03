@@ -1,6 +1,7 @@
-// Crea web/js/config.js con la URL y la clave publicable de Supabase.
+// Crea o revisa web/js/config.js con la URL y la clave publicable de Supabase.
 //   - En tu computador: `npm run config` (las lee de .env.local).
-//   - En Vercel: corre en cada publicación (las lee de Settings › Environment Variables).
+//   - En Vercel: corre en cada publicación. Usa las variables de Settings › Environment Variables
+//     si existen; si no, revisa el web/js/config.js que ya está en GitHub (D-050).
 // Se niega a seguir si la clave es la secreta o la URL no es de Supabase. Nunca imprime la clave.
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -8,6 +9,17 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
+const CONFIG = join(RAIZ, "web", "js", "config.js");
+
+/** Lee el web/js/config.js actual (si existe) como { NOMBRE: "valor" }. */
+function leerConfigActual() {
+  if (!existsSync(CONFIG)) return {};
+  const variables = {};
+  for (const [, nombre, valor] of readFileSync(CONFIG, "utf8").matchAll(/export const ([A-Z0-9_]+) = ("[^"\n]*");/g)) {
+    variables[nombre] = JSON.parse(valor);
+  }
+  return variables;
+}
 
 /** Lee .env.local (si existe) como { NOMBRE: "valor" }. */
 function leerEnvLocal() {
@@ -30,7 +42,8 @@ function rolDeJwt(clave) {
   }
 }
 
-const variables = { ...leerEnvLocal(), ...process.env };
+// Prioridad: variables de Vercel o de la terminal > .env.local > el config.js que ya existe.
+const variables = { ...leerConfigActual(), ...leerEnvLocal(), ...process.env };
 const url = variables.SUPABASE_URL?.trim();
 const clave = variables.SUPABASE_PUBLISHABLE_KEY?.trim();
 
@@ -50,9 +63,10 @@ if (errores.length > 0) {
 }
 
 writeFileSync(
-  join(RAIZ, "web", "js", "config.js"),
+  CONFIG,
   [
-    "// Creado por scripts/crear-config.mjs. No se sube a GitHub (.gitignore).",
+    "// Creado por scripts/crear-config.mjs (npm run config). Se sube a GitHub: la clave publicable",
+    "// es pública por diseño y los datos los protege RLS. NUNCA poner aquí la clave secreta.",
     `export const SUPABASE_URL = ${JSON.stringify(url)};`,
     `export const SUPABASE_PUBLISHABLE_KEY = ${JSON.stringify(clave)};`,
     "",

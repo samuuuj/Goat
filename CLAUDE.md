@@ -2,7 +2,7 @@
 
 > Claude lee este archivo al iniciar cualquier sesión en esta carpeta (`C:\Users\Admin\OneDrive\Documents\Samuel UNI\WEB PROPIA`). Es la fuente de verdad común entre las sesiones de cada módulo. Mantenerlo corto: el detalle vive en `docs/`.
 > **Toda la web vive y se modifica solo en esta carpeta (D-044).** `C:\dev\sistema-personal` es una copia vieja: no tocarla.
-> **El repositorio de GitHub es público (D-047):** nada de claves ni datos sensibles en archivos que se suben. `docs/` **no se sube** (D-048): vive solo aquí y en OneDrive. Commits con el correo privado de GitHub.
+> **El repositorio de GitHub es público (D-047):** nada de claves secretas ni datos sensibles en archivos que se suben (la clave publicable en `web/js/config.js` sí se sube, D-050). `docs/` **no se sube** (D-048): vive solo aquí y en OneDrive. Commits con el correo privado de GitHub.
 
 ## Qué es
 **Goat**: sistema personal de Samuel (estudiante universitario en Colombia) para automatizar el día, evitar procrastinar y cumplir metas.
@@ -16,7 +16,7 @@ Web en HTML, CSS y JavaScript instalada como app en el iPhone (PWA) + Atajos de 
 - Atajos de iOS → `/api/v1/...` con token personal (`Authorization: Bearer`): funciones de Vercel en `api/v1/` (JavaScript), por construir.
 - Widgets: **Scriptable** leyendo `/api/v1/widget`. Una PWA no puede crear widgets nativos.
 - Datos de Salud (sueño, pasos, entrenos) **solo llegan vía Atajos**: no existe API web de HealthKit.
-- Comandos (PowerShell; si `node` no aparece, refrescar el PATH): `npm run local` (servidor en http://localhost:3000 con las cabeceras de Vercel) · `npm run config` (crea `web/js/config.js` desde `.env.local`; Vercel corre lo mismo al publicar). Vista previa de Claude: `.claude/launch.json` → "web".
+- Comandos (PowerShell; si `node` no aparece, refrescar el PATH): `npm run local` (servidor en http://localhost:3000 con las cabeceras de Vercel) · `npm run config` (reescribe `web/js/config.js` desde `.env.local`; Vercel corre el mismo script para revisarlo al publicar). Vista previa de Claude: `.claude/launch.json` → "web".
 
 ## Principios (no romper sin registrarlo en docs/DECISIONES.md)
 1. **Las reglas viven en un solo lugar.** El cálculo del día está en `web/js/logica/calculo.js` y lo usarán también las funciones de `api/v1/`. Los atajos son clientes delgados: piden menús y mensajes a la API.
@@ -28,14 +28,14 @@ Web en HTML, CSS y JavaScript instalada como app en el iPhone (PWA) + Atajos de 
 7. Idioma: UI, rutas de API, tablas y columnas en **español sin tildes ni ñ** (`sueno`, `anio`).
 8. **Diseño: seguir `docs/DISENO.md`.** Editorial cinético, siempre oscuro, estilo Apple, un solo acento naranja, anillos de progreso.
 9. **Discreción:** dinero oculto por defecto (`.sensible`); notificaciones solo con emoji, sin montos ni sonido.
-10. **Seguridad (`docs/SEGURIDAD.md`):** RLS y `revoke … from anon` en toda tabla; en el navegador solo la clave publicable; datos en pantalla siempre con `textContent` (nunca `innerHTML`); nada de scripts ni estilos en línea (la CSP los bloquea); nunca claves en el código ni en el chat.
-11. **Git:** no hacer commit ni push hasta que Samuel lo pida.
+10. **Seguridad (`docs/SEGURIDAD.md`):** RLS y `revoke … from anon` en toda tabla; en el navegador solo la clave publicable; datos en pantalla siempre con `textContent` (nunca `innerHTML`); nada de scripts ni estilos en línea (la CSP los bloquea); nunca claves secretas en el código ni claves en el chat.
+11. **Git (D-050):** no hacer commit ni push hasta que Samuel lo pida. Cuando diga **"commit and push"**, hacer los dos: antes revisar con `git diff --cached` que no vaya `sb_secret_`, `service_role`, su correo personal ni `docs/`; después confirmar que Vercel publicó. Si el cambio toca `supabase/schema.sql`, decirle que lo pegue en Supabase › SQL Editor › Run (lo hace él a mano).
 
 ## Mapa del proyecto
 - **`web/`** (la página; lo único que se publica): `index.html` (inicio) · `login.html` (entrada) · `manifest.webmanifest` · `robots.txt` · `img/` · `fuentes/`
   - `web/css/`: `base.css` (colores, letras, responsive, piezas compartidas) · `login.css` · `hoy.css`.
   - `web/js/paginas/`: `login.js`, `hoy.js` (lo que carga cada HTML) · `web/js/piezas/`: `registros.js` (hojas de registro), `ui.js` (piezas reutilizables) · `web/js/logica/`: `calculo.js` (resumen y puntuación), `dia.js`, `formato.js`, `catalogos.js` (funciones puras, sin pantalla ni internet) · `web/js/supabase/`: `sesion.js` (conexión y "mantener sesión"), `datos.js` (leer y guardar) · `web/js/vendor/supabase.js`.
-  - `web/js/config.js` no se sube (se crea con `npm run config`).
+  - `web/js/config.js`: URL y clave publicable de Supabase. Se sube (D-050); se cambia con `npm run config`.
 - `supabase/schema.sql` · `scripts/` (`crear-config.mjs`, `servidor-local.mjs`) · `vercel.json` (cabeceras de seguridad y publicación) · `.vscode/settings.json` (Live Server solo sirve `web/`).
 - `supabase/schema.sql`: **toda la base de datos en un solo archivo** (D-045), una sección por módulo. Se pega completo en Supabase › SQL Editor › Run; es repetible.
 - `docs/ESTADO.md`: tablero compartido. **Leer al empezar, actualizar al terminar.**

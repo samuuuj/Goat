@@ -25,12 +25,15 @@ function fila(usuario, minutosAtras, datos, { leida = false } = {}) {
   };
 }
 
-/** Agrega filas a la tabla `notificaciones` del simulador. */
+/**
+ * Agrega filas a la tabla `notificaciones` del simulador. Idempotente: el simulador puede llamarla
+ * más de una vez si varias consultas arrancan a la vez (ver SOLICITUDES.md).
+ */
 export function agregar(datos, usuario) {
   const hora = 60;
   const dia = 24 * hora;
   datos.tablas.notificaciones = [
-    ...(datos.tablas.notificaciones ?? []),
+    ...(datos.tablas.notificaciones ?? []).filter((n) => !String(n.clave ?? "").startsWith("demo:")),
     // Hoy
     fila(usuario, 2, { modulo: "rutina", emoji: "🗓️", titulo: "Clase presencial en 15 min", cuerpo: "Cálculo integral · salón 204. Sal con tiempo.", url: "rutina.html" }),
     fila(usuario, 12, { modulo: "finanzas", emoji: "💸", titulo: "Movimiento guardado", cuerpo: "Desde el iPhone · Comida · Nequi.", url: "finanzas.html" }),

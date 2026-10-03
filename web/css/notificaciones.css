@@ -148,7 +148,12 @@ html.nc-bloqueo body {
 }
 
 .nc-titulo {
-  font-size: clamp(2.25rem, 10vw, 3rem);
+  min-width: 0;
+  overflow: hidden;
+  font-size: clamp(2rem, 9.6vw, 3.25rem);
+  font-stretch: 76%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nc.entrando .nc-barra {

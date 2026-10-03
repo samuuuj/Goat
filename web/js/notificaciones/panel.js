@@ -123,9 +123,15 @@ export function crearPanel({ boton, alTocar, alBorrar, alCerrar }) {
     window.clearInterval(relojTemporizador);
     fondos.forEach((f) => (f.inert = false));
     document.documentElement.classList.remove("nc-bloqueo");
-    if (devolverFoco) (focoPrevio?.isConnected ? focoPrevio : boton)?.focus?.({ preventScroll: true });
+    if (devolverFoco) {
+      const previo = focoPrevio?.isConnected && focoPrevio !== document.body ? focoPrevio : boton;
+      previo?.focus?.({ preventScroll: true });
+    }
     alCerrar?.([...vistas]);
   }
+
+  /** Lo que cambia lo que se ve: si la firma es igual, no se repinta (no reinicia animaciones). */
+  const firma = (l) => l.map((n) => `${n.id}|${n.leida_en ? 1 : 0}|${n.descartada_en ? 1 : 0}`).join(",");
 
   /** Lista nueva desde afuera (reglas, atajos). Si estás deslizando o algo se está animando, espera. */
   function actualizar(nuevaLista) {
@@ -133,8 +139,10 @@ export function crearPanel({ boton, alTocar, alBorrar, alCerrar }) {
       pendiente = nuevaLista;
       return;
     }
-    lista = nuevaLista ?? [];
-    if (abierto) pintar();
+    const nueva = nuevaLista ?? [];
+    const cambio = firma(nueva) !== firma(lista);
+    lista = nueva;
+    if (abierto && cambio) pintar();
   }
 
   function soltarOcupado() {
@@ -165,7 +173,11 @@ export function crearPanel({ boton, alTocar, alBorrar, alCerrar }) {
   let arrastre = null;
   manija.addEventListener("pointerdown", (evento) => {
     arrastre = { y: evento.clientY, t: performance.now() };
-    manija.setPointerCapture(evento.pointerId);
+    try {
+      manija.setPointerCapture(evento.pointerId);
+    } catch {
+      // Sin captura: igual sigue al dedo mientras esté encima.
+    }
     hoja.classList.add("arrastrando");
   });
   manija.addEventListener("pointermove", (evento) => {
@@ -513,7 +525,11 @@ export function crearPanel({ boton, alTocar, alBorrar, alCerrar }) {
     quitarDeLista(ids);
     soltarOcupado();
     if (ocupado === 0) pintar();
-    if (teclado) (siguienteFoco?.isConnected ? siguienteFoco : raiz).focus({ preventScroll: true });
+    if (teclado) {
+      const vecina = siguienteFoco && listaEl.querySelector(`.nc-item[data-id="${CSS.escape(siguienteFoco)}"]`);
+      const destino = vecina && !vecina.inert ? vecina.querySelector(".nc-tarjeta") : vecina?.closest(".nc-pila")?.querySelector(".nc-tarjeta");
+      (destino ?? raiz).focus({ preventScroll: true });
+    }
   }
 
   /** Cierra el hueco de un elemento que se va (alto → 0). */
@@ -524,11 +540,14 @@ export function crearPanel({ boton, alTocar, alBorrar, alCerrar }) {
     await esperar(320);
   }
 
+  /** Id de la tarjeta que recibe el foco después de borrar con el teclado (la siguiente, o la anterior). */
   function vecinoDe(nodo) {
     const todas = [...listaEl.querySelectorAll(".nc-tarjeta")].filter((t) => !t.closest("[inert]"));
     const propias = new Set(nodo.querySelectorAll(".nc-tarjeta"));
     const indice = todas.findIndex((t) => propias.has(t));
-    return todas.slice(indice + 1).find((t) => !propias.has(t)) ?? todas.slice(0, Math.max(indice, 0)).reverse().find((t) => !propias.has(t));
+    const vecina =
+      todas.slice(indice + 1).find((t) => !propias.has(t)) ?? todas.slice(0, Math.max(indice, 0)).reverse().find((t) => !propias.has(t));
+    return vecina?.closest(".nc-item")?.dataset.id ?? null;
   }
 
   function quitarDeLista(ids) {
@@ -647,9 +666,10 @@ export function crearPanel({ boton, alTocar, alBorrar, alCerrar }) {
     if (regla === "pendiente") document.dispatchEvent(new CustomEvent("goat:registrar", { detail: { clave, notificacion: n.clave } }));
     const lugar = ancla ? (document.getElementById(ancla) ?? document.querySelector(`.${CSS.escape(ancla)}`)) : null;
     window.setTimeout(() => {
-      if (lugar) lugar.scrollIntoView({ behavior: reducirMovimiento() ? "auto" : "smooth", block: "start" });
-      else window.scrollTo({ top: 0, behavior: reducirMovimiento() ? "auto" : "smooth" });
       (lugar?.querySelector("button, a") ?? boton)?.focus?.({ preventScroll: true });
+      const comportamiento = reducirMovimiento() ? "auto" : "smooth";
+      if (lugar) lugar.scrollIntoView({ behavior: comportamiento, block: "start" });
+      else window.scrollTo({ top: 0, behavior: comportamiento });
     }, 260);
   }
 

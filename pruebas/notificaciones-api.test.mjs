@@ -5,6 +5,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { crearSupabaseFalso, jwtFalso, llamar } from "./ayuda/supabase-falso.mjs";
 import { tieneMontos } from "../web/js/notificaciones/logica.js";
+import { ATAJOS } from "../web/js/notificaciones/atajos.js";
+import { RUTAS } from "../api/_lib/rutas.js";
 
 const A = "11111111-1111-4111-8111-111111111111";
 const B = "22222222-2222-4222-8222-222222222222";
@@ -134,4 +136,16 @@ test("marcar leídas por ids o todas; ids inválidos → 400", async () => {
 
   assert.equal((await llamar(falso, "POST notificaciones/leidas", { token, cuerpo: { ids: ["x"] } })).estado, 400);
   assert.equal((await llamar(falso, "POST notificaciones/leidas", { token, cuerpo: {} })).estado, 400);
+});
+
+test("la guía del atajo tiene el formato común y su botón Probar apunta a una ruta que existe", () => {
+  assert.equal(ATAJOS.length, 1);
+  for (const atajo of ATAJOS) {
+    for (const campo of ["id", "emoji", "nombre", "para", "pasos", "permisos", "prueba"]) assert.ok(atajo[campo], campo);
+    assert.ok(atajo.pasos.length >= 5);
+    assert.ok(atajo.automatizacion?.pasos?.length >= 3);
+    assert.ok(RUTAS[`${atajo.prueba.metodo} ${atajo.prueba.ruta}`], "ruta de prueba inexistente");
+    assert.ok(atajo.pasos.some((p) => p.includes("⚙️ Goat")), "debe usar el atajo base ⚙️ Goat");
+    assert.ok(!tieneMontos(JSON.stringify(atajo)));
+  }
 });

@@ -362,6 +362,41 @@ export function enCurso(sesiones, ahora = new Date()) {
   return { sesion, transcurridoMs: Math.max(0, transcurrido), olvidada: transcurrido > MAXIMO_HORAS * HORA };
 }
 
+/**
+ * Actividad del día desde Salud ({ fecha?, pasos?, distancia_km?, energia_kcal? }; números o texto del iPhone).
+ * Sin fecha: la de calendario de `ahora` (la que Salud llama "hoy"). Devuelve { fila } o { error }.
+ */
+export function validarActividad(datos, ahora = new Date()) {
+  let fecha = fechaCalendario(ahora);
+  if (datos?.fecha != null && datos.fecha !== "") {
+    const texto = String(datos.fecha).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(texto) && !Number.isNaN(Date.parse(`${texto}T12:00:00Z`))) fecha = texto;
+    else if (aMs(texto) != null) fecha = fechaCalendario(texto);
+    else return { error: "⚠️ Revisa la fecha" };
+  }
+  const hoy = fechaCalendario(ahora);
+  if (fecha > hoy || fecha < sumarDias(hoy, -400)) return { error: "⚠️ Revisa la fecha" };
+
+  const fila = { fecha };
+  const campos = [
+    ["pasos", enteroFlexible, 200_000, "los pasos"],
+    ["distancia_km", (v) => (decimalFlexible(v) == null ? null : dosDecimales(decimalFlexible(v))), 300, "la distancia"],
+    ["energia_kcal", enteroFlexible, 20_000, "la energía"],
+  ];
+  for (const [campo, leer, maximo, nombre] of campos) {
+    if (datos?.[campo] == null || datos[campo] === "") continue;
+    const valor = leer(datos[campo]);
+    if (valor == null || valor < 0 || valor > maximo) return { error: `⚠️ Revisa ${nombre}` };
+    fila[campo] = valor;
+  }
+  if (Object.keys(fila).length === 1) return { error: "⚠️ Faltan los pasos" };
+  return { fila };
+}
+
+/** "📈 8.432 pasos" · "📈 Actividad guardada" */
+export const mensajeActividad = (fila) =>
+  fila.pasos != null ? `📈 ${formatoMiles(fila.pasos)} pasos` : "📈 Actividad guardada";
+
 /** "✅ 55 min" · "✅ 45 min · 3,2 km" (sin montos: va a notificaciones del iPhone). */
 export function mensajeGuardada(sesion) {
   const minutos = duracion(sesion);

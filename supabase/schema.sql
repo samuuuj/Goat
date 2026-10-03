@@ -432,6 +432,113 @@ create policy gym_sesiones_propias on public.gym_sesiones
   using (user_id = (select auth.uid()))
   with check (user_id = (select auth.uid()));
 
+-- ---------------------------------------------------------------------
+-- Ejercicio v2 (objetivo H, D-055): tipo, hora de inicio y fin, duración,
+-- distancia, pasos y "entreno en curso" (cronómetro). Sin Apple Watch:
+-- se registra con el atajo 🏋️ Entreno (empezar/terminar) o desde la web.
+-- Caminata y trote no tienen rutina: `rutina` pasa a ser opcional.
+-- ---------------------------------------------------------------------
+alter table public.gym_sesiones add column if not exists tipo         text not null default 'fuerza';
+alter table public.gym_sesiones add column if not exists inicio       timestamptz;
+alter table public.gym_sesiones add column if not exists fin          timestamptz;
+alter table public.gym_sesiones add column if not exists duracion_min int;
+alter table public.gym_sesiones add column if not exists distancia_km numeric(5,2);
+alter table public.gym_sesiones add column if not exists pasos        int;
+alter table public.gym_sesiones add column if not exists en_curso     boolean not null default false;
+alter table public.gym_sesiones alter column rutina drop not null;
+
+alter table public.gym_sesiones drop constraint if exists gym_sesiones_tipo_check;
+alter table public.gym_sesiones add constraint gym_sesiones_tipo_check
+  check (tipo in ('fuerza','caminata','trote','cardio','deporte','movilidad','otro'));
+
+-- Fin después del inicio y como mucho 6 horas después.
+alter table public.gym_sesiones drop constraint if exists gym_sesiones_horario_check;
+alter table public.gym_sesiones add constraint gym_sesiones_horario_check
+  check (fin is null or (inicio is not null and fin > inicio and fin <= inicio + interval '6 hours'));
+
+alter table public.gym_sesiones drop constraint if exists gym_sesiones_duracion_check;
+alter table public.gym_sesiones add constraint gym_sesiones_duracion_check
+  check (duracion_min is null or duracion_min between 1 and 600);
+
+alter table public.gym_sesiones drop constraint if exists gym_sesiones_distancia_check;
+alter table public.gym_sesiones add constraint gym_sesiones_distancia_check
+  check (distancia_km is null or distancia_km between 0 and 100);
+
+alter table public.gym_sesiones drop constraint if exists gym_sesiones_pasos_check;
+alter table public.gym_sesiones add constraint gym_sesiones_pasos_check
+  check (pasos is null or pasos between 0 and 100000);
+
+-- Un entreno en curso tiene inicio y todavía no tiene fin.
+alter table public.gym_sesiones drop constraint if exists gym_sesiones_en_curso_check;
+alter table public.gym_sesiones add constraint gym_sesiones_en_curso_check
+  check (not en_curso or (inicio is not null and fin is null));
+
+-- Solo un entreno en curso a la vez por usuario.
+create unique index if not exists gym_sesiones_un_en_curso_idx on public.gym_sesiones (user_id) where en_curso;
+
+-- momento = inicio (así `fecha` es el día lógico en que empezó el entreno)
+-- y duracion_min sale de inicio y fin. Igual que web/js/ejercicio/logica.js.
+create or replace function public.gym_sesiones_preparar()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.inicio is not null then
+    new.momento := new.inicio;
+    if new.fin is not null then
+      new.duracion_min := greatest(1, round(extract(epoch from (new.fin - new.inicio)) / 60)::int);
+    end if;
+  end if;
+  return new;
+end
+$$;
+-- Nadie la llama directo; solo el trigger.
+revoke execute on function public.gym_sesiones_preparar() from public, anon, authenticated;
+
+drop trigger if exists gym_sesiones_preparar on public.gym_sesiones;
+create trigger gym_sesiones_preparar
+  before insert or update on public.gym_sesiones
+  for each row execute function public.gym_sesiones_preparar();
+
+-- Antes "Cardio" era una rutina; ahora es un tipo.
+update public.gym_sesiones set tipo = 'cardio'
+ where rutina = 'cardio' and tipo = 'fuerza' and inicio is null;
+
+-- ---------------------------------------------------------------------
+-- Actividad del día desde Salud (atajo 📈 Actividad del día, 21:30).
+-- El iPhone cuenta pasos y distancia sin Watch. Una fila por fecha:
+-- el atajo puede correr varias veces y solo actualiza (upsert).
+-- ---------------------------------------------------------------------
+create table if not exists public.ejercicio_actividad (
+  id             uuid primary key default gen_random_uuid(),
+  user_id        uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  fecha          date not null,
+  pasos          int check (pasos between 0 and 200000),
+  distancia_km   numeric(5,2) check (distancia_km between 0 and 300),
+  energia_kcal   int check (energia_kcal between 0 and 20000),
+  fuente         text not null default 'salud' check (fuente in ('salud','manual')),
+  origen         text not null default 'atajo' check (origen in ('atajo','web','automatizacion','widget')),
+  creado_en      timestamptz not null default now(),
+  actualizado_en timestamptz not null default now(),
+  unique (user_id, fecha)
+);
+
+drop trigger if exists ejercicio_actividad_actualizado_en on public.ejercicio_actividad;
+create trigger ejercicio_actividad_actualizado_en
+  before update on public.ejercicio_actividad
+  for each row execute function public.tocar_actualizado_en();
+
+revoke all on table public.ejercicio_actividad from anon, authenticated;
+grant select, insert, update, delete on table public.ejercicio_actividad to authenticated;
+alter table public.ejercicio_actividad enable row level security;
+
+drop policy if exists ejercicio_actividad_propia on public.ejercicio_actividad;
+create policy ejercicio_actividad_propia on public.ejercicio_actividad
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+
 
 -- #####################################################################
 -- 6. SUEÑO · dueña: 04 · Sueño (D-055)

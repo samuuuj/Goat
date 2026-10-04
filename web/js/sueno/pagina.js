@@ -101,8 +101,14 @@ function pintar(nuevo) {
 // ── Textos de apoyo ──────────────────────────────────────────────────────
 
 /** Fecha de calendario (sin el corte de las 04:00) de un momento. */
-const fechaDe = (t) => diaLogico(new Date(t + 4 * HORA_MS));
-const diaCorto = (fecha) => `${nombreDia(fecha).slice(0, 3)} ${diaYMes(fecha)}`;
+function fechaDe(t) {
+  return diaLogico(new Date(t + 4 * HORA_MS));
+}
+
+/** "jue 02 oct" */
+function diaCorto(fecha) {
+  return `${nombreDia(fecha).slice(0, 3)} ${diaYMes(fecha)}`;
+}
 
 /** "hoy 06:05" · "ayer 23:40" · "lun 28 sep · 23:40" */
 function cuando(iso) {
@@ -264,6 +270,8 @@ function pintarSemana(r, animar) {
   $("semana-promedio").textContent = r.promedios.duracionMin === null ? "" : `Promedio ${duracionCorta(r.promedios.duracionMin)}`;
 
   const resaltada = r.enCurso?.fecha ?? r.ultimaNoche?.fecha;
+  $("leyenda-ultima").hidden = !semana.some((fila) => fila.fecha === resaltada);
+  $("leyenda-ultima-texto").textContent = r.enCurso ? "Esta noche" : "Última noche";
   $("grafica-filas").replaceChildren(
     ...semana.map((fila, i) => {
       const item = clonar("plantilla-noche");
@@ -381,7 +389,7 @@ function pintarGuias() {
     ...ATAJOS.map((atajo) => {
       const guia = clonar("plantilla-guia");
       guia.querySelector(".guia-emoji").textContent = atajo.emoji;
-      guia.querySelector(".guia-nombre").textContent = `${atajo.emoji} ${atajo.nombre}`;
+      guia.querySelector(".guia-nombre").textContent = atajo.nombre;
       guia.querySelector(".guia-para").textContent = atajo.para;
       const requisitos = atajo.requisitos ?? [];
       guia.querySelector(".guia-requisitos-bloque").hidden = requisitos.length === 0;

@@ -393,6 +393,7 @@
 .promedio-valor {
   font-size: clamp(1.75rem, 8.5vw, 3rem);
   white-space: nowrap;
+  text-transform: none;
 }
 
 .promedios-nota {
@@ -471,6 +472,11 @@
 
 .solo-estado > li + li > a.fila {
   box-shadow: inset 3.25rem 1px 0 var(--superficie-2), inset 0 1px 0 var(--linea);
+}
+
+.solo-estado .fila-titulo,
+.solo-estado .fila-detalle {
+  display: block;
 }
 
 .solo-estado .fila-detalle {
@@ -650,8 +656,12 @@
 
 @media (min-width: 48rem) {
   .anoche-rejilla {
-    grid-template-columns: 1.35fr 1fr;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
     align-items: center;
+  }
+
+  .anoche-duracion {
+    font-size: min(9.5rem, 14.5vw);
   }
 
   .grafica {
@@ -694,8 +704,12 @@
     width: 17rem;
   }
 
+  .regularidad-valor {
+    font-size: min(8rem, 7.5vw);
+  }
+
   .regularidad-rejilla {
-    grid-template-columns: 2fr 3fr;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
     align-items: start;
     gap: 5rem;
   }

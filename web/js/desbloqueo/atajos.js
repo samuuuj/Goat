@@ -19,7 +19,7 @@ export const ATAJOS = [
     pasos: [
       "Abre Atajos › pestaña Atajos › ＋. Toca el nombre de arriba y llámalo 🔒 Puerta.",
       ...CONECTAR_GOAT,
-      "Agrega «Texto» y escribe: la variable url, luego /desbloqueo/gate?app= y al final la variable «Entrada del atajo» (sin espacios).",
+      "Agrega «Texto» y escribe: la variable url, luego /api/v1/desbloqueo/gate?app= y al final la variable «Entrada del atajo» (sin espacios).",
       `Agrega «Obtener contenido de URL» con ese Texto. Método: GET. ${ENCABEZADO}`,
       "Agrega «Obtener valor del diccionario»: Obtener Valor para la clave datos.accion en «Contenido de URL». (Si tu iPhone no acepta el punto, usa dos acciones: primero la clave datos y luego accion.)",
       "Agrega «Si»: «Valor del diccionario» · es · bloquear. Lo que sigue va DENTRO del Si:",
@@ -27,7 +27,7 @@ export const ATAJOS = [
       "«Obtener valor del diccionario»: Valor para mensaje en «Contenido de URL». Luego «Mostrar notificación» con ese Valor del diccionario.",
       "«Elegir del menú» con la indicación «Valor del diccionario» (el mensaje) y tres opciones: 📝 Registrar ahora · 🆘 Usar pase · Ahora no.",
       "En 📝 Registrar ahora: «Obtener valor del diccionario» con la clave datos.abrir en «Contenido de URL», y luego «Abrir URL» con ese valor (abre el atajo o la página que registra lo que falta).",
-      `En 🆘 Usar pase: «Texto» con la variable url y /desbloqueo/pase. «Obtener contenido de URL» con ese Texto, Método POST, el mismo encabezado Authorization, y en Cuerpo de la solicitud elige JSON › «Añadir nuevo campo» › Texto: clave app, valor «Entrada del atajo». Después «Obtener valor del diccionario» con la clave mensaje y «Mostrar notificación» con ese valor.`,
+      `En 🆘 Usar pase: «Texto» con la variable url y /api/v1/desbloqueo/pase. «Obtener contenido de URL» con ese Texto, Método POST, el mismo encabezado Authorization, y en Cuerpo de la solicitud elige JSON › «Añadir nuevo campo» › Texto: clave app, valor «Entrada del atajo». Después «Obtener valor del diccionario» con la clave mensaje y «Mostrar notificación» con ese valor.`,
       "En Ahora no: no pongas nada.",
       "Opcional: en «De lo contrario» del Si, «Mostrar notificación» con el mensaje para ver cuántos minutos te quedan (ej. ✅ 42 min en TikTok).",
       "Si no hay internet, «Obtener contenido de URL» falla, el atajo se detiene y la app queda abierta: sin conexión, la puerta deja pasar.",
@@ -55,7 +55,7 @@ export const ATAJOS = [
     pasos: [
       "Abre Atajos › pestaña Atajos › ＋. Llámalo 🔓 Cerré app.",
       ...CONECTAR_GOAT,
-      "Agrega «Texto»: la variable url y luego /desbloqueo/evento.",
+      "Agrega «Texto»: la variable url y luego /api/v1/desbloqueo/evento.",
       `Agrega «Obtener contenido de URL» con ese Texto. Método: POST. ${ENCABEZADO}`,
       "En Cuerpo de la solicitud elige JSON y agrega dos campos de Texto: app = «Entrada del atajo» y evento = cerrar.",
       "No agregues notificaciones: corre en silencio.",

@@ -1,6 +1,6 @@
 // Guía de los atajos de iPhone de Rutina (formato en .claude/objetivos/00-comun.md › Guía de atajos).
 // El asistente "Conectar iPhone" (conectar.html) las reúne todas; rutina.html también las muestra.
-// Todos usan el atajo base "⚙️ Goat", que devuelve un diccionario { url, token } (url ya termina en /api/v1).
+// Todos usan el atajo base "⚙️ Goat", que devuelve un diccionario { url, token } (url va sin /api/v1, igual que en los demás módulos).
 // Las fechas que manda la API vienen en ISO 8601 con la zona de Bogotá (ej. 2026-10-06T06:10:00-05:00).
 
 /** Los primeros pasos de todos los atajos de Goat: traer la dirección y la llave. */
@@ -13,7 +13,7 @@ const BASE = [
 /** "Obtener contenido de URL" con la llave. */
 const pedir = (metodo, ruta, cuerpo) =>
   [
-    `Añade "Obtener contenido de URL". URL: la variable URL seguida de /${ruta} (sin espacios). Toca "Mostrar más": Método ${metodo}.`,
+    `Añade "Obtener contenido de URL". URL: la variable URL seguida de /api/v1/${ruta} (sin espacios). Toca "Mostrar más": Método ${metodo}.`,
     'En "Encabezados" toca "Añadir encabezado nuevo": clave Authorization, valor Bearer (con un espacio) seguido de la variable Llave.',
     cuerpo ? `En "Cuerpo de la solicitud" elige JSON y agrega: ${cuerpo}.` : null,
   ].filter(Boolean);

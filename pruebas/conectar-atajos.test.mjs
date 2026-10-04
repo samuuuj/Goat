@@ -89,11 +89,12 @@ test("conectar.html respeta la CSP: sin scripts, estilos ni eventos en línea", 
 /**
  * Rutas de la API escritas en los pasos sin el /api/v1 delante (asumen que url ya lo trae).
  * "(…/ejercicio/menu)" es una abreviatura de una dirección completa de antes: no cuenta.
+ * Un tramo pegado a una palabra ("/rutina/hoy") es parte de otra ruta, no la ruta "hoy".
  */
 function rutasSinApi(atajo, modulosApi) {
   const textos = [...atajo.pasos, ...atajo.automatizaciones.flatMap((a) => a.pasos ?? [])];
   const patron = new RegExp(`(/api/v1)?/(${modulosApi.join("|")})(?=[/?\\s.,»"']|$)`, "g");
-  return textos.flatMap((t) => [...t.matchAll(patron)].filter((m) => !m[1] && t[m.index - 1] !== "…").map((m) => m[0]));
+  return textos.flatMap((t) => [...t.matchAll(patron)].filter((m) => !m[1] && t[m.index - 1] !== "…" && !/[\p{L}\d_]/u.test(t[m.index - 1] ?? "")).map((m) => m[0]));
 }
 
 const modulosApi = [...new Set(Object.keys(RUTAS).map((clave) => clave.split(" ")[1].split("/")[0]))];

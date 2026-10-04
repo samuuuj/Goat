@@ -77,12 +77,23 @@ export const DURACIONES = [
   { valor: "120", texto: "2h" },
 ];
 
+/** Rutinas de fuerza (solo aplican al tipo "fuerza"). "Cardio" pasó a ser un tipo de ejercicio. */
 export const RUTINAS = [
   { valor: "empuje", texto: "Empuje" },
   { valor: "tiron", texto: "Tirón" },
   { valor: "pierna", texto: "Pierna" },
   { valor: "full", texto: "Full body" },
-  { valor: "cardio", texto: "Cardio" },
+];
+
+/** Tipos de sesión de ejercicio (gym_sesiones.tipo). Sin Apple Watch: se registran con inicio y fin. */
+export const TIPOS_EJERCICIO = [
+  { valor: "fuerza", texto: "Fuerza", emoji: "🏋️" },
+  { valor: "caminata", texto: "Caminata", emoji: "🚶" },
+  { valor: "trote", texto: "Trote", emoji: "🏃" },
+  { valor: "cardio", texto: "Cardio", emoji: "🚴" },
+  { valor: "deporte", texto: "Deporte", emoji: "⚽" },
+  { valor: "movilidad", texto: "Movilidad", emoji: "🧘" },
+  { valor: "otro", texto: "Otro", emoji: "✨" },
 ];
 
 // ── Conjuntos para validar antes de guardar ──────────────────────────────
@@ -96,4 +107,5 @@ export const VALIDOS = {
   materia: valores(MATERIAS),
   duracion: valores(DURACIONES),
   rutina: valores(RUTINAS),
+  tipoEjercicio: valores(TIPOS_EJERCICIO),
 };

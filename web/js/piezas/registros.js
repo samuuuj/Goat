@@ -4,7 +4,7 @@
 import { SesionVencida, guardar } from "../supabase/datos.js";
 import { cerrarSesion } from "../supabase/sesion.js";
 import { horaDecimal } from "../logica/dia.js";
-import { formatoCOP } from "../logica/formato.js";
+import { formatoCOP, formatoDuracion } from "../logica/formato.js";
 import { avisar, nuevoId } from "./ui.js";
 import { chips } from "./chips.js";
 import { crearHoja } from "./hoja.js";
@@ -18,9 +18,11 @@ import {
   MONTO_MAXIMO,
   RUTINAS,
   TIPOS_COMIDA,
+  TIPOS_EJERCICIO,
   TIPOS_MOVIMIENTO,
   VALIDOS,
 } from "../logica/catalogos.js";
+import { emojiTipo, horarioSugerido, instantesRecientes, minutosEntre, validarSesion } from "../ejercicio/logica.js";
 
 const TITULO = { comida: "Comí", gasto: "Gasto", estudio: "Estudio", gym: "Gym" };
 
@@ -207,20 +209,60 @@ function formularioEstudio(form, enviar) {
 
 // ── Gym ──────────────────────────────────────────────────────────────────
 
+// Tipo + hora de inicio y fin (sugeridas: terminó ahora, empezó hace 60 min). Las reglas son las de
+// js/ejercicio/logica.js (las mismas de la página Movimiento y de la API).
+
 function formularioGym(form, enviar) {
+  const campoInicio = form.elements.inicio;
+  const campoFin = form.elements.fin;
+  const campoRutina = form.querySelector("[data-campo-rutina]");
+  const textoDuracion = form.querySelector("[data-duracion]");
+
+  const tipo = chips(form.querySelector('[data-chips="tipo"]'), () => revisar());
   const rutina = chips(form.querySelector('[data-chips="rutina"]'), () => revisar());
+  tipo.opciones(TIPOS_EJERCICIO);
   rutina.opciones(RUTINAS);
 
-  const revisar = () => (form.querySelector("[data-guardar]").disabled = !rutina.valor);
+  /** Lo de la hoja revisado: { fila } o { error }, más los minutos entre las dos horas. */
+  function leer() {
+    const horas = instantesRecientes(new Date(), campoInicio.value, campoFin.value);
+    if (!horas) return { error: "⚠️ Revisa las horas", minutos: null };
+    const minutos = minutosEntre(horas.inicio, horas.fin);
+    const r = validarSesion(
+      { tipo: tipo.valor, rutina: tipo.valor === "fuerza" ? rutina.valor : null, inicio: horas.inicio, fin: horas.fin },
+      new Date(),
+    );
+    return { ...r, minutos };
+  }
+
+  function revisar() {
+    campoRutina.hidden = tipo.valor !== "fuerza";
+    const r = leer();
+    if (r.fila) textoDuracion.textContent = `⏱️ ${formatoDuracion(r.fila.duracion_min)}`;
+    else if (!tipo.valor) textoDuracion.textContent = r.minutos ? `⏱️ ${formatoDuracion(r.minutos)}` : r.error;
+    else textoDuracion.textContent = r.error;
+    form.querySelector("[data-guardar]").disabled = !r.fila;
+  }
+
+  campoInicio.addEventListener("input", revisar);
+  campoFin.addEventListener("input", revisar);
 
   form.addEventListener("submit", (evento) => {
     evento.preventDefault();
-    if (!VALIDOS.rutina.has(rutina.valor)) return avisar("⚠️ Revisa los datos.");
-    enviar("gym_sesiones", { rutina: rutina.valor }, "🏋️ Entreno anotado");
+    const r = leer();
+    if (!r.fila || !VALIDOS.tipoEjercicio.has(r.fila.tipo)) return avisar(r.error ?? "⚠️ Revisa los datos.");
+    enviar("gym_sesiones", r.fila, `${emojiTipo(r.fila.tipo)} Entreno anotado`);
   });
+
+  // Para un entreno que empieza ahora: la página Movimiento tiene el cronómetro.
+  form.querySelector("[data-cronometro]").addEventListener("click", () => location.assign("ejercicio.html#entreno"));
 
   return {
     preparar() {
+      const sugerido = horarioSugerido(new Date());
+      campoInicio.value = sugerido.inicio;
+      campoFin.value = sugerido.fin;
+      tipo.poner(null);
       rutina.poner(null);
     },
     revisar,

@@ -156,7 +156,8 @@ export function crearPanel({ boton, alTocar, alBorrar, alCerrar }) {
 
   cerrarBoton.addEventListener("click", () => cerrar());
 
-  raiz.addEventListener("keydown", (evento) => {
+  window.addEventListener("keydown", (evento) => {
+    if (!abierto) return;
     if (evento.key === "Escape") {
       evento.preventDefault();
       if (confirmando) return cancelarConfirmacion(true);

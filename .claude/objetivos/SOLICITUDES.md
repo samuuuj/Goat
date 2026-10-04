@@ -125,3 +125,31 @@ Nada de esto bloquea la rama `goat/rutina`: la página, la API y las pruebas fun
 3. **`web/js/piezas/registros.js`**: `formularioGasto()` ahora delega en `js/finanzas/formulario.js`. Quedaron imports sin uso arriba (`CATEGORIAS`, `CUENTAS`, `MONTOS_RAPIDOS`, `MONTO_MAXIMO`, `TIPOS_MOVIMIENTO`, `formatoCOP`); no los quité para no chocar con otras ramas que tocan ese mismo bloque. Al integrar se pueden borrar. El `import` del formulario quedó justo encima de `formularioGasto()` (los `import` pueden ir en cualquier parte del nivel superior).
 4. **Título de la hoja en Hoy**: `TITULO.gasto = "Gasto"` (en `registros.js`, fuera de mi función). Ahora la hoja registra los 4 tipos; si Samuel prefiere, cambiarlo a "Dinero" o "Movimiento". Lo dejé igual.
 5. **`api/_lib/registros.js`** (opcional): el cálculo de Hoy en la API lee `finanzas_movimientos` con `tipo,monto,fecha,momento`; sigue funcionando igual porque solo `egreso` cuenta para el presupuesto. No requiere cambio.
+
+## B · Conectar
+
+1. **Una sola forma de armar la dirección en los atajos (importante para que funcionen).** El atajo base «⚙️ Goat» devuelve
+   `{ url, token }` con **`url` = la dirección de Goat sin barra final y sin `/api/v1`** (ej. `https://tu-goat.vercel.app`).
+   Así lo asumen finanzas, sueño, ejercicio, notificaciones y los dos atajos de Conectar (`url` + `/api/v1/<ruta>`).
+   **Rutina y desbloqueo asumen lo contrario** (que `url` ya termina en `/api/v1`): con el «⚙️ Goat» de Conectar
+   llamarían a `https://…/rutina/hoy` (404). Son cambios de texto, sin tocar lógica:
+   - `web/js/rutina/atajos.js`: comentario de arriba «(url ya termina en /api/v1)» → «(url va sin /api/v1)»; en `pedir()`:
+     `URL: la variable URL seguida de /${ruta}` → `URL: la variable URL seguida de /api/v1/${ruta}`.
+   - `web/js/desbloqueo/atajos.js`: `luego /desbloqueo/gate?app=` → `luego /api/v1/desbloqueo/gate?app=` ·
+     `la variable url y /desbloqueo/pase` → `la variable url y /api/v1/desbloqueo/pase` ·
+     `la variable url y luego /desbloqueo/evento` → `la variable url y luego /api/v1/desbloqueo/evento`.
+   - `pruebas/conectar-atajos.test.mjs` lo vigila: hoy sale como **«todo»** (no hace fallar `npm test`) y pasa a verde
+     solo cuando esos textos se corrijan.
+   - Widgets (E): la `URL` de `scriptable/goat.js` debería ser la misma `url` de «⚙️ Goat» (sin `/api/v1`), para que
+     Samuel pegue los mismos dos datos.
+2. **Nada que cambiar en Hoy.** `hoy.js` ya llama `revisarBienvenida()` y el ⚙️ ya abre `conectar.html#ajustes`.
+   La tarjeta «Conectar iPhone.» abre el asistente si no está terminado y Ajustes si ya; su `miniDato()` dice
+   «Falta tu llave», «3 de 14 atajos listos» o «✓ Todo conectado».
+3. **API: sin rutas nuevas** (`api/_rutas/conectar.js` sigue `{}`). Crear y revocar llaves usa `POST/DELETE tokens`
+   de `central.js` con la sesión web. La lista de llaves y «Probar conexión» leen `api_tokens` directo con RLS
+   (sin el hash), así Ajustes funciona aunque falte la clave del servidor; el «Probar» de cada atajo lee `log_api`.
+4. **Atajos nuevos:** cualquier atajo que se agregue a un `web/js/<modulo>/atajos.js` aparece solo en el asistente.
+   Un id repetido entre módulos hace fallar `pruebas/conectar-logica.test.mjs` con un mensaje que nombra los dos módulos.
+5. **Simulador (informativo):** los filtros `gt` y `order` comparan como texto; en `datos-conectar.js` los ids de
+   `log_api` son de 4 cifras para que «Probar» funcione. `datos-conectar.js` reemplaza `GET/POST/DELETE tokens`
+   para guardar las llaves en `tablas.api_tokens` (las lee «Probar conexión»).

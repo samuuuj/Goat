@@ -180,23 +180,35 @@
       <div id="hoja-manija" class="hoja-manija" aria-hidden="true"><span></span></div>
       <h2 id="hoja-titulo" class="titular hoja-titulo"></h2>
 
-      <!-- Gasto -->
+      <!-- Gasto: los 4 tipos con el flujo de Finanzas (js/finanzas/formulario.js) -->
       <form id="form-gasto" class="form-registro" hidden>
-        <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Tipo"></div>
+        <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Tipo de movimiento"></div>
         <div>
           <label class="campo-grande">
-            <span class="etiqueta">Monto</span>
+            <span class="etiqueta">Valor</span>
             <input name="monto" class="titular cifras entrada-grande" inputmode="numeric" autocomplete="off" placeholder="$0" />
           </label>
           <div class="montos-rapidos" data-montos></div>
         </div>
-        <div>
+        <div data-bloque="categoria">
           <p class="etiqueta campo-titulo">Categoría</p>
           <div class="chips" data-chips="categoria" role="radiogroup" aria-label="Categoría"></div>
         </div>
+        <div data-bloque="otra" hidden>
+          <p class="etiqueta campo-titulo"><label for="gasto-otra">¿Cuál categoría?</label></p>
+          <input id="gasto-otra" name="categoria_otra" class="entrada" maxlength="40" autocomplete="off" placeholder="Ej. Cita" />
+        </div>
         <div>
-          <p class="etiqueta campo-titulo">Cómo pagaste</p>
+          <p class="etiqueta campo-titulo" data-titulo="cuenta">Cómo pagaste</p>
           <div class="chips" data-chips="cuenta" role="radiogroup" aria-label="Cuenta"></div>
+        </div>
+        <div data-bloque="destino" hidden>
+          <p class="etiqueta campo-titulo" data-titulo="destino">Hacia</p>
+          <div class="chips" data-chips="destino" role="radiogroup" aria-label="Hacia"></div>
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo"><label for="gasto-descripcion">Descripción</label></p>
+          <input id="gasto-descripcion" name="descripcion" class="entrada" maxlength="200" autocomplete="off" placeholder="Opcional · ej. Cena" />
         </div>
         <div class="botones">
           <button type="submit" class="boton-principal" data-guardar>Guardar</button>

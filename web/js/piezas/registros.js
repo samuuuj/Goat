@@ -34,59 +34,28 @@ function esHoraDeCierre(ahora) {
 }
 
 // ── Gasto ────────────────────────────────────────────────────────────────
+// Los 4 tipos de Finanzas (gasto, ingreso, transferencia, retiro) con el mismo flujo de finanzas.html.
+// Las cuentas salen de finanzas_cuentas. Solo "Gasto" mueve "Disponible hoy" (calculo.js no cambia).
+
+import { formularioMovimiento } from "../finanzas/formulario.js";
+import { cargarContextoMovimiento, contextoLegado } from "../finanzas/datos.js";
 
 function formularioGasto(form, enviar) {
-  const campoMonto = form.elements.monto;
-  const montos = form.querySelector("[data-montos]");
   const secundario = form.querySelector("[data-secundario]");
-  let monto = 0;
   let cierre = false;
+  let contexto = null;
 
-  const tipo = chips(form.querySelector('[data-chips="tipo"]'), (nuevo) => {
-    categoria.opciones(CATEGORIAS[nuevo]);
-    categoria.poner(null);
-    montos.hidden = nuevo !== "egreso";
-    revisar();
+  const movimiento = formularioMovimiento(form, {
+    alEnviar: ({ fila, mensaje }) => enviar("finanzas_movimientos", fila, mensaje),
   });
-  const categoria = chips(form.querySelector('[data-chips="categoria"]'), () => revisar());
-  const cuenta = chips(form.querySelector('[data-chips="cuenta"]'), () => revisar());
-  tipo.opciones(TIPOS_MOVIMIENTO);
-  cuenta.opciones(CUENTAS);
 
-  function ponerMonto(valor) {
-    monto = valor;
-    campoMonto.value = valor ? formatoCOP(valor) : "";
-    revisar();
-  }
-
-  montos.replaceChildren(
-    ...MONTOS_RAPIDOS.map((rapido) => {
-      const boton = document.createElement("button");
-      boton.type = "button";
-      boton.textContent = formatoCOP(rapido);
-      boton.addEventListener("click", () => ponerMonto(rapido));
-      return boton;
-    }),
-  );
-  campoMonto.addEventListener("input", () => ponerMonto(Number(soloDigitos(campoMonto.value).slice(0, 9)) || 0));
-
-  const revisar = () => (form.querySelector("[data-guardar]").disabled = !(monto && categoria.valor && cuenta.valor));
-
-  form.addEventListener("submit", (evento) => {
-    evento.preventDefault();
-    const t = tipo.valor;
-    const valido =
-      VALIDOS.tipoMovimiento.has(t) &&
-      VALIDOS.categoria[t].has(categoria.valor) &&
-      VALIDOS.cuenta.has(cuenta.valor) &&
-      entero(monto, 1, MONTO_MAXIMO);
-    if (!valido) return avisar("⚠️ Revisa los datos.");
-    enviar(
-      "finanzas_movimientos",
-      { tipo: t, monto, categoria: categoria.valor, cuenta: cuenta.valor },
-      t === "egreso" ? "💸 Guardado" : "💰 Guardado",
-    );
-  });
+  // Se piden una vez al abrir Hoy, para que la hoja abra al instante. Sin la base nueva, siguen las de siempre.
+  cargarContextoMovimiento()
+    .catch(() => contextoLegado())
+    .then((nuevo) => {
+      contexto = nuevo;
+      movimiento.ponerContexto(nuevo);
+    });
 
   // "No he gastado nada" o el cierre del día: también son registros (principio 4).
   secundario.addEventListener("click", () =>
@@ -95,16 +64,11 @@ function formularioGasto(form, enviar) {
 
   return {
     preparar(sugerencia, ahora) {
-      tipo.poner("egreso");
-      categoria.opciones(CATEGORIAS.egreso);
-      categoria.poner(null);
-      cuenta.poner("efectivo");
-      montos.hidden = false;
-      ponerMonto(0);
+      movimiento.preparar({ contexto: contexto ?? contextoLegado(), tipo: "egreso" });
       cierre = sugerencia === "cierre_finanzas" || esHoraDeCierre(ahora);
       secundario.textContent = cierre ? "🧾 Cerrar gastos del día" : "🙅 No he gastado nada";
     },
-    revisar,
+    revisar: () => movimiento.revisar(),
   };
 }
 

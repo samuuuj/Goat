@@ -33,17 +33,293 @@
     <main id="contenido" class="contenedor" data-fondo-hoja hidden>
       <header class="barra-seccion">
         <a class="volver" href="index.html"><span aria-hidden="true">‹</span>Hoy</a>
-        <div class="barra-acciones"></div>
+        <div class="barra-acciones">
+          <button type="button" id="boton-discreto" class="boton-circulo" aria-pressed="true" aria-label="Mostrar montos">
+            <svg class="ojo" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+              <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+              <circle cx="12" cy="12" r="3" />
+              <path class="tachado" d="M4 4l16 16" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       <section class="cabecera-seccion">
         <p class="etiqueta">Goat · Finanzas</p>
-        <h1 class="titular">Dinero.</h1>
-        <p class="cabecera-texto">Pronto.</p>
+        <h1 class="titular"><span class="titular-linea">Dinero<span class="acento">.</span></span></h1>
+        <p id="cabecera-texto" class="cabecera-texto">Todo tu dinero, en un solo lugar.</p>
       </section>
 
-      <footer class="pie-seccion"></footer>
+      <!-- ═══ 1. Saldos: cuánto hay y dónde está ═══ -->
+      <section id="saldos" class="seccion" aria-labelledby="saldos-titulo">
+        <div class="seccion-cabeza">
+          <h2 id="saldos-titulo" class="etiqueta">Tienes</h2>
+          <button type="button" id="nueva-cuenta" class="enlace-accion"><span aria-hidden="true">＋</span> Cuenta</button>
+        </div>
+        <p class="titular cifras cifra-gigante saldo-total"><span id="total" class="sensible">$0</span></p>
+        <p id="total-frase" class="frase"></p>
+        <ul id="cuentas" class="cuentas-rejilla" aria-label="Tus cuentas"></ul>
+      </section>
+
+      <!-- ═══ 2. El mes: gastos, ingresos y por categoría ═══ -->
+      <section id="mes" class="seccion" aria-labelledby="mes-titulo">
+        <div class="seccion-cabeza">
+          <h2 id="mes-titulo" class="etiqueta">Este mes</h2>
+          <div class="mes-nav">
+            <button type="button" id="mes-anterior" class="boton-circulo" aria-label="Mes anterior"><span aria-hidden="true">‹</span></button>
+            <button type="button" id="mes-siguiente" class="boton-circulo" aria-label="Mes siguiente"><span aria-hidden="true">›</span></button>
+          </div>
+        </div>
+        <div class="mes-cuerpo">
+          <div class="mes-cifras">
+            <div class="mes-dato">
+              <p class="etiqueta">Gastos</p>
+              <p class="titular cifras mes-numero"><span id="mes-gastos" class="sensible">$0</span></p>
+            </div>
+            <div class="mes-dato">
+              <p class="etiqueta">Ingresos</p>
+              <p class="titular cifras mes-numero"><span id="mes-ingresos" class="sensible">$0</span></p>
+            </div>
+            <div class="mes-neto">
+              <p class="etiqueta">Neto</p>
+              <p class="cifras"><span id="mes-neto" class="sensible">$0</span></p>
+            </div>
+            <p id="mes-frase" class="frase"></p>
+          </div>
+          <div class="mes-categorias">
+            <p class="etiqueta campo-titulo">Gasto por categoría</p>
+            <ul id="categorias" class="categorias" aria-label="Gasto por categoría"></ul>
+            <p id="categorias-vacio" class="vacio" hidden>Sin gastos este mes.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ 3. Movimientos: agrupados, filtrados y con buscador ═══ -->
+      <section id="movimientos" class="seccion" aria-labelledby="movimientos-titulo">
+        <div class="seccion-cabeza">
+          <h2 id="movimientos-titulo" class="etiqueta">Movimientos</h2>
+          <p id="movimientos-cuantos" class="etiqueta cifras movimientos-cuantos"></p>
+        </div>
+        <div class="controles">
+          <div id="agrupar" class="pestanas" role="tablist" aria-label="Agrupar por">
+            <button type="button" role="tab" aria-selected="true" aria-controls="lista" data-valor="dia">Día</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="lista" data-valor="categoria">Categoría</button>
+            <button type="button" role="tab" aria-selected="false" aria-controls="lista" data-valor="cuenta">Cuenta</button>
+          </div>
+          <div class="chips chips-fila sin-scrollbar" data-chips="filtro" role="radiogroup" aria-label="Tipo de movimiento"></div>
+          <div class="controles-fila">
+            <label class="buscador">
+              <span class="solo-lector">Buscar movimientos</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              <input type="search" id="buscar" class="entrada" placeholder="Buscar" autocomplete="off" enterkeyhint="search" />
+            </label>
+            <div id="orden" class="pestanas pestanas-chicas" role="radiogroup" aria-label="Ordenar por">
+              <button type="button" role="radio" aria-checked="true" aria-selected="true" data-valor="recientes">Recientes</button>
+              <button type="button" role="radio" aria-checked="false" aria-selected="false" data-valor="monto">Monto</button>
+            </div>
+          </div>
+        </div>
+        <div id="lista" class="lista-movimientos" role="tabpanel" aria-labelledby="movimientos-titulo"></div>
+        <p id="lista-vacia" class="vacio" hidden></p>
+        <button type="button" id="ver-mas" class="boton-secundario ver-mas" hidden>Ver más</button>
+      </section>
+
+      <!-- ═══ 4. Deudas: lo que debo y lo que me deben ═══ -->
+      <section id="deudas" class="seccion" aria-labelledby="deudas-titulo">
+        <div class="seccion-cabeza">
+          <h2 id="deudas-titulo" class="etiqueta">Deudas</h2>
+          <button type="button" id="nueva-deuda" class="enlace-accion"><span aria-hidden="true">＋</span> Deuda</button>
+        </div>
+        <div id="deudas-pestanas" class="pestanas pestanas-deudas" role="tablist" aria-label="Deudas">
+          <button type="button" role="tab" aria-selected="true" aria-controls="deudas-lista" data-valor="debo">Debo</button>
+          <button type="button" role="tab" aria-selected="false" aria-controls="deudas-lista" data-valor="me_deben">Me deben</button>
+        </div>
+        <p class="titular cifras cifra-gigante deudas-total"><span id="deudas-total" class="sensible">$0</span></p>
+        <p id="deudas-frase" class="frase"></p>
+        <ul id="deudas-lista" class="deudas-rejilla" role="tabpanel" aria-labelledby="deudas-titulo"></ul>
+        <p id="deudas-vacio" class="vacio" hidden></p>
+      </section>
+
+      <footer class="pie-seccion">
+        <p>Los montos se ocultan con el ojo de arriba. Toca uno para verlo 3 segundos.</p>
+      </footer>
     </main>
+
+    <!-- Acción principal: nuevo movimiento -->
+    <div class="accion-flotante" data-con-contenido data-fondo-hoja hidden>
+      <button type="button" id="nuevo-movimiento" class="boton-principal"><span aria-hidden="true">＋</span> Movimiento</button>
+    </div>
+
+    <!-- ═══ Hoja inferior: movimiento, abono, cuenta y deuda (js/finanzas/pagina.js) ═══ -->
+    <div id="velo" class="velo"></div>
+    <div id="hoja" class="hoja sin-scrollbar" role="dialog" aria-modal="true" aria-labelledby="hoja-titulo" tabindex="-1">
+      <div id="hoja-manija" class="hoja-manija" aria-hidden="true"><span></span></div>
+      <h2 id="hoja-titulo" class="titular hoja-titulo"></h2>
+
+      <!-- Movimiento: Tipo → Valor → Categoría/Otro → Cuenta(s) → Descripción -->
+      <form id="form-movimiento" class="form-registro" hidden novalidate>
+        <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Tipo de movimiento"></div>
+        <div>
+          <label class="campo-grande">
+            <span class="etiqueta">Valor</span>
+            <input name="monto" class="titular cifras entrada-grande" inputmode="numeric" autocomplete="off" placeholder="$0" />
+          </label>
+          <div class="montos-rapidos" data-montos></div>
+        </div>
+        <div data-bloque="categoria">
+          <p class="etiqueta campo-titulo">Categoría</p>
+          <div class="chips" data-chips="categoria" role="radiogroup" aria-label="Categoría"></div>
+        </div>
+        <div data-bloque="otra" hidden>
+          <p class="etiqueta campo-titulo"><label for="mov-otra">¿Cuál categoría?</label></p>
+          <input id="mov-otra" name="categoria_otra" class="entrada" maxlength="40" autocomplete="off" placeholder="Ej. Cita" />
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo" data-titulo="cuenta">Cómo pagaste</p>
+          <div class="chips" data-chips="cuenta" role="radiogroup" aria-label="Cuenta"></div>
+        </div>
+        <div data-bloque="destino" hidden>
+          <p class="etiqueta campo-titulo" data-titulo="destino">Hacia</p>
+          <div class="chips" data-chips="destino" role="radiogroup" aria-label="Hacia"></div>
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo"><label for="mov-descripcion">Descripción</label></p>
+          <input id="mov-descripcion" name="descripcion" class="entrada" maxlength="200" autocomplete="off" placeholder="Opcional · ej. Cena" />
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo"><label for="mov-momento">Cuándo</label></p>
+          <input id="mov-momento" name="momento" type="datetime-local" class="entrada" />
+        </div>
+        <div class="botones">
+          <button type="submit" class="boton-principal" data-guardar>Guardar</button>
+          <button type="button" class="boton-secundario" data-borrar hidden>Borrar movimiento</button>
+        </div>
+      </form>
+
+      <!-- Abonar a una deuda / cobrar lo que me deben -->
+      <form id="form-abono" class="form-registro" hidden novalidate>
+        <div class="abono-deuda">
+          <p class="etiqueta" data-abono-etiqueta></p>
+          <p class="abono-nombre" data-abono-nombre></p>
+          <p class="abono-saldo">Saldo <span class="cifras sensible" data-abono-saldo></span></p>
+        </div>
+        <div>
+          <label class="campo-grande">
+            <span class="etiqueta">Valor</span>
+            <input name="monto" class="titular cifras entrada-grande" inputmode="numeric" autocomplete="off" placeholder="$0" />
+          </label>
+          <div class="montos-rapidos" data-montos></div>
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo" data-titulo="cuenta">Desde</p>
+          <div class="chips" data-chips="cuenta" role="radiogroup" aria-label="Cuenta"></div>
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo"><label for="abono-momento">Cuándo</label></p>
+          <input id="abono-momento" name="momento" type="datetime-local" class="entrada" />
+        </div>
+        <div class="botones">
+          <button type="submit" class="boton-principal" data-guardar>Guardar abono</button>
+          <button type="button" class="boton-secundario" data-borrar hidden>Borrar</button>
+        </div>
+      </form>
+
+      <!-- Cuenta: Efectivo, banco, billetera o tarjeta de crédito -->
+      <form id="form-cuenta" class="form-registro" hidden novalidate>
+        <div>
+          <p class="etiqueta campo-titulo"><label for="cuenta-nombre">Nombre</label></p>
+          <input id="cuenta-nombre" name="nombre" class="entrada" maxlength="40" autocomplete="off" placeholder="Ej. Bancolombia" />
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo">Tipo</p>
+          <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Tipo de cuenta"></div>
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo"><label for="cuenta-banco">Banco o app</label></p>
+          <input id="cuenta-banco" name="banco" class="entrada" maxlength="40" autocomplete="off" placeholder="Opcional · ej. Nu" />
+        </div>
+        <div>
+          <label class="campo-grande">
+            <span class="etiqueta" data-titulo="saldo">Saldo de hoy</span>
+            <input name="saldo" class="titular cifras entrada-mediana" inputmode="numeric" autocomplete="off" placeholder="$0" />
+          </label>
+          <p class="nota" data-nota-saldo>Lo que hay hoy en la cuenta. Desde aquí, cada movimiento lo actualiza solo.</p>
+        </div>
+        <div class="dos-columnas" data-bloque="tarjeta" hidden>
+          <div>
+            <p class="etiqueta campo-titulo"><label for="cuenta-cupo">Cupo</label></p>
+            <input id="cuenta-cupo" name="cupo" class="entrada cifras" inputmode="numeric" autocomplete="off" placeholder="$0" />
+          </div>
+          <div>
+            <p class="etiqueta campo-titulo"><label for="cuenta-pago">Día de pago</label></p>
+            <input id="cuenta-pago" name="dia_pago" class="entrada cifras" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="1 a 31" />
+          </div>
+        </div>
+        <div class="botones">
+          <button type="submit" class="boton-principal" data-guardar>Guardar cuenta</button>
+          <button type="button" class="boton-secundario" data-borrar hidden>Archivar cuenta</button>
+        </div>
+      </form>
+
+      <!-- Deuda: lo que debo o lo que me deben -->
+      <form id="form-deuda" class="form-registro" hidden novalidate>
+        <div class="chips" data-chips="direccion" role="radiogroup" aria-label="Debo o me deben"></div>
+        <div>
+          <p class="etiqueta campo-titulo">Tipo</p>
+          <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Tipo de deuda"></div>
+        </div>
+        <div class="nota-tarjeta" data-nota-tarjeta hidden>
+          <p class="nota">Las tarjetas de crédito se llevan como una cuenta: cada compra sube su deuda y pagarla es una transferencia.</p>
+          <button type="button" class="boton-secundario" data-crear-tarjeta>💳 Crear la tarjeta como cuenta</button>
+        </div>
+        <div data-bloque="datos" class="form-registro">
+          <div>
+            <p class="etiqueta campo-titulo"><label for="deuda-nombre" data-titulo="nombre">¿A quién le debes?</label></p>
+            <input id="deuda-nombre" name="nombre" class="entrada" maxlength="60" autocomplete="off" placeholder="Persona o entidad" />
+          </div>
+          <div data-bloque="banco" hidden>
+            <p class="etiqueta campo-titulo"><label for="deuda-banco">Banco</label></p>
+            <input id="deuda-banco" name="banco" class="entrada" maxlength="40" autocomplete="off" placeholder="Ej. Bancolombia" />
+          </div>
+          <div>
+            <label class="campo-grande">
+              <span class="etiqueta">Monto total</span>
+              <input name="monto" class="titular cifras entrada-grande" inputmode="numeric" autocomplete="off" placeholder="$0" />
+            </label>
+          </div>
+          <div class="dos-columnas">
+            <div>
+              <p class="etiqueta campo-titulo"><label for="deuda-cuota">Cuota</label></p>
+              <input id="deuda-cuota" name="cuota" class="entrada cifras" inputmode="numeric" autocomplete="off" placeholder="Opcional" />
+            </div>
+            <div>
+              <p class="etiqueta campo-titulo"><label for="deuda-pago">Día de pago</label></p>
+              <input id="deuda-pago" name="dia_pago" class="entrada cifras" inputmode="numeric" autocomplete="off" maxlength="2" placeholder="1 a 31" />
+            </div>
+          </div>
+          <div data-bloque="tasa" hidden>
+            <p class="etiqueta campo-titulo"><label for="deuda-tasa">Interés mensual (%)</label></p>
+            <input id="deuda-tasa" name="tasa_mensual" class="entrada cifras" inputmode="decimal" autocomplete="off" maxlength="6" placeholder="Opcional · ej. 1,9" />
+          </div>
+          <div data-bloque="movio">
+            <p class="etiqueta campo-titulo" data-titulo="movio">¿Te lo depositaron en una cuenta?</p>
+            <div class="chips" data-chips="movio" role="radiogroup" aria-label="Cuenta del préstamo"></div>
+          </div>
+          <div>
+            <p class="etiqueta campo-titulo"><label for="deuda-notas">Notas</label></p>
+            <textarea id="deuda-notas" name="notas" class="entrada" maxlength="200" placeholder="Opcional"></textarea>
+          </div>
+        </div>
+        <div class="botones">
+          <button type="submit" class="boton-principal" data-guardar>Guardar deuda</button>
+          <button type="button" class="boton-secundario" data-estado hidden>Marcar como pagada</button>
+          <button type="button" class="boton-secundario" data-borrar hidden>Borrar deuda</button>
+        </div>
+      </form>
+    </div>
 
     <!-- Si la base de datos aún no tiene tablas -->
     <main id="falta-base" class="contenedor pantalla-simple" hidden>
@@ -68,8 +344,100 @@
       <p id="aviso" class="aviso" role="status" aria-live="polite"></p>
     </div>
 
+    <!-- ═══ Plantillas: js/finanzas/pagina.js las copia y llena con textContent ═══ -->
     <template id="plantilla-chip">
       <button type="button" class="chip" role="radio" aria-checked="false"></button>
+    </template>
+
+    <template id="plantilla-cuenta">
+      <li class="aparece">
+        <button type="button" class="tarjeta cuenta-tarjeta">
+          <span class="cuenta-cabeza">
+            <span class="cuenta-icono" aria-hidden="true"></span>
+            <span class="cuenta-textos">
+              <span class="cuenta-nombre"></span>
+              <span class="cuenta-banco"></span>
+            </span>
+          </span>
+          <span class="cuenta-pie">
+            <span class="cuenta-rotulo"></span>
+            <span class="cuenta-saldo cifras sensible"></span>
+          </span>
+          <span class="cuenta-cupo" hidden>
+            <span class="progreso"><span class="progreso-relleno"></span></span>
+            <span class="cuenta-cupo-texto cifras"></span>
+          </span>
+        </button>
+      </li>
+    </template>
+
+    <template id="plantilla-cuenta-nueva">
+      <li class="aparece">
+        <button type="button" class="tarjeta cuenta-tarjeta cuenta-nueva">
+          <span class="cuenta-nueva-mas" aria-hidden="true">＋</span>
+          <span>Nueva cuenta</span>
+        </button>
+      </li>
+    </template>
+
+    <template id="plantilla-categoria">
+      <li class="categoria">
+        <div class="categoria-fila">
+          <span class="categoria-emoji" aria-hidden="true"></span>
+          <span class="categoria-nombre"></span>
+          <span class="categoria-pct cifras"></span>
+          <span class="categoria-monto cifras sensible"></span>
+        </div>
+        <div class="categoria-carril"><div class="categoria-barra"></div></div>
+      </li>
+    </template>
+
+    <template id="plantilla-grupo">
+      <section class="grupo">
+        <h3 class="grupo-cabeza">
+          <span class="grupo-titulo"></span>
+          <span class="grupo-subtotal cifras sensible"></span>
+        </h3>
+        <ul class="lista-agrupada"></ul>
+      </section>
+    </template>
+
+    <template id="plantilla-movimiento">
+      <li>
+        <button type="button" class="fila movimiento">
+          <span class="fila-icono" aria-hidden="true"></span>
+          <span class="fila-texto">
+            <span class="fila-titulo"></span>
+            <span class="fila-detalle"></span>
+          </span>
+          <span class="fila-valor cifras sensible"></span>
+        </button>
+      </li>
+    </template>
+
+    <template id="plantilla-deuda">
+      <li class="aparece">
+        <div class="tarjeta deuda-tarjeta">
+          <button type="button" class="deuda-abrir">
+            <span class="deuda-icono" aria-hidden="true"></span>
+            <span class="deuda-textos">
+              <span class="deuda-nombre"></span>
+              <span class="deuda-tipo"></span>
+            </span>
+            <span class="fila-flecha" aria-hidden="true">›</span>
+          </button>
+          <p class="titular cifras deuda-saldo"><span class="sensible"></span></p>
+          <p class="deuda-detalle">
+            <span class="deuda-cuota" hidden>Cuota <span class="cifras sensible"></span></span>
+            <span class="deuda-proximo"></span>
+          </p>
+          <div class="progreso"><div class="progreso-relleno"></div></div>
+          <div class="deuda-pie">
+            <span class="deuda-avance cifras"></span>
+            <button type="button" class="boton-pildora deuda-accion"></button>
+          </div>
+        </div>
+      </li>
     </template>
   </body>
 </html>

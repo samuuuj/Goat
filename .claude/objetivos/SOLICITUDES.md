@@ -125,3 +125,23 @@ Nada de esto bloquea la rama `goat/rutina`: la página, la API y las pruebas fun
 3. **`web/js/piezas/registros.js`**: `formularioGasto()` ahora delega en `js/finanzas/formulario.js`. Quedaron imports sin uso arriba (`CATEGORIAS`, `CUENTAS`, `MONTOS_RAPIDOS`, `MONTO_MAXIMO`, `TIPOS_MOVIMIENTO`, `formatoCOP`); no los quité para no chocar con otras ramas que tocan ese mismo bloque. Al integrar se pueden borrar. El `import` del formulario quedó justo encima de `formularioGasto()` (los `import` pueden ir en cualquier parte del nivel superior).
 4. **Título de la hoja en Hoy**: `TITULO.gasto = "Gasto"` (en `registros.js`, fuera de mi función). Ahora la hoja registra los 4 tipos; si Samuel prefiere, cambiarlo a "Dinero" o "Movimiento". Lo dejé igual.
 5. **`api/_lib/registros.js`** (opcional): el cálculo de Hoy en la API lee `finanzas_movimientos` con `tipo,monto,fecha,momento`; sigue funcionando igual porque solo `egreso` cuenta para el presupuesto. No requiere cambio.
+
+## E · Widgets
+
+Nada de esto bloquea `goat/widgets`: la API, el script de Scriptable, la página y las pruebas funcionan solos.
+
+1. **Atajo base "⚙️ Goat" — formato de `url` (Central / Conectar B).** Hoy hay dos versiones: `web/js/rutina/atajos.js` dice que
+   `url` ya termina en `/api/v1`; `web/js/ejercicio/atajos.js` (y su solicitud H.5) dice que es la dirección sin `/api/v1`.
+   Conviene fijar una. Widgets aguanta las dos: el script de Scriptable quita `/api/v1` y la `/` final al guardar la dirección,
+   y los atajos "🍽️ Comí" y "📚 Estudio" usan "Reemplazar texto" para quitar `/api/v1` antes de abrir la web.
+2. **Conectar (B) — paso 5 "Widgets".** Puede reusar `GUIA_SCRIPTABLE` y `GUIA_BLOQUEO` de `web/js/widgets/atajos.js`
+   (los mismos textos de `widgets.html`). `ATAJOS` trae 3 entradas en el formato común: `widgets-comi`, `widgets-estudio`
+   (atajos de una sola acción que abren `index.html#registrar=comida|estudio`) y `widgets-botones` (armar el widget de Atajos
+   con 4 botones; no es un atajo en sí, solo pasos). Las tres prueban con `GET widget`.
+3. **`api/_rutas/sueno.js` (opcional).** El widget saca el sueño llamando al manejador de `GET sueno/resumen` (reusa su `cargar()`
+   interno). Si Sueño exporta `cargar` (por ejemplo como `cargarSueno(db, ahora)`), `api/_rutas/widget.js` puede usarlo directo.
+4. **Hoy a 375 px (ya reportado en A.1).** La tarjeta "Widgets." no se sale (su texto mide 135 de 170 px); el desborde lo
+   causa «MOVIMIENTO.». La tarjeta ahora muestra la frase del día (`web/js/widgets/mini.js`), que salta de línea sin ensanchar.
+5. **`scriptable/LEEME.md` en la raíz** (lo pedía la ficha E): no lo creé porque no estaba en mi lista de archivos. La guía vive en
+   `widgets.html` y en el encabezado de `web/scriptable/goat.js`. Si se quiere, basta un archivo de 2 líneas que apunte a
+   `web/scriptable/goat.js` y a la página Widgets.

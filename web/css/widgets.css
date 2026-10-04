@@ -1,1 +1,996 @@
-/* Goat · Widgets (widgets.html). Lo llena el objetivo de .claude/objetivos/E-widgets.md. */
+/* Goat · Widgets (widgets.html): réplicas de los widgets de Scriptable y guía para instalarlos.
+   Las medidas de los widgets van en "puntos de iPhone" × --u (1 punto ≈ 1 px; menos en pantallas angostas),
+   así el mediano mide 338 × 158 como en un iPhone de 6,1" y todo se achica parejo a 375 px. */
+
+/* "WIDGETS." es más ancho que los otros titulares: a 19vw se sale por la derecha en un iPhone de 375. */
+.cabecera-seccion .titular {
+  font-size: clamp(3.5rem, 16.5vw, 9rem);
+}
+
+/* ── Vitrina: fondo de pantalla con los widgets ────────────────────────── */
+
+.vitrina-rejilla {
+  display: grid;
+  gap: 1.5rem;
+  justify-items: center;
+}
+
+.pantalla {
+  --u: min(1.1px, calc((100vw - 2 * var(--margen) - 2rem) / 338));
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 34px;
+  padding: calc(22 * var(--u)) calc(16 * var(--u)) calc(16 * var(--u));
+  /* Fondo de pantalla oscuro y sutil, sin color: los widgets son los que tienen que verse. */
+  background:
+    radial-gradient(120% 70% at 12% 0%, rgb(255 255 255 / 0.1), transparent 60%),
+    radial-gradient(90% 60% at 100% 100%, rgb(255 255 255 / 0.06), transparent 65%),
+    linear-gradient(160deg, #18181b, #050506 70%);
+  box-shadow: inset 0 0 0 1px var(--linea);
+}
+
+.pantalla-pie {
+  margin-top: calc(16 * var(--u));
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--texto-3);
+}
+
+.inicio-rejilla {
+  display: grid;
+  width: calc(338 * var(--u));
+  grid-template-columns: repeat(2, calc(158 * var(--u)));
+  justify-content: space-between;
+  gap: calc(22 * var(--u)) 0;
+}
+
+.ranura-pequeno {
+  width: calc(158 * var(--u));
+  height: calc(158 * var(--u));
+}
+
+.ranura-mediano {
+  grid-column: 1 / -1;
+  width: calc(338 * var(--u));
+  height: calc(158 * var(--u));
+}
+
+.ranura-grande {
+  grid-column: 1 / -1;
+  width: calc(338 * var(--u));
+  height: calc(354 * var(--u));
+}
+
+.vitrina-opciones {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.75rem;
+}
+
+.vitrina-nota {
+  margin-inline: auto;
+  text-align: center;
+}
+
+/* ── Widget base (igual que nuevoWidget() de goat.js) ──────────────────── */
+
+.w {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: calc(22 * var(--u));
+  padding: calc(14 * var(--u));
+  background: linear-gradient(#000000, #0d0d0f);
+  box-shadow:
+    0 0 0 0.5px rgb(255 255 255 / 0.1),
+    0 calc(10 * var(--u)) calc(30 * var(--u)) rgb(0 0 0 / 0.55);
+  color: var(--texto);
+  font-size: calc(12 * var(--u));
+  line-height: 1.2;
+  text-decoration: none;
+  animation: subir 0.8s var(--curva) both;
+}
+
+a.w,
+.w a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.w:active {
+  transform: scale(0.97);
+}
+
+.w-fila {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  min-width: 0;
+}
+
+.w-etiqueta {
+  overflow: hidden;
+  flex: 1;
+  font-size: calc(11 * var(--u));
+  font-weight: 700;
+  color: var(--texto-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.w-mayus {
+  font-size: calc(10 * var(--u));
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+}
+
+.w-racha,
+.w-puntaje,
+.w-leyenda-valor,
+.w-marca {
+  font-family: ui-rounded, var(--fuente);
+}
+
+.w-racha {
+  flex: none;
+  font-size: calc(13 * var(--u));
+  font-weight: 600;
+}
+
+.w-avisos {
+  flex: none;
+  font-size: calc(11 * var(--u));
+  font-weight: 600;
+  color: var(--texto-2);
+}
+
+.w-avisos:empty,
+.w-racha:empty {
+  display: none;
+}
+
+.w-pendiente {
+  overflow: hidden;
+  font-size: calc(12 * var(--u));
+  font-weight: 600;
+  color: var(--texto-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Lo que falta: el único naranja del widget. */
+.w-pendiente.falta {
+  color: var(--acento);
+}
+
+.w-linea {
+  overflow: hidden;
+  font-size: calc(12 * var(--u));
+  font-weight: 500;
+  color: var(--texto-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.w-dinero {
+  display: inline-block;
+  font-family: ui-rounded, var(--fuente);
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.w-rutina {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.w-rutina-titulo {
+  overflow: hidden;
+  font-size: calc(15 * var(--u));
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.w-rutina-detalle {
+  overflow: hidden;
+  margin-top: calc(1 * var(--u));
+  font-size: calc(12 * var(--u));
+  color: var(--texto-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Anillos (los mismos colores y grosores que imagenAnillos()) ───────── */
+
+.w-anillos-caja {
+  position: relative;
+  display: grid;
+  width: 100%;
+  aspect-ratio: 1;
+  place-items: center;
+}
+
+.w-anillos {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.w-anillos circle {
+  fill: none;
+  stroke-width: 8.8;
+}
+
+.anillo-pista {
+  stroke-opacity: 0.2;
+}
+
+.anillo-arco {
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset 1.6s var(--curva);
+}
+
+.anillo-arco.vacio {
+  visibility: hidden;
+}
+
+.anillo-arco.color-cuerpo {
+  transition-delay: 0.12s;
+}
+
+.anillo-arco.color-mente {
+  transition-delay: 0.24s;
+}
+
+.color-registro {
+  stroke: var(--anillo-registro);
+}
+
+.color-cuerpo {
+  stroke: var(--anillo-cuerpo);
+}
+
+.color-mente {
+  stroke: var(--anillo-mente);
+}
+
+.w-puntaje {
+  position: absolute;
+  font-size: 1.6em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.tres-cifras .w-puntaje {
+  font-size: 1.2em;
+}
+
+/* ── Pequeño ───────────────────────────────────────────────────────────── */
+
+.w-centro {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  min-height: 0;
+}
+
+.w-pequeno .w-anillos-caja {
+  width: calc(90 * var(--u));
+  font-size: calc(14 * var(--u));
+}
+
+.w-pequeno .w-pendiente {
+  text-align: center;
+}
+
+/* ── Mediano ───────────────────────────────────────────────────────────── */
+
+.w-mediano {
+  padding: calc(14 * var(--u)) calc(16 * var(--u)) calc(12 * var(--u)) calc(14 * var(--u));
+}
+
+.w-mediano-arriba {
+  display: flex;
+  align-items: center;
+  gap: calc(14 * var(--u));
+}
+
+.w-enlace {
+  display: block;
+  flex: none;
+}
+
+.w-mediano .w-enlace {
+  width: calc(96 * var(--u));
+  font-size: calc(15 * var(--u));
+}
+
+.w-columna {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: calc(2 * var(--u));
+}
+
+.w-columna .w-rutina {
+  margin: calc(4 * var(--u)) 0 calc(5 * var(--u));
+}
+
+.w-frase {
+  overflow: hidden;
+  margin-top: auto;
+  font-size: calc(11 * var(--u));
+  color: var(--texto-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Grande ────────────────────────────────────────────────────────────── */
+
+.w-grande {
+  padding: calc(16 * var(--u)) calc(16 * var(--u)) calc(14 * var(--u));
+}
+
+.w-marca {
+  flex: none;
+  font-size: calc(15 * var(--u));
+  font-weight: 800;
+}
+
+.w-fecha {
+  overflow: hidden;
+  flex: 1;
+  font-size: calc(13 * var(--u));
+  font-weight: 600;
+  color: var(--texto-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.w-grande .w-racha {
+  font-size: calc(15 * var(--u));
+}
+
+.w-grande-anillos {
+  display: flex;
+  align-items: center;
+  gap: calc(16 * var(--u));
+  margin: calc(8 * var(--u)) 0 calc(10 * var(--u));
+}
+
+.w-grande .w-enlace {
+  width: calc(104 * var(--u));
+  font-size: calc(16 * var(--u));
+}
+
+.w-leyenda {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: calc(7 * var(--u));
+}
+
+.w-leyenda-fila {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+}
+
+.w-punto {
+  width: calc(8 * var(--u));
+  height: calc(8 * var(--u));
+  flex: none;
+  border-radius: 50%;
+}
+
+.w-punto.color-registro {
+  background: var(--anillo-registro);
+}
+
+.w-punto.color-cuerpo {
+  background: var(--anillo-cuerpo);
+}
+
+.w-punto.color-mente {
+  background: var(--anillo-mente);
+}
+
+.w-leyenda-nombre {
+  flex: 1;
+  font-size: calc(13 * var(--u));
+  font-weight: 500;
+  color: var(--texto-2);
+}
+
+.w-leyenda-valor {
+  font-size: calc(15 * var(--u));
+  font-weight: 600;
+}
+
+.w-ayer {
+  margin-top: calc(2 * var(--u));
+  font-size: calc(11 * var(--u));
+  color: var(--texto-3);
+}
+
+.w-estado {
+  justify-content: space-between;
+  margin: calc(8 * var(--u)) 0 calc(10 * var(--u));
+}
+
+.w-estado .w-linea {
+  flex: none;
+}
+
+/* La semana: 7 barras de puntaje, hoy en naranja (imagenSemana()). */
+.w-semana {
+  display: grid;
+  height: calc(40 * var(--u));
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.w-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(3 * var(--u));
+}
+
+.w-barra {
+  position: relative;
+  width: calc(12 * var(--u));
+  flex: 1;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.w-barra-relleno {
+  position: absolute;
+  inset: auto 0 0;
+  height: 0;
+  border-radius: 999px;
+  background: rgb(245 245 247 / 0.5);
+  transition: height 1.2s var(--curva);
+}
+
+.w-semana.visto .w-barra-relleno {
+  height: max(calc(12 * var(--u)), calc(var(--h) * 100%));
+}
+
+.w-dia.sin-dato .w-barra-relleno {
+  display: none;
+}
+
+.w-dia.hoy .w-barra-relleno {
+  background: var(--acento);
+}
+
+.w-dia-letra {
+  font-size: calc(10 * var(--u));
+  font-weight: 700;
+  color: var(--texto-3);
+}
+
+.w-dia.hoy .w-dia-letra {
+  color: var(--acento);
+}
+
+.w-pie {
+  justify-content: space-between;
+  margin-top: calc(8 * var(--u));
+}
+
+.w-frase-grande {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: auto;
+  font-family: ui-rounded, var(--fuente);
+  font-size: calc(15 * var(--u));
+  font-weight: 600;
+  line-height: 1.22;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ── Widget de la app Atajos (botones) ─────────────────────────────────── */
+
+.w-atajos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(8 * var(--u));
+  padding: calc(12 * var(--u));
+}
+
+.w-boton-atajo {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: calc(14 * var(--u));
+  padding: calc(9 * var(--u)) calc(10 * var(--u));
+  background: var(--superficie-2);
+}
+
+.w-boton-emoji {
+  font-size: calc(17 * var(--u));
+  line-height: 1;
+}
+
+.w-boton-nombre {
+  overflow: hidden;
+  font-size: calc(12 * var(--u));
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.w-atajos-uno {
+  grid-template-columns: 1fr;
+  padding: 0;
+}
+
+.w-atajos-uno .w-boton-atajo {
+  border-radius: 0;
+  padding: calc(14 * var(--u));
+  background: linear-gradient(#1c1c1e, #141416);
+}
+
+.w-atajos-uno .w-boton-emoji {
+  font-size: calc(30 * var(--u));
+}
+
+.w-atajos-uno .w-boton-nombre {
+  font-size: calc(15 * var(--u));
+}
+
+/* ── Pantalla bloqueada (monocromo, como la pinta iOS) ─────────────────── */
+
+.pantalla-bloqueo {
+  display: flex;
+  flex-direction: column;
+}
+
+.bloqueo-cuerpo {
+  display: flex;
+  width: calc(338 * var(--u));
+  flex-direction: column;
+  align-items: center;
+  padding: calc(18 * var(--u)) 0 calc(26 * var(--u));
+  color: rgb(255 255 255 / 0.92);
+}
+
+.bloqueo-fecha {
+  display: flex;
+  max-width: 100%;
+  gap: calc(6 * var(--u));
+  font-size: calc(17 * var(--u));
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bloqueo-fecha span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#b-fecha::first-letter {
+  text-transform: uppercase;
+}
+
+.bloqueo-separador {
+  opacity: 0.6;
+}
+
+.bloqueo-hora {
+  margin: calc(-2 * var(--u)) 0 calc(14 * var(--u));
+  font-family: ui-rounded, var(--fuente);
+  font-size: calc(86 * var(--u));
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.bloqueo-widgets {
+  display: flex;
+  align-items: center;
+  gap: calc(14 * var(--u));
+}
+
+.w-circular,
+.w-rectangular {
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s var(--curva);
+}
+
+.w-circular:active,
+.w-rectangular:active {
+  transform: scale(0.95);
+}
+
+.w-circular {
+  position: relative;
+  display: grid;
+  width: calc(72 * var(--u));
+  height: calc(72 * var(--u));
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.14);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.w-medidor {
+  position: absolute;
+  inset: calc(6 * var(--u));
+  width: calc(60 * var(--u));
+  height: calc(60 * var(--u));
+  /* El arco de 270° abre hacia abajo: empieza abajo a la izquierda. */
+  transform: rotate(135deg);
+}
+
+.w-medidor circle {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.medidor-pista {
+  stroke-dasharray: 75 100;
+  stroke-opacity: 0.3;
+}
+
+.medidor-progreso {
+  stroke-dasharray: 75 100;
+  stroke-dashoffset: 75;
+  transition: stroke-dashoffset 1.4s var(--curva);
+}
+
+.medidor-progreso.vacio {
+  visibility: hidden;
+}
+
+.w-circular-numero {
+  position: relative;
+  margin-top: calc(-4 * var(--u));
+  font-family: ui-rounded, var(--fuente);
+  font-size: calc(22 * var(--u));
+  font-weight: 700;
+}
+
+.w-circular-etiqueta {
+  position: absolute;
+  bottom: calc(7 * var(--u));
+  font-size: calc(8 * var(--u));
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.w-rectangular {
+  display: flex;
+  width: calc(170 * var(--u));
+  min-width: 0;
+  flex-direction: column;
+  gap: calc(1 * var(--u));
+}
+
+.w-rect-titulo,
+.w-rect-linea {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.w-rect-titulo {
+  font-family: ui-rounded, var(--fuente);
+  font-size: calc(15 * var(--u));
+  font-weight: 700;
+}
+
+.w-rect-linea {
+  font-size: calc(13 * var(--u));
+  font-weight: 600;
+}
+
+.w-rect-suave {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* ── La frase de hoy ───────────────────────────────────────────────────── */
+
+.frase-dia-cita {
+  max-width: 18ch;
+}
+
+.frase-dia-texto {
+  font-size: clamp(2.4rem, 10.5vw, 6rem);
+  line-height: 0.9;
+  font-stretch: 80%;
+}
+
+.frase-dia-texto::before {
+  content: "“";
+  color: var(--texto-3);
+}
+
+.frase-dia-texto::after {
+  content: "”";
+  color: var(--texto-3);
+}
+
+/* ── Guía de instalación ───────────────────────────────────────────────── */
+
+.seccion-titular {
+  font-size: clamp(3rem, 14vw, 6.5rem);
+}
+
+.pasos {
+  display: grid;
+  max-width: 40rem;
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.paso {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  animation: subir 0.7s var(--curva) both;
+  animation-delay: calc(var(--i, 0) * 0.06s);
+}
+
+.paso-numero {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--superficie-2);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+.paso-titulo {
+  padding-top: 0.2rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.paso-texto {
+  margin-top: 0.3rem;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--texto-2);
+}
+
+.paso-corto .paso-texto {
+  margin-top: 0.4rem;
+}
+
+.pasos-cortos {
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.paso-acciones {
+  margin-top: 1rem;
+}
+
+.accion-copiar,
+.accion-direccion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+}
+
+.accion {
+  padding-inline: 1.4rem;
+}
+
+.accion-enlace {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--acento);
+  text-decoration: none;
+}
+
+.accion-nota {
+  width: 100%;
+  font-size: 0.8125rem;
+  color: var(--texto-3);
+}
+
+.direccion {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  background: var(--superficie-2);
+}
+
+/* Texto oculto para el plan B de "Copiar" (seleccionable, fuera de la pantalla). */
+.copiar-oculto {
+  position: fixed;
+  top: 0;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.direccion-valor {
+  font-size: 1rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* ── Widget de Atajos ──────────────────────────────────────────────────── */
+
+.atajos-rejilla {
+  --u: min(1px, calc((100vw - 2 * var(--margen)) / 338));
+  display: grid;
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+.atajos-muestra {
+  justify-self: start;
+}
+
+.atajos-rejilla .pasos-cortos {
+  margin-top: 1rem;
+}
+
+.guias {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.guia {
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--superficie-2);
+}
+
+.guia-cabeza {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  list-style: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.guia-cabeza::-webkit-details-marker {
+  display: none;
+}
+
+.guia-cabeza:active {
+  background: rgb(255 255 255 / 0.04);
+}
+
+.guia-emoji {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.guia-texto {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.guia-nombre {
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.guia-para {
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: var(--texto-2);
+}
+
+.guia-flecha {
+  font-size: 1.5rem;
+  color: var(--texto-3);
+  transition: transform 0.3s var(--curva);
+}
+
+.guia[open] .guia-flecha {
+  transform: rotate(90deg);
+}
+
+.guia-pasos {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.25rem 1.25rem 1.5rem 2.6rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--texto-2);
+}
+
+.guia[open] .guia-pasos {
+  animation: subir 0.5s var(--curva) both;
+}
+
+.fila-detalle-largo {
+  white-space: normal;
+}
+
+/* ── Tablet y computador ───────────────────────────────────────────────── */
+
+@media (min-width: 48rem) {
+  .atajos-rejilla {
+    --u: 1px;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .atajos-rejilla .pasos-cortos {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 64rem) {
+  .vitrina-rejilla {
+    grid-template-columns: auto auto;
+    justify-content: start;
+    align-items: start;
+    gap: 2.5rem;
+  }
+
+  .pantalla-bloqueo {
+    position: sticky;
+    top: calc(var(--arriba) + 80px);
+  }
+
+  .vitrina-opciones {
+    justify-content: flex-start;
+  }
+
+  .vitrina-nota {
+    margin-inline: 0;
+    text-align: left;
+  }
+
+  .instalar {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    column-gap: 3rem;
+  }
+
+  .instalar > .etiqueta {
+    grid-column: 1 / -1;
+  }
+
+  .instalar .pasos {
+    margin-top: 0;
+  }
+}

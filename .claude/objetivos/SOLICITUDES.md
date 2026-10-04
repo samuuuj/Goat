@@ -153,3 +153,22 @@ Nada de esto bloquea la rama `goat/rutina`: la página, la API y las pruebas fun
 5. **Simulador (informativo):** los filtros `gt` y `order` comparan como texto; en `datos-conectar.js` los ids de
    `log_api` son de 4 cifras para que «Probar» funcione. `datos-conectar.js` reemplaza `GET/POST/DELETE tokens`
    para guardar las llaves en `tablas.api_tokens` (las lee «Probar conexión»).
+## E · Widgets
+
+Nada de esto bloquea `goat/widgets`: la API, el script de Scriptable, la página y las pruebas funcionan solos.
+
+1. **Atajo base "⚙️ Goat" — formato de `url` (Central / Conectar B).** Hoy hay dos versiones: `web/js/rutina/atajos.js` dice que
+   `url` ya termina en `/api/v1`; `web/js/ejercicio/atajos.js` (y su solicitud H.5) dice que es la dirección sin `/api/v1`.
+   Conviene fijar una. Widgets aguanta las dos: el script de Scriptable quita `/api/v1` y la `/` final al guardar la dirección,
+   y los atajos "🍽️ Comí" y "📚 Estudio" usan "Reemplazar texto" para quitar `/api/v1` antes de abrir la web.
+2. **Conectar (B) — paso 5 "Widgets".** Puede reusar `GUIA_SCRIPTABLE` y `GUIA_BLOQUEO` de `web/js/widgets/atajos.js`
+   (los mismos textos de `widgets.html`). `ATAJOS` trae 3 entradas en el formato común: `widgets-comi`, `widgets-estudio`
+   (atajos de una sola acción que abren `index.html#registrar=comida|estudio`) y `widgets-botones` (armar el widget de Atajos
+   con 4 botones; no es un atajo en sí, solo pasos). Las tres prueban con `GET widget`.
+3. **`api/_rutas/sueno.js` (opcional).** El widget saca el sueño llamando al manejador de `GET sueno/resumen` (reusa su `cargar()`
+   interno). Si Sueño exporta `cargar` (por ejemplo como `cargarSueno(db, ahora)`), `api/_rutas/widget.js` puede usarlo directo.
+4. **Hoy a 375 px (ya reportado en A.1).** La tarjeta "Widgets." no se sale (su texto mide 135 de 170 px); el desborde lo
+   causa «MOVIMIENTO.». La tarjeta ahora muestra la frase del día (`web/js/widgets/mini.js`), que salta de línea sin ensanchar.
+5. **`scriptable/LEEME.md` en la raíz** (lo pedía la ficha E): no lo creé porque no estaba en mi lista de archivos. La guía vive en
+   `widgets.html` y en el encabezado de `web/scriptable/goat.js`. Si se quiere, basta un archivo de 2 líneas que apunte a
+   `web/scriptable/goat.js` y a la página Widgets.

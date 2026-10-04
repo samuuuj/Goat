@@ -403,6 +403,39 @@ create policy uni_sesiones_propias on public.uni_sesiones
   using (user_id = (select auth.uid()))
   with check (user_id = (select auth.uid()));
 
+-- ---------------------------------------------------------------------
+-- Tareas de la universidad (G · Rutina, D-056). "Primer paso": la acción
+-- más pequeña para empezar (vence la procrastinación).
+-- ---------------------------------------------------------------------
+create table if not exists public.uni_tareas (
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  titulo       text not null check (char_length(titulo) between 1 and 120),
+  materia      text check (char_length(materia) <= 60),
+  fecha_limite timestamptz,
+  estimado_min int check (estimado_min between 5 and 1440),
+  estado       text not null default 'pendiente' check (estado in ('pendiente','en_progreso','hecha')),
+  prioridad    smallint not null default 2 check (prioridad between 1 and 3),
+  primer_paso  text check (char_length(primer_paso) <= 120),
+  hecha_en     timestamptz,
+  momento      timestamptz not null default now(),
+  fecha        date generated always as (public.dia_logico(momento)) stored,
+  origen       text not null default 'web' check (origen in ('atajo','web','automatizacion','widget')),
+  id_cliente   uuid unique,
+  creado_en    timestamptz not null default now()
+);
+create index if not exists uni_tareas_user_estado_idx on public.uni_tareas (user_id, estado, fecha_limite);
+
+revoke all on table public.uni_tareas from anon, authenticated;
+grant select, insert, update, delete on table public.uni_tareas to authenticated;
+alter table public.uni_tareas enable row level security;
+
+drop policy if exists uni_tareas_propias on public.uni_tareas;
+create policy uni_tareas_propias on public.uni_tareas
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+
 
 -- #####################################################################
 -- 5. EJERCICIO · dueña: 05 · Ejercicio (v1 creada por Central, D-040)
@@ -684,6 +717,111 @@ create policy desbloqueo_pases_propios on public.desbloqueo_pases
 -- Plantilla semanal de bloques, chequeos hecho/saltado.
 -- (Las tareas de la universidad van al final de la sección 4.)
 -- #####################################################################
+
+-- ---------------------------------------------------------------------
+-- Plantilla semanal: cada bloque se repite los días que diga `dias`
+-- (1 = lunes … 7 = domingo). Los festivos usan los bloques del domingo.
+-- Es plantilla: no tiene fecha. "Borrar" un bloque = activo false
+-- (así no se pierden sus chequeos pasados).
+-- ---------------------------------------------------------------------
+create table if not exists public.rutina_bloques (
+  id             uuid primary key default gen_random_uuid(),
+  user_id        uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  titulo         text not null check (char_length(titulo) between 1 and 60),
+  tipo           text not null check (tipo in ('despertar','caminar','desayuno','trabajo','descanso','almuerzo',
+                                               'ejercicio','cena','estudio','clase_presencial','clase_virtual',
+                                               'trabajo_uni','dormir','libre','otro')),
+  dias           smallint[] not null check (cardinality(dias) between 1 and 7
+                                            and dias <@ array[1,2,3,4,5,6,7]::smallint[]),
+  hora_inicio    time not null,
+  duracion_min   int not null check (duracion_min between 5 and 600),
+  obligatorio    boolean not null default false,
+  aviso_min      int not null default 0 check (aviso_min between 0 and 120),
+  lugar          text check (char_length(lugar) <= 80),
+  enlace         text check (char_length(enlace) <= 300 and enlace ~ '^https://[^[:space:]]+$'),
+  materia        text check (char_length(materia) <= 60),
+  notas          text check (char_length(notas) <= 200),
+  activo         boolean not null default true,
+  orden          int not null default 0,
+  origen         text not null default 'web' check (origen in ('atajo','web','automatizacion','widget')),
+  id_cliente     uuid unique,
+  creado_en      timestamptz not null default now(),
+  actualizado_en timestamptz not null default now(),
+  -- Para que un chequeo solo pueda apuntar a un bloque del mismo usuario.
+  unique (id, user_id)
+);
+create index if not exists rutina_bloques_user_activo_idx on public.rutina_bloques (user_id, activo);
+
+drop trigger if exists rutina_bloques_actualizado_en on public.rutina_bloques;
+create trigger rutina_bloques_actualizado_en
+  before update on public.rutina_bloques
+  for each row execute function public.tocar_actualizado_en();
+
+revoke all on table public.rutina_bloques from anon, authenticated;
+grant select, insert, update, delete on table public.rutina_bloques to authenticated;
+alter table public.rutina_bloques enable row level security;
+
+drop policy if exists rutina_bloques_propios on public.rutina_bloques;
+create policy rutina_bloques_propios on public.rutina_bloques
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+
+-- ---------------------------------------------------------------------
+-- Chequeos: "hecho" o "saltado" de un bloque en un día lógico.
+-- Uno por bloque y fecha: marcar de nuevo actualiza (upsert).
+-- "Saltado" también es un registro (principio 3: nunca incentivar mentir).
+-- ---------------------------------------------------------------------
+create table if not exists public.rutina_checks (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  bloque_id  uuid not null,
+  fecha      date not null,
+  estado     text not null check (estado in ('hecho','saltado')),
+  nota       text check (char_length(nota) <= 120),
+  momento    timestamptz not null default now(),
+  origen     text not null default 'web' check (origen in ('atajo','web','automatizacion','widget')),
+  id_cliente uuid unique,
+  creado_en  timestamptz not null default now(),
+  unique (bloque_id, fecha),
+  foreign key (bloque_id, user_id) references public.rutina_bloques (id, user_id) on delete cascade
+);
+create index if not exists rutina_checks_user_fecha_idx on public.rutina_checks (user_id, fecha);
+
+revoke all on table public.rutina_checks from anon, authenticated;
+grant select, insert, update, delete on table public.rutina_checks to authenticated;
+alter table public.rutina_checks enable row level security;
+
+drop policy if exists rutina_checks_propios on public.rutina_checks;
+create policy rutina_checks_propios on public.rutina_checks
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+
+-- ---------------------------------------------------------------------
+-- Festivos de 2028 (el núcleo trae 2026 y 2027; Rutina agrega los años
+-- siguientes). Misma regla: Pascua + traslado al lunes (Ley Emiliani).
+-- ---------------------------------------------------------------------
+insert into public.festivos (fecha, nombre) values
+  ('2028-01-01', 'Año Nuevo'),
+  ('2028-01-10', 'Reyes Magos'),
+  ('2028-03-20', 'San José'),
+  ('2028-04-13', 'Jueves Santo'),
+  ('2028-04-14', 'Viernes Santo'),
+  ('2028-05-01', 'Día del Trabajo'),
+  ('2028-05-29', 'Ascensión del Señor'),
+  ('2028-06-19', 'Corpus Christi'),
+  ('2028-06-26', 'Sagrado Corazón'),
+  ('2028-07-03', 'San Pedro y San Pablo'),
+  ('2028-07-20', 'Día de la Independencia'),
+  ('2028-08-07', 'Batalla de Boyacá'),
+  ('2028-08-21', 'Asunción de la Virgen'),
+  ('2028-10-16', 'Día de la Raza'),
+  ('2028-11-06', 'Todos los Santos'),
+  ('2028-11-13', 'Independencia de Cartagena'),
+  ('2028-12-08', 'Inmaculada Concepción'),
+  ('2028-12-25', 'Navidad')
+on conflict (fecha) do nothing;
 
 
 

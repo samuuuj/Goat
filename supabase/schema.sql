@@ -438,6 +438,72 @@ create policy gym_sesiones_propias on public.gym_sesiones
 -- Acostarse y despertar desde automatizaciones del iPhone + muestras de Salud.
 -- #####################################################################
 
+-- ---------------------------------------------------------------------
+-- Eventos de la noche: "me acuesto" y "desperté". Llegan de los atajos
+-- 🌙 y ☀️ (automatizaciones de Sueño, Modo Sueño, cargador, alarma) o
+-- se anotan a mano en sueno.html. La noche se arma en
+-- web/js/sueno/logica.js y pertenece al día lógico en que te acostaste.
+-- ---------------------------------------------------------------------
+create table if not exists public.sueno_eventos (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  tipo       text not null check (tipo in ('acostarse','despertar')),
+  fuente     text not null default 'manual'
+               check (fuente in ('hora_dormir','modo_sueno','cargador','alarma','despertar','manual')),
+  momento    timestamptz not null default now(),
+  fecha      date generated always as (public.dia_logico(momento)) stored,
+  origen     text not null default 'web' check (origen in ('atajo','web','automatizacion','widget')),
+  id_cliente uuid unique,
+  creado_en  timestamptz not null default now()
+);
+create index if not exists sueno_eventos_user_fecha_idx on public.sueno_eventos (user_id, fecha);
+create index if not exists sueno_eventos_user_momento_idx on public.sueno_eventos (user_id, momento);
+
+revoke all on table public.sueno_eventos from anon, authenticated;
+grant select, insert, update, delete on table public.sueno_eventos to authenticated;
+alter table public.sueno_eventos enable row level security;
+
+drop policy if exists sueno_eventos_propios on public.sueno_eventos;
+create policy sueno_eventos_propios on public.sueno_eventos
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+
+-- ---------------------------------------------------------------------
+-- Muestras de Salud › Análisis del sueño ("En cama" sin Apple Watch).
+-- Únicas por (user_id, inicio, tipo): sincronizar dos veces no duplica.
+-- fecha = día lógico del inicio (una muestra de la 01:10 es de "ayer").
+-- ---------------------------------------------------------------------
+create table if not exists public.sueno_muestras (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  inicio     timestamptz not null,
+  fin        timestamptz not null,
+  tipo       text not null default 'en_cama' check (tipo in ('en_cama','dormido','despierto')),
+  fuente     text not null default 'salud' check (fuente in ('salud','manual')),
+  fecha      date generated always as (public.dia_logico(inicio)) stored,
+  origen     text not null default 'atajo' check (origen in ('atajo','web','automatizacion','widget')),
+  id_cliente uuid unique,
+  creado_en  timestamptz not null default now(),
+  constraint sueno_muestras_duracion check (fin > inicio and fin - inicio <= interval '16 hours'),
+  constraint sueno_muestras_unica unique (user_id, inicio, tipo)
+);
+create index if not exists sueno_muestras_user_fecha_idx on public.sueno_muestras (user_id, fecha);
+
+revoke all on table public.sueno_muestras from anon, authenticated;
+grant select, insert, update, delete on table public.sueno_muestras to authenticated;
+alter table public.sueno_muestras enable row level security;
+
+drop policy if exists sueno_muestras_propias on public.sueno_muestras;
+create policy sueno_muestras_propias on public.sueno_muestras
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+
+-- Metas de sueño (leídas con respaldo en web/js/sueno/logica.js):
+--   perfil.metas.sueno_horas (7.5) · hora_despertar ("06:00") · hora_acostarse ("22:30").
+-- No se escriben aquí para no pisar las metas que ya tengas.
+
 
 
 -- #####################################################################

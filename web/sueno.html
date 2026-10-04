@@ -39,11 +39,223 @@
       <section class="cabecera-seccion">
         <p class="etiqueta">Goat · Sueño</p>
         <h1 class="titular">Tu noche.</h1>
-        <p class="cabecera-texto">Pronto.</p>
+        <p id="cabecera-texto" class="cabecera-texto"></p>
       </section>
 
-      <footer class="pie-seccion"></footer>
+      <!-- 1. Anoche: duración enorme, horas y el índice en su anillo. -->
+      <section class="seccion anoche" aria-labelledby="anoche-etiqueta">
+        <div class="seccion-cabeza">
+          <p id="anoche-etiqueta" class="etiqueta">Anoche</p>
+          <p id="anoche-fecha" class="etiqueta cifras"></p>
+        </div>
+
+        <div id="anoche-vacia" class="anoche-vacia" hidden>
+          <p class="titular anoche-vacia-titulo">Sin noches <span class="acento">todavía.</span></p>
+          <p class="frase">
+            Cuando armes los atajos 🌙 Me acuesto y ☀️ Desperté, tu noche aparece aquí sola. Mientras tanto, anótala a mano.
+          </p>
+        </div>
+
+        <div id="anoche-rejilla" class="anoche-rejilla">
+          <div class="anoche-principal">
+            <p id="anoche-duracion" class="titular cifras anoche-duracion">
+              <span aria-hidden="true"><span id="duracion-h">0</span><span class="unidad">h</span> <span id="duracion-m">00</span><span class="unidad">min</span></span>
+              <span id="duracion-lector" class="solo-lector"></span>
+            </p>
+            <p id="anoche-sin-duracion" class="titular anoche-sin-duracion" hidden>A medias.</p>
+            <p class="anoche-horas">
+              <span class="anoche-hora">
+                <span class="etiqueta">Te acostaste</span>
+                <span id="anoche-acostarse" class="titular cifras anoche-hora-valor"></span>
+              </span>
+              <span class="anoche-hora">
+                <span class="etiqueta">Te levantaste</span>
+                <span id="anoche-despertar" class="titular cifras anoche-hora-valor"></span>
+              </span>
+            </p>
+            <button type="button" id="anoche-falta" class="boton-falta" hidden></button>
+            <p id="anoche-celular" class="anoche-nota" hidden></p>
+            <p id="anoche-fuente" class="anoche-nota anoche-fuente"></p>
+          </div>
+
+          <figure class="indice" aria-labelledby="indice-titulo">
+            <div class="indice-anillo">
+              <svg class="indice-svg" viewBox="0 0 200 200" aria-hidden="true">
+                <circle class="indice-fondo" cx="100" cy="100" r="86" />
+                <circle id="indice-progreso" class="indice-progreso vacio" cx="100" cy="100" r="86" />
+              </svg>
+              <div class="indice-centro">
+                <p id="indice-valor" class="titular cifras indice-valor">—</p>
+                <p id="indice-titulo" class="etiqueta">Índice</p>
+              </div>
+            </div>
+            <figcaption id="indice-frase" class="indice-frase"></figcaption>
+          </figure>
+        </div>
+
+        <p id="esta-noche" class="esta-noche" hidden></p>
+      </section>
+
+      <!-- 2. La semana como en la app Salud: una barra por noche, de acostarte a levantarte. -->
+      <section class="seccion semana-sueno" aria-labelledby="semana-etiqueta">
+        <div class="seccion-cabeza">
+          <p id="semana-etiqueta" class="etiqueta">Tu semana</p>
+          <p id="semana-promedio" class="etiqueta cifras"></p>
+        </div>
+        <div id="grafica" class="grafica">
+          <div id="grafica-eje" class="grafica-eje" aria-hidden="true"></div>
+          <div class="grafica-cuerpo">
+            <div id="grafica-guias" class="grafica-guias" aria-hidden="true"></div>
+            <ol id="grafica-filas" class="grafica-filas"></ol>
+          </div>
+        </div>
+        <p class="grafica-leyenda">
+          <span class="leyenda"><span class="leyenda-meta" aria-hidden="true"></span>Meta para acostarte <span id="leyenda-meta" class="cifras"></span></span>
+          <span id="leyenda-ultima" class="leyenda"><span class="leyenda-ultima" aria-hidden="true"></span><span id="leyenda-ultima-texto">Última noche</span></span>
+        </p>
+      </section>
+
+      <!-- 3. Regularidad, promedios y de qué está hecho el índice. -->
+      <section class="seccion regularidad" aria-labelledby="regularidad-etiqueta">
+        <p id="regularidad-etiqueta" class="etiqueta">Regularidad</p>
+        <div class="regularidad-rejilla">
+          <div>
+            <p id="regularidad-valor" class="titular cifras regularidad-valor">—</p>
+            <p class="regularidad-texto"><span id="regularidad-nombre" class="regularidad-nombre"></span> <span id="regularidad-detalle"></span></p>
+          </div>
+          <div>
+            <dl class="promedios">
+              <div class="promedio">
+                <dt class="etiqueta">A la cama</dt>
+                <dd id="promedio-acostarse" class="titular cifras promedio-valor">—</dd>
+              </div>
+              <div class="promedio">
+                <dt class="etiqueta">Arriba</dt>
+                <dd id="promedio-despertar" class="titular cifras promedio-valor">—</dd>
+              </div>
+              <div class="promedio">
+                <dt class="etiqueta">Duermes</dt>
+                <dd id="promedio-duracion" class="titular cifras promedio-valor">—</dd>
+              </div>
+            </dl>
+            <p id="promedios-nota" class="promedios-nota"></p>
+
+            <div class="partes" aria-label="De qué está hecho el índice">
+              <div class="parte" data-parte="duracion">
+                <div class="parte-cabeza"><span>Duración</span><span class="cifras parte-valor"></span></div>
+                <div class="progreso"><div class="progreso-relleno"></div></div>
+                <p class="parte-peso">Horas contra tu meta · 50 %</p>
+              </div>
+              <div class="parte" data-parte="regularidad">
+                <div class="parte-cabeza"><span>Regularidad</span><span class="cifras parte-valor"></span></div>
+                <div class="progreso"><div class="progreso-relleno"></div></div>
+                <p class="parte-peso">Misma hora cada noche · 30 %</p>
+              </div>
+              <div class="parte" data-parte="hora">
+                <div class="parte-cabeza"><span>Hora de acostarte</span><span class="cifras parte-valor"></span></div>
+                <div class="progreso"><div class="progreso-relleno"></div></div>
+                <p class="parte-peso">Antes de tu meta · 20 %</p>
+              </div>
+            </div>
+            <button type="button" id="abrir-metas" class="boton-borde">Cambiar metas</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Registrar a mano, para cuando falló el atajo. -->
+      <section class="seccion manual" aria-labelledby="manual-titulo">
+        <p class="etiqueta">¿Falló el atajo?</p>
+        <h2 id="manual-titulo" class="titular manual-titulo">Anótalo <span class="acento">a mano.</span></h2>
+        <p class="frase">Lo que escribas a mano manda sobre lo automático. Toma menos de 10 segundos.</p>
+        <div class="manual-botones">
+          <button type="button" class="boton-secundario" data-registrar="acostarse">🌙 Me acosté a…</button>
+          <button type="button" class="boton-secundario" data-registrar="despertar">☀️ Me levanté a…</button>
+        </div>
+      </section>
+
+      <!-- 5. Cómo se registra solo: estado de los atajos y su guía. -->
+      <section class="seccion solo" aria-labelledby="solo-etiqueta">
+        <p id="solo-etiqueta" class="etiqueta">Cómo se registra solo</p>
+        <p class="frase solo-frase">
+          Sin Apple Watch, el iPhone sabe cuándo dejas el celular gracias a tu horario de sueño en Salud. Dos atajos y sus
+          automatizaciones hacen el resto: tú no llenas nada.
+        </p>
+        <ul class="lista-agrupada solo-estado">
+          <li class="fila">
+            <span class="fila-icono" aria-hidden="true">🤖</span>
+            <span class="fila-texto">
+              <span class="fila-titulo">Último aviso automático</span>
+              <span id="estado-evento" class="fila-detalle"></span>
+            </span>
+          </li>
+          <li class="fila">
+            <span class="fila-icono" aria-hidden="true">🛏️</span>
+            <span class="fila-texto">
+              <span class="fila-titulo">Última vez que llegó Salud</span>
+              <span id="estado-salud" class="fila-detalle"></span>
+            </span>
+          </li>
+          <li>
+            <a class="fila" href="conectar.html">
+              <span class="fila-icono" aria-hidden="true">📲</span>
+              <span class="fila-texto">
+                <span class="fila-titulo">Asistente Conectar iPhone</span>
+                <span class="fila-detalle">Token, permisos y todos los atajos</span>
+              </span>
+              <span class="fila-flecha" aria-hidden="true">›</span>
+            </a>
+          </li>
+        </ul>
+        <div id="guias" class="guias"></div>
+      </section>
+
+      <footer class="pie-seccion">
+        Goat · Sueño. La noche es del día en que te acostaste: acostarte a la 01:10 cuenta para la noche de ayer.
+      </footer>
     </main>
+
+    <!-- Acción principal: anotar a mano. -->
+    <div id="accion" class="accion-flotante" data-con-contenido data-fondo-hoja hidden>
+      <button type="button" id="boton-registrar" class="boton-principal">＋ Anotar</button>
+    </div>
+
+    <!-- Hoja inferior: anotar a mano o cambiar metas. -->
+    <div id="velo" class="velo"></div>
+    <div id="hoja" class="hoja sin-scrollbar" role="dialog" aria-modal="true" aria-labelledby="hoja-titulo" tabindex="-1">
+      <div id="hoja-manija" class="hoja-manija" aria-hidden="true"><span></span></div>
+      <h2 id="hoja-titulo" class="titular hoja-titulo"></h2>
+
+      <form id="form-evento" class="form-registro" hidden>
+        <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Qué anotas"></div>
+        <label class="campo-grande">
+          <span id="hora-etiqueta" class="etiqueta">Me acosté a las</span>
+          <input id="hora-evento" name="hora" type="time" class="titular cifras entrada-hora" required />
+        </label>
+        <p id="hora-cuando" class="hora-cuando" aria-live="polite"></p>
+        <div class="botones">
+          <button type="submit" class="boton-principal" data-guardar>Guardar</button>
+          <button type="button" id="ahora-mismo" class="boton-secundario">Ahora mismo</button>
+        </div>
+      </form>
+
+      <form id="form-metas" class="form-registro" hidden>
+        <div>
+          <p class="etiqueta campo-titulo">Horas de sueño</p>
+          <div class="chips" data-chips="horas" role="radiogroup" aria-label="Horas de sueño"></div>
+        </div>
+        <div class="dos-columnas">
+          <label class="campo-grande">
+            <span class="etiqueta">Acostarte</span>
+            <input name="hora_acostarse" type="time" class="titular cifras entrada-hora mediana" required />
+          </label>
+          <label class="campo-grande">
+            <span class="etiqueta">Levantarte</span>
+            <input name="hora_despertar" type="time" class="titular cifras entrada-hora mediana" required />
+          </label>
+        </div>
+        <button type="submit" class="boton-principal" data-guardar>Guardar metas</button>
+      </form>
+    </div>
 
     <!-- Si la base de datos aún no tiene tablas -->
     <main id="falta-base" class="contenedor pantalla-simple" hidden>
@@ -68,8 +280,63 @@
       <p id="aviso" class="aviso" role="status" aria-live="polite"></p>
     </div>
 
+    <!-- ═══ Plantillas: js/sueno/pagina.js las copia y llena con textContent ═══ -->
     <template id="plantilla-chip">
       <button type="button" class="chip" role="radio" aria-checked="false"></button>
+    </template>
+
+    <template id="plantilla-noche">
+      <li class="noche">
+        <span class="solo-lector noche-lector"></span>
+        <span class="noche-dia" aria-hidden="true"><span class="noche-dia-nombre"></span><span class="noche-dia-numero cifras"></span></span>
+        <span class="noche-carril" aria-hidden="true"><span class="noche-barra"></span></span>
+        <span class="noche-duracion cifras" aria-hidden="true"></span>
+      </li>
+    </template>
+
+    <template id="plantilla-marca">
+      <span class="grafica-marca cifras"></span>
+    </template>
+
+    <template id="plantilla-guia-linea">
+      <span class="grafica-linea"></span>
+    </template>
+
+    <template id="plantilla-guia">
+      <details class="guia">
+        <summary class="guia-cabeza">
+          <span class="guia-emoji" aria-hidden="true"></span>
+          <span class="guia-texto"><span class="guia-nombre"></span><span class="guia-para"></span></span>
+          <span class="guia-flecha" aria-hidden="true">›</span>
+        </summary>
+        <div class="guia-cuerpo">
+          <div class="guia-bloque guia-requisitos-bloque">
+            <p class="etiqueta">Antes</p>
+            <ul class="guia-lista guia-requisitos"></ul>
+          </div>
+          <div class="guia-bloque">
+            <p class="etiqueta">Arma el atajo</p>
+            <ol class="guia-pasos"></ol>
+          </div>
+          <div class="guia-automatizaciones"></div>
+          <div class="guia-bloque guia-permisos-bloque">
+            <p class="etiqueta">Lo que iOS te va a pedir</p>
+            <ul class="guia-lista guia-permisos"></ul>
+          </div>
+        </div>
+      </details>
+    </template>
+
+    <template id="plantilla-automatizacion">
+      <div class="guia-bloque guia-automatizacion">
+        <p class="etiqueta">Automatización</p>
+        <p class="guia-disparador"></p>
+        <ol class="guia-pasos"></ol>
+      </div>
+    </template>
+
+    <template id="plantilla-item">
+      <li></li>
     </template>
   </body>
 </html>

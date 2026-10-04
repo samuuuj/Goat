@@ -1,29 +1,5 @@
 /* Goat · pantalla de inicio (index.html). */
 
-/* ── Cargando ──────────────────────────────────────────────────────────── */
-
-.cargando {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-}
-
-.cargando-anillo {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 7px solid var(--acento);
-  animation: latir 1.2s ease-in-out infinite;
-}
-
-@keyframes latir {
-  50% {
-    opacity: 0.35;
-    transform: scale(0.88);
-  }
-}
-
 /* ── Portada ───────────────────────────────────────────────────────────── */
 
 .portada {
@@ -45,19 +21,102 @@
   justify-content: space-between;
 }
 
-.boton-circulo {
-  display: grid;
-  width: 2.25rem;
-  height: 2.25rem;
-  place-items: center;
-  border-radius: 50%;
-  border: 1px solid var(--linea);
-  color: var(--texto-2);
-  transition: color 0.2s;
+.barra-botones {
+  display: flex;
+  gap: 0.5rem;
 }
 
-.boton-circulo:hover {
+/* Contador de notificaciones sin leer sobre la campana. */
+.contador {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.3rem;
+  display: grid;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  place-items: center;
+  border-radius: 999px;
+  padding: 0 0.3rem;
+  background: var(--acento);
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #000;
+}
+
+.contador:empty {
+  display: none;
+}
+
+/* ── Secciones: tarjetas hacia cada parte de la app ────────────────────── */
+
+.secciones {
+  border-top: 1px solid var(--linea);
+  padding: 5rem var(--margen);
+}
+
+.secciones > .etiqueta {
+  margin-bottom: 2rem;
+}
+
+.secciones-rejilla {
+  display: grid;
+  /* minmax(0, …): una palabra larga (MOVIMIENTO.) no ensancha la columna ni la página. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.seccion-tarjeta {
+  container-type: inline-size;
+  display: flex;
+  min-height: 9.5rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  border-radius: 22px;
+  padding: 1.1rem;
+  background: var(--superficie-2);
   color: var(--texto);
+  text-decoration: none;
+  transition: transform 0.15s var(--curva), background-color 0.2s;
+}
+
+.seccion-tarjeta.ancha {
+  grid-column: 1 / -1;
+  min-height: 7rem;
+}
+
+.seccion-tarjeta:hover {
+  background: #232326;
+}
+
+.seccion-tarjeta:active {
+  transform: scale(0.97);
+}
+
+.seccion-tarjeta-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.seccion-tarjeta-titulo {
+  display: block;
+  font-size: clamp(1.25rem, 6.4vw, 1.65rem);
+  line-height: 0.9;
+  overflow-wrap: anywhere;
+}
+
+/* Una sola palabra larga (MOVIMIENTO.): se achica para caber entera en vez de partirse. */
+.seccion-tarjeta-titulo.largo {
+  font-size: min(1.65rem, 100cqi / 7.2);
+}
+
+.seccion-tarjeta-mini {
+  display: block;
+  margin-top: 0.4rem;
+  min-height: 1.2em;
+  font-size: 0.8125rem;
+  color: var(--texto-2);
 }
 
 .portada-contenido {
@@ -336,23 +395,6 @@
   margin-top: 2.5rem;
 }
 
-.progreso {
-  height: 3px;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 0.1);
-}
-
-.progreso-relleno {
-  height: 100%;
-  border-radius: 999px;
-  background: var(--acento);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 1.4s var(--curva);
-}
-
 .metrica-meta-texto {
   margin-top: 0.75rem;
   font-size: 0.875rem;
@@ -369,22 +411,6 @@
 
 .metrica-valor-caja {
   display: inline-block;
-}
-
-/* Modo discreto: el dinero se ve borroso hasta que lo tocas (3 s). */
-.sensible {
-  transition: filter 0.35s var(--curva), opacity 0.35s var(--curva);
-}
-
-.discreto .sensible {
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.discreto .sensible:not(.revelado) {
-  filter: blur(16px);
-  opacity: 0.5;
 }
 
 /* ── Semana ────────────────────────────────────────────────────────────── */
@@ -490,10 +516,6 @@
   color: var(--texto-3);
 }
 
-.ancho-justo {
-  width: fit-content;
-}
-
 /* ── Dock: barra flotante de vidrio ────────────────────────────────────── */
 
 .dock {
@@ -548,237 +570,6 @@
   transform: scale(0.88);
 }
 
-/* ── Hoja inferior estilo iOS ──────────────────────────────────────────── */
-
-.velo {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  background: rgb(0 0 0 / 0.6);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s, visibility 0s 0.3s;
-}
-
-.velo.abierto {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.3s, visibility 0s;
-}
-
-.hoja {
-  position: fixed;
-  inset: auto 0 0;
-  z-index: 50;
-  max-width: 36rem;
-  max-height: 88svh;
-  margin-inline: auto;
-  overflow-y: auto;
-  border-radius: 30px 30px 0 0;
-  border-top: 1px solid var(--linea);
-  padding: 0 1.5rem calc(var(--abajo) + 28px);
-  background: rgb(28 28 30 / 0.9);
-  -webkit-backdrop-filter: blur(40px);
-  backdrop-filter: blur(40px);
-  transform: translateY(calc(100% + 2rem));
-  visibility: hidden;
-  transition: transform 0.45s var(--curva), visibility 0s 0.45s;
-}
-
-.hoja.abierta {
-  transform: translateY(var(--arrastre, 0px));
-  visibility: visible;
-  transition: transform 0.5s var(--resorte), visibility 0s;
-}
-
-/* Mientras la arrastras, sigue al dedo sin retraso. */
-.hoja.arrastrando {
-  transition: none;
-}
-
-.hoja-manija {
-  display: flex;
-  justify-content: center;
-  padding: 0.75rem 0 1.25rem;
-  cursor: grab;
-  touch-action: none;
-}
-
-.hoja-manija:active {
-  cursor: grabbing;
-}
-
-.hoja-manija span {
-  width: 2.5rem;
-  height: 0.375rem;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 0.25);
-}
-
-.hoja-titulo {
-  margin-bottom: 1.5rem;
-  font-size: 3rem;
-}
-
-/* ── Formularios de registro ───────────────────────────────────────────── */
-
-.form-registro {
-  display: flex;
-  flex-direction: column;
-  gap: 1.75rem;
-}
-
-.campo-titulo {
-  margin-bottom: 0.75rem;
-}
-
-.campo-grande {
-  display: block;
-}
-
-.entrada-grande,
-.entrada-mediana {
-  width: 100%;
-  margin-top: 0.5rem;
-  text-transform: none;
-  outline: none;
-}
-
-.entrada-grande {
-  font-size: 4.5rem;
-}
-
-.entrada-mediana {
-  font-size: 3.75rem;
-}
-
-.entrada-grande::placeholder,
-.entrada-mediana::placeholder {
-  color: var(--texto-3);
-}
-
-.montos-rapidos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.montos-rapidos button {
-  border-radius: 999px;
-  padding: 0.375rem 0.75rem;
-  background: rgb(255 255 255 / 0.06);
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--texto-2);
-  transition: color 0.2s;
-}
-
-.montos-rapidos button:hover {
-  color: var(--texto);
-}
-
-.dos-columnas {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.botones {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.boton-secundario {
-  width: 100%;
-  border-radius: 999px;
-  padding: 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-align: center;
-  color: var(--texto-2);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
-  transition: color 0.2s, opacity 0.2s;
-}
-
-.boton-secundario:hover {
-  color: var(--texto);
-}
-
-.boton-secundario:disabled {
-  opacity: 0.3;
-}
-
-/* Selector de una opción: la elegida se vuelve una píldora blanca. */
-.chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.chip {
-  border-radius: 999px;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--texto-2);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
-  transition: background-color 0.25s var(--curva), color 0.25s, transform 0.15s var(--curva);
-}
-
-.chip:hover {
-  color: var(--texto);
-}
-
-.chip:active {
-  transform: scale(0.95);
-}
-
-.chip[aria-checked="true"] {
-  background: var(--texto);
-  color: #000;
-  animation: elegir 0.35s var(--resorte);
-}
-
-/* ── Aviso flotante ────────────────────────────────────────────────────── */
-
-.aviso-zona {
-  position: fixed;
-  inset: calc(var(--arriba) + 12px) 0 auto;
-  z-index: 70;
-  display: flex;
-  justify-content: center;
-  padding: 0 1.25rem;
-  pointer-events: none;
-}
-
-.aviso {
-  border-radius: 999px;
-  border: 1px solid rgb(255 255 255 / 0.1);
-  padding: 0.75rem 1.25rem;
-  background: rgb(28 28 30 / 0.9);
-  -webkit-backdrop-filter: blur(40px);
-  backdrop-filter: blur(40px);
-  font-size: 0.875rem;
-  font-weight: 600;
-  opacity: 0;
-  transform: translateY(-40px) scale(0.94);
-  transition: opacity 0.3s, transform 0.45s var(--resorte);
-}
-
-.aviso:empty {
-  display: none;
-}
-
-.aviso.visible {
-  opacity: 1;
-  transform: none;
-}
-
 /* ── Tablet ────────────────────────────────────────────────────────────── */
 
 @media (min-width: 48rem) {
@@ -802,12 +593,8 @@
     height: 11rem;
   }
 
-  .hoja {
-    bottom: 1.5rem;
-    max-height: 82svh;
-    border: 1px solid var(--linea);
-    border-radius: 30px;
-    padding-inline: 2rem;
+  .secciones-rejilla {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -867,20 +654,7 @@
   }
 }
 
-/* ── Animaciones ───────────────────────────────────────────────────────── */
-
-@keyframes desde-abajo {
-  from {
-    transform: translateY(110%);
-  }
-}
-
-@keyframes subir {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-}
+/* ── Animaciones (desde-abajo, subir y elegir están en comun.css) ──────── */
 
 @keyframes rebotar {
   50% {
@@ -892,12 +666,6 @@
   from {
     opacity: 0;
     transform: translateY(120px);
-  }
-}
-
-@keyframes elegir {
-  from {
-    transform: scale(0.9);
   }
 }
 

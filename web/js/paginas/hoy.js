@@ -8,6 +8,8 @@ import { diaYMes, horaBogota, nombreDia } from "../logica/dia.js";
 import { formatearValor, unidad } from "../logica/formato.js";
 import { ajustarAlAncho, alVerse, avisar, clonar, contar, iniciarDiscreto, limitar, reducirMovimiento } from "../piezas/ui.js";
 import { iniciarRegistros } from "../piezas/registros.js";
+import { revisarBienvenida } from "../conectar/bienvenida.js";
+import { iniciarCampana } from "../notificaciones/campana.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -32,6 +34,12 @@ const TAMANO_MAXIMO_PORTADA = 240;
 
 const sesion = await requerirSesion();
 
+// La primera vez en este dispositivo, el asistente "Conectar iPhone" (js/conectar/bienvenida.js).
+if (await revisarBienvenida(sesion).catch(() => false)) {
+  location.replace("conectar.html");
+  await new Promise(() => {});
+}
+
 let registros = null; // Lo último que llegó de Supabase.
 let resumen = null; // Lo último que se pintó.
 let pintado = ""; // El mismo resumen en texto, para no repintar si nada cambió.
@@ -42,6 +50,7 @@ let scrollProgramado = false;
 iniciarDiscreto($("boton-discreto"));
 document.querySelectorAll("#cerrar-sesion, [data-cerrar-sesion]").forEach((boton) => boton.addEventListener("click", cerrarSesion));
 $("reintentar").addEventListener("click", () => cargar());
+iniciarCampana($("campana"), $("campana-contador"));
 
 const registro = iniciarRegistros({
   alGuardar: async (mensaje) => {
@@ -49,11 +58,33 @@ const registro = iniciarRegistros({
     await cargar();
   },
 });
+
+/** Un pendiente de la rutina se marca en Tu día; los demás abren su hoja de registro. */
+function resolverPendiente({ accion, clave }) {
+  if (accion === "rutina") location.href = "rutina.html";
+  else registro.abrir(accion, clave);
+}
+
+// Enlaces de otras secciones y atajos: index.html#registrar=comida abre esa hoja (desbloqueo, "📝 Registrar ahora").
+const pedido = /^#registrar=([a-z_]+)$/.exec(location.hash);
+if (pedido) {
+  history.replaceState(null, "", location.pathname + location.search);
+  registro.abrir(pedido[1]);
+}
+
+// Tocar un aviso de pendiente en el centro de notificaciones (js/notificaciones/panel.js).
+const ACCION_DE_CLAVE = { desayuno: "comida", almuerzo: "comida", cena: "comida", checkin_finanzas: "gasto", cierre_finanzas: "gasto" };
+document.addEventListener("goat:registrar", (evento) => {
+  const clave = evento.detail?.clave ?? "";
+  const accion = clave.startsWith("rutina:") ? "rutina" : ACCION_DE_CLAVE[clave];
+  if (accion) resolverPendiente({ accion, clave });
+});
 document.querySelectorAll("#dock [data-accion]").forEach((boton) =>
   boton.addEventListener("click", () => registro.abrir(boton.dataset.accion)),
 );
 
 await cargar();
+pintarMinis();
 
 // El reloj de la barra y lo que falta cambian con la hora, aunque no registres nada.
 window.setInterval(() => {
@@ -110,6 +141,8 @@ function pintar(nuevo) {
   pintarMetricas(nuevo.metricas, animar);
   pintarSemana(nuevo, animar);
   programarScroll();
+  // Para la campana y otras piezas que necesitan el resumen sin recalcularlo.
+  document.dispatchEvent(new CustomEvent("goat:resumen", { detail: nuevo }));
 }
 
 // ── Portada ──────────────────────────────────────────────────────────────
@@ -206,7 +239,7 @@ function pintarPendientes(pendientes, animar) {
       item.style.setProperty("--i", i);
       item.querySelector(".pendiente-emoji").textContent = pendiente.emoji;
       item.querySelector(".pendiente-texto").textContent = pendiente.texto;
-      item.querySelector("button").addEventListener("click", () => registro.abrir(pendiente.accion, pendiente.clave));
+      item.querySelector("button").addEventListener("click", () => resolverPendiente(pendiente));
       if (!animar) item.classList.add("visto");
       return item;
     }),
@@ -290,6 +323,21 @@ function pintarSemana(datos, animar) {
   );
   if (animar) alVerse(barras, () => barras.classList.add("visto"));
   else barras.classList.add("visto");
+}
+
+// ── Secciones ────────────────────────────────────────────────────────────
+
+/** Dato corto de cada sección (js/<modulo>/mini.js), sin montos. Si un módulo falla, su tarjeta queda sin dato. */
+function pintarMinis() {
+  document.querySelectorAll(".seccion-tarjeta[data-modulo]").forEach(async (tarjeta) => {
+    try {
+      const { miniDato } = await import(`../${tarjeta.dataset.modulo}/mini.js`);
+      const texto = await miniDato(sesion);
+      if (texto) tarjeta.querySelector("[data-mini]").textContent = texto;
+    } catch (error) {
+      console.warn(`[secciones] ${tarjeta.dataset.modulo}`, error);
+    }
+  });
 }
 
 // ── Efectos al hacer scroll ──────────────────────────────────────────────

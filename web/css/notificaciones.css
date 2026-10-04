@@ -1,0 +1,708 @@
+/* Goat · centro de notificaciones (panel de la 🔔 en Hoy, js/notificaciones/panel.js).
+   Estilo del centro de notificaciones de iOS: baja desde arriba con vidrio desenfocado, hora grande,
+   pilas por módulo, tarjetas de vidrio y deslizar para borrar. Siempre oscuro, un solo acento. */
+
+/* ── Contador de la campana: rebota al cambiar ─────────────────────────── */
+
+.contador-rebota {
+  animation: nc-rebote 0.55s var(--resorte);
+}
+
+@keyframes nc-rebote {
+  0% {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.18);
+  }
+}
+
+/* Mientras el panel está abierto, la página de atrás no se desplaza. */
+html.nc-bloqueo,
+html.nc-bloqueo body {
+  overflow: hidden;
+}
+
+/* ── Capa y hoja de vidrio ─────────────────────────────────────────────── */
+
+.nc {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  visibility: hidden;
+  outline: none;
+  transition: visibility 0s 0.5s;
+}
+
+.nc.abierto {
+  visibility: visible;
+  transition: visibility 0s;
+}
+
+.nc-hoja {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgb(0 0 0 / 0.55);
+  -webkit-backdrop-filter: blur(30px) saturate(1.4);
+  backdrop-filter: blur(30px) saturate(1.4);
+  transform: translateY(calc(-100% - 2rem));
+  transition: transform 0.5s var(--curva);
+}
+
+.nc.abierto .nc-hoja {
+  transform: translateY(var(--arrastre, 0px));
+  transition: transform 0.6s var(--curva);
+}
+
+.nc-hoja.arrastrando {
+  transition: none !important;
+}
+
+.nc-desplazable {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nc-contenido {
+  display: flex;
+  min-height: 100%;
+  width: min(100%, 36rem);
+  flex-direction: column;
+  margin-inline: auto;
+  padding: calc(var(--arriba) + 1.75rem) 1rem 2rem;
+}
+
+/* Manija de abajo: deslizar hacia arriba cierra. */
+.nc-manija {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  padding: 0.85rem 0 calc(var(--abajo) + 0.85rem);
+  cursor: grab;
+  touch-action: none;
+}
+
+.nc-manija:active {
+  cursor: grabbing;
+}
+
+.nc-manija span {
+  width: 8.5rem;
+  height: 0.3rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.55);
+}
+
+/* ── Hora y fecha (como la pantalla bloqueada) ─────────────────────────── */
+
+.nc-reloj {
+  text-align: center;
+}
+
+.nc-fecha {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(245 245 247 / 0.82);
+}
+
+.nc-fecha::first-letter {
+  text-transform: uppercase;
+}
+
+.nc-hora {
+  overflow: hidden;
+  font-family: var(--fuente-titular);
+  font-size: clamp(5.25rem, 27vw, 8.5rem);
+  font-stretch: 125%;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.nc-hora-texto {
+  display: inline-block;
+}
+
+.nc.entrando .nc-hora-texto {
+  animation: desde-abajo 0.95s var(--curva) 0.12s both;
+}
+
+.nc.entrando .nc-fecha {
+  animation: subir 0.8s var(--curva) 0.05s both;
+}
+
+/* ── Título y botones de vidrio ────────────────────────────────────────── */
+
+.nc-barra {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2.25rem 0 1.25rem;
+}
+
+.nc-titulo {
+  min-width: 0;
+  overflow: hidden;
+  font-size: clamp(2rem, 9.6vw, 3.25rem);
+  font-stretch: 76%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nc.entrando .nc-barra {
+  animation: subir 0.8s var(--curva) 0.18s both;
+}
+
+.nc-boton-vidrio {
+  flex: none;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.12);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--texto);
+  transition: background-color 0.2s, transform 0.15s var(--curva);
+}
+
+.nc-boton-vidrio:hover {
+  background: rgb(255 255 255 / 0.2);
+}
+
+.nc-boton-vidrio:active {
+  transform: scale(0.94);
+}
+
+.nc-cerrar {
+  padding: 0.45rem 0.95rem;
+}
+
+/* ── Secciones: Hoy · Esta semana · Antes ──────────────────────────────── */
+
+.nc-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.nc-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.nc-seccion-cabeza {
+  display: flex;
+  min-height: 1.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 0.25rem;
+}
+
+.nc-seccion-titulo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* ⓧ que se convierte en "Borrar todo" (confirmación en línea). */
+.nc-borrar {
+  display: inline-flex;
+  height: 1.75rem;
+  min-width: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0;
+  white-space: nowrap;
+  color: var(--texto-2);
+  transition: padding 0.4s var(--resorte), background-color 0.2s, color 0.2s, transform 0.15s var(--curva);
+}
+
+.nc-x {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.nc-borrar-texto {
+  display: inline-block;
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-width 0.4s var(--resorte), opacity 0.25s;
+}
+
+.nc-borrar.confirmar {
+  padding: 0 0.85rem;
+  background: rgb(255 255 255 / 0.22);
+  color: var(--texto);
+}
+
+.nc-borrar.confirmar .nc-x {
+  display: none;
+}
+
+.nc-borrar.confirmar .nc-borrar-texto {
+  max-width: 7rem;
+  opacity: 1;
+}
+
+/* ── Pilas por módulo ──────────────────────────────────────────────────── */
+
+.nc-pilas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.nc-pila,
+.nc-seccion-cabeza {
+  transform: translateY(var(--dy-pila, 0px));
+  transition: transform 0.6s var(--resorte);
+}
+
+.nc-pila-cabeza {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+  padding: 0 0.25rem;
+}
+
+.nc-pila.abierta .nc-pila-cabeza {
+  display: flex;
+  animation: subir 0.45s var(--curva) both;
+}
+
+.nc-pila-nombre {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.nc-menos {
+  padding: 0.35rem 0.85rem;
+}
+
+.nc-pila-cuerpo {
+  position: relative;
+}
+
+.nc-tarjetas {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Pila cerrada: la primera tarjeta adelante y dos "fantasma" asomando detrás (escaladas .955 y .91). */
+.nc-pila.multiple:not(.abierta) {
+  --relleno: 0.6rem;
+}
+
+.nc-pila.multiple.tres:not(.abierta) {
+  --relleno: 1.2rem;
+}
+
+.nc-pila.multiple:not(.abierta) .nc-tarjetas {
+  padding-bottom: var(--relleno);
+}
+
+.nc-pila.multiple:not(.abierta) .nc-item:first-child {
+  z-index: 3;
+}
+
+.nc-pila.multiple:not(.abierta) .nc-item:not(:first-child) {
+  position: absolute;
+  inset: 0 0 var(--relleno) 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.nc-pila.multiple:not(.abierta) .nc-item:nth-child(2) {
+  --asomo: 0.6rem;
+  --escala-pila: 0.955;
+}
+
+.nc-pila.multiple:not(.abierta) .nc-item:nth-child(n + 3) {
+  --asomo: 1.2rem;
+  --escala-pila: 0.91;
+  z-index: 1;
+}
+
+.nc-pila.multiple:not(.abierta) .nc-item:nth-child(n + 4) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.nc-pila.multiple:not(.abierta) .nc-item:not(:first-child) .nc-tarjeta {
+  background: rgb(44 44 46 / 0.7);
+}
+
+.nc-pila.multiple:not(.abierta) .nc-item:not(:first-child) .nc-tarjeta > * {
+  opacity: 0;
+}
+
+/* En una pila cerrada se desliza la pila entera (no cada tarjeta). */
+.nc-pila.multiple:not(.abierta) .nc-item > .nc-acciones,
+.nc-pila.abierta > .nc-pila-cuerpo > .nc-acciones {
+  display: none;
+}
+
+/* ── Tarjeta de vidrio ─────────────────────────────────────────────────── */
+
+.nc-item {
+  /* Valores propios: no heredan los de la pila que se desliza. */
+  --x: 0px;
+  --revela: 0;
+  --dy-item: 0px;
+  position: relative;
+  display: grid;
+  transform: translateY(calc(var(--asomo, 0px) + var(--dy-item))) scale(var(--escala, var(--escala-pila, 1)));
+  transform-origin: 50% 100%;
+  transition:
+    transform 0.6s var(--resorte),
+    opacity 0.3s var(--curva),
+    visibility 0s;
+}
+
+.nc-tarjeta {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 2.375rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.75rem;
+  border: 0.5px solid rgb(255 255 255 / 0.08);
+  border-radius: 22px;
+  padding: 0.8rem 0.875rem 0.85rem;
+  background: rgb(28 28 30 / 0.72);
+  -webkit-backdrop-filter: blur(30px) saturate(1.4);
+  backdrop-filter: blur(30px) saturate(1.4);
+  text-align: left;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.nc-tarjeta > * {
+  transition: opacity 0.3s var(--curva);
+}
+
+.nc-tarjeta:focus-visible {
+  outline-offset: 2px;
+}
+
+.nc-icono {
+  display: grid;
+  width: 2.375rem;
+  height: 2.375rem;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--superficie-2);
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.nc-texto {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.nc-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.nc-modulo {
+  overflow: hidden;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--texto-2);
+}
+
+.nc-lado {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Punto naranja: aún no la has visto. */
+.nc-punto {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--acento);
+}
+
+.nc-tiempo {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--texto-3);
+  white-space: nowrap;
+}
+
+.nc-titulo-tarjeta {
+  margin-top: 0.1rem;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.nc-cuerpo {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: rgb(245 245 247 / 0.82);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.nc-mas {
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--texto-3);
+}
+
+.nc-pila.abierta .nc-mas {
+  display: none;
+}
+
+/* ── Deslizar: "Ver" y "Borrar" detrás de la tarjeta ───────────────────── */
+
+.nc-deslizable {
+  position: relative;
+}
+
+.nc-movil {
+  transform: translateX(var(--x, 0px));
+  transition: transform 0.45s var(--resorte);
+}
+
+/* Los ítems también se mueven en vertical (pila): la tarjeta solo en horizontal. */
+.nc-item > .nc-movil {
+  transform: translateX(var(--x));
+}
+
+.nc-deslizable.arrastrando > .nc-movil {
+  transition: none;
+}
+
+.nc-acciones {
+  --ancho-acciones: 9.25rem;
+  position: absolute;
+  inset: 0 0 0 auto;
+  display: flex;
+  width: max(var(--ancho-acciones), calc(var(--x, 0px) * -1 - 0.5rem));
+  gap: 0.5rem;
+  opacity: var(--revela, 0);
+  visibility: hidden;
+  transition: width 0.45s var(--resorte), opacity 0.2s;
+}
+
+.nc-pila-cuerpo > .nc-acciones {
+  bottom: var(--relleno, 0px);
+}
+
+.nc-deslizable.revelando > .nc-acciones {
+  visibility: visible;
+}
+
+.nc-deslizable.arrastrando > .nc-acciones {
+  transition: none;
+}
+
+.nc-accion {
+  min-width: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgb(58 58 60 / 0.78);
+  -webkit-backdrop-filter: blur(30px) saturate(1.4);
+  backdrop-filter: blur(30px) saturate(1.4);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--texto);
+  transition: flex-grow 0.3s var(--curva), opacity 0.2s, transform 0.15s var(--curva);
+}
+
+.nc-accion:active {
+  transform: scale(0.95);
+}
+
+/* Deslizada del todo: "Borrar" ocupa todo el espacio (se suelta y se borra). */
+.nc-deslizable.completo > .nc-acciones {
+  gap: 0;
+}
+
+.nc-deslizable.completo > .nc-acciones [data-accion="ver"] {
+  flex-grow: 0;
+  opacity: 0;
+}
+
+/* ── Salidas ───────────────────────────────────────────────────────────── */
+
+.colapsando {
+  overflow: hidden;
+  height: 0 !important;
+  margin: 0 !important;
+  opacity: 0;
+  transition:
+    height 0.32s var(--curva),
+    margin 0.32s var(--curva),
+    opacity 0.25s;
+}
+
+.nc-seccion.vaciando .nc-pila {
+  opacity: 0;
+  transform: translateX(-40%);
+  transition:
+    transform 0.4s var(--curva) calc(var(--i, 0) * 0.03s),
+    opacity 0.3s calc(var(--i, 0) * 0.03s);
+}
+
+.desvaneciendo,
+.nc-seccion.vaciando {
+  opacity: 0;
+  transition: opacity 0.2s linear;
+}
+
+.nc-seccion.vaciando {
+  transition-delay: 0.15s;
+}
+
+/* Para medir antes de animar (FLIP): sin transición por un instante. */
+.sin-transicion,
+.sin-transicion > .nc-movil {
+  transition: none !important;
+}
+
+/* ── Entrada al abrir ──────────────────────────────────────────────────── */
+
+.nc.entrando .nc-pila,
+.nc.entrando .nc-seccion-cabeza {
+  animation: nc-entra 0.65s var(--curva) backwards;
+  animation-delay: calc(0.2s + var(--i, 0) * 0.05s);
+}
+
+@keyframes nc-entra {
+  from {
+    opacity: 0;
+    transform: translateY(-1.25rem) scale(0.98);
+  }
+}
+
+/* ── Vacío ─────────────────────────────────────────────────────────────── */
+
+.nc-vacio {
+  display: grid;
+  flex: 1;
+  min-height: 12rem;
+  place-items: center;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--texto-3);
+}
+
+.nc.entrando .nc-vacio {
+  animation: subir 0.8s var(--curva) 0.25s both;
+}
+
+/* ── Tablet y computador ───────────────────────────────────────────────── */
+
+@media (min-width: 48rem) {
+  .nc-contenido {
+    width: min(100%, 40rem);
+    padding-top: calc(var(--arriba) + 3rem);
+  }
+
+  .nc-hora {
+    font-size: 9.5rem;
+  }
+
+  .nc-barra {
+    margin-top: 3rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .nc-hora {
+    font-size: 10.5rem;
+  }
+}
+
+/* ── Movimiento reducido: sin deslizamientos, solo fundidos ────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .nc,
+  .nc.abierto .nc-hoja,
+  .nc-hoja {
+    transform: none;
+  }
+
+  .nc {
+    transition: visibility 0s 0.25s !important;
+  }
+
+  .nc.abierto {
+    transition: visibility 0s !important;
+  }
+
+  .nc-hoja {
+    opacity: 0;
+    transition: opacity 0.25s linear !important;
+  }
+
+  .nc.abierto .nc-hoja {
+    opacity: 1;
+  }
+
+  .nc-hoja.arrastrando {
+    transition: none !important;
+  }
+
+  .nc.entrando .nc-hora-texto,
+  .nc.entrando .nc-fecha,
+  .nc.entrando .nc-barra,
+  .nc.entrando .nc-pila,
+  .nc.entrando .nc-seccion-cabeza,
+  .nc.entrando .nc-vacio,
+  .nc-pila.abierta .nc-pila-cabeza {
+    animation: none;
+  }
+
+  .desvaneciendo,
+  .nc-seccion.vaciando {
+    transition: opacity 0.2s linear !important;
+  }
+
+  .nc-seccion.vaciando .nc-pila {
+    transform: none;
+  }
+}

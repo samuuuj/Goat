@@ -4,23 +4,24 @@
 import { SesionVencida, guardar } from "../supabase/datos.js";
 import { cerrarSesion } from "../supabase/sesion.js";
 import { horaDecimal } from "../logica/dia.js";
-import { formatoCOP } from "../logica/formato.js";
-import { avisar, clonar, nuevoId } from "./ui.js";
+import { formatoDuracion } from "../logica/formato.js";
+import { avisar, nuevoId } from "./ui.js";
+import { chips } from "./chips.js";
+import { crearHoja } from "./hoja.js";
 import {
-  CATEGORIAS,
-  CUENTAS,
   DURACIONES,
   FRECUENTES,
   MATERIAS,
-  MONTOS_RAPIDOS,
-  MONTO_MAXIMO,
   RUTINAS,
   TIPOS_COMIDA,
-  TIPOS_MOVIMIENTO,
+  TIPOS_EJERCICIO,
   VALIDOS,
 } from "../logica/catalogos.js";
+import { emojiTipo, horarioSugerido, instantesRecientes, minutosEntre, validarSesion } from "../ejercicio/logica.js";
+import { marcarCubiertos } from "../rutina/datos.js";
 
-const TITULO = { comida: "Comí", gasto: "Gasto", estudio: "Estudio", gym: "Gym" };
+// La hoja "gasto" registra los 4 tipos de Finanzas (gasto, ingreso, transferencia, retiro).
+const TITULO = { comida: "Comí", gasto: "Dinero", estudio: "Estudio", gym: "Gym" };
 
 const soloDigitos = (texto) => texto.replace(/\D/g, "");
 const entero = (valor, minimo, maximo) => Number.isInteger(valor) && valor >= minimo && valor <= maximo;
@@ -31,96 +32,29 @@ function esHoraDeCierre(ahora) {
   return hora >= 22 || hora < 4;
 }
 
-/** Selector de una opción hecho con botones (los "chips"). */
-function chips(contenedor, alCambiar = () => {}) {
-  let valor = null;
-  const marcar = () =>
-    contenedor.querySelectorAll(".chip").forEach((chip) => chip.setAttribute("aria-checked", String(chip.dataset.valor === valor)));
-
-  contenedor.addEventListener("click", (evento) => {
-    const chip = evento.target.closest(".chip");
-    if (!chip) return;
-    valor = chip.dataset.valor;
-    marcar();
-    alCambiar(valor);
-  });
-
-  return {
-    get valor() {
-      return valor;
-    },
-    poner(nuevo) {
-      valor = nuevo;
-      marcar();
-    },
-    opciones(lista) {
-      contenedor.replaceChildren(
-        ...lista.map((opcion) => {
-          const chip = clonar("plantilla-chip");
-          chip.dataset.valor = opcion.valor;
-          chip.textContent = opcion.texto;
-          return chip;
-        }),
-      );
-      marcar();
-    },
-  };
-}
-
 // ── Gasto ────────────────────────────────────────────────────────────────
+// Los 4 tipos de Finanzas (gasto, ingreso, transferencia, retiro) con el mismo flujo de finanzas.html.
+// Las cuentas salen de finanzas_cuentas. Solo "Gasto" mueve "Disponible hoy" (calculo.js no cambia).
+
+import { formularioMovimiento } from "../finanzas/formulario.js";
+import { cargarContextoMovimiento, contextoLegado } from "../finanzas/datos.js";
 
 function formularioGasto(form, enviar) {
-  const campoMonto = form.elements.monto;
-  const montos = form.querySelector("[data-montos]");
   const secundario = form.querySelector("[data-secundario]");
-  let monto = 0;
   let cierre = false;
+  let contexto = null;
 
-  const tipo = chips(form.querySelector('[data-chips="tipo"]'), (nuevo) => {
-    categoria.opciones(CATEGORIAS[nuevo]);
-    categoria.poner(null);
-    montos.hidden = nuevo !== "egreso";
-    revisar();
+  const movimiento = formularioMovimiento(form, {
+    alEnviar: ({ fila, mensaje }) => enviar("finanzas_movimientos", fila, mensaje),
   });
-  const categoria = chips(form.querySelector('[data-chips="categoria"]'), () => revisar());
-  const cuenta = chips(form.querySelector('[data-chips="cuenta"]'), () => revisar());
-  tipo.opciones(TIPOS_MOVIMIENTO);
-  cuenta.opciones(CUENTAS);
 
-  function ponerMonto(valor) {
-    monto = valor;
-    campoMonto.value = valor ? formatoCOP(valor) : "";
-    revisar();
-  }
-
-  montos.replaceChildren(
-    ...MONTOS_RAPIDOS.map((rapido) => {
-      const boton = document.createElement("button");
-      boton.type = "button";
-      boton.textContent = formatoCOP(rapido);
-      boton.addEventListener("click", () => ponerMonto(rapido));
-      return boton;
-    }),
-  );
-  campoMonto.addEventListener("input", () => ponerMonto(Number(soloDigitos(campoMonto.value).slice(0, 9)) || 0));
-
-  const revisar = () => (form.querySelector("[data-guardar]").disabled = !(monto && categoria.valor && cuenta.valor));
-
-  form.addEventListener("submit", (evento) => {
-    evento.preventDefault();
-    const t = tipo.valor;
-    const valido =
-      VALIDOS.tipoMovimiento.has(t) &&
-      VALIDOS.categoria[t].has(categoria.valor) &&
-      VALIDOS.cuenta.has(cuenta.valor) &&
-      entero(monto, 1, MONTO_MAXIMO);
-    if (!valido) return avisar("⚠️ Revisa los datos.");
-    enviar(
-      "finanzas_movimientos",
-      { tipo: t, monto, categoria: categoria.valor, cuenta: cuenta.valor },
-      t === "egreso" ? "💸 Guardado" : "💰 Guardado",
-    );
-  });
+  // Se piden una vez al abrir Hoy, para que la hoja abra al instante. Sin la base nueva, siguen las de siempre.
+  cargarContextoMovimiento()
+    .catch(() => contextoLegado())
+    .then((nuevo) => {
+      contexto = nuevo;
+      movimiento.ponerContexto(nuevo);
+    });
 
   // "No he gastado nada" o el cierre del día: también son registros (principio 4).
   secundario.addEventListener("click", () =>
@@ -129,16 +63,11 @@ function formularioGasto(form, enviar) {
 
   return {
     preparar(sugerencia, ahora) {
-      tipo.poner("egreso");
-      categoria.opciones(CATEGORIAS.egreso);
-      categoria.poner(null);
-      cuenta.poner("efectivo");
-      montos.hidden = false;
-      ponerMonto(0);
+      movimiento.preparar({ contexto: contexto ?? contextoLegado(), tipo: "egreso" });
       cierre = sugerencia === "cierre_finanzas" || esHoraDeCierre(ahora);
       secundario.textContent = cierre ? "🧾 Cerrar gastos del día" : "🙅 No he gastado nada";
     },
-    revisar,
+    revisar: () => movimiento.revisar(),
   };
 }
 
@@ -241,20 +170,60 @@ function formularioEstudio(form, enviar) {
 
 // ── Gym ──────────────────────────────────────────────────────────────────
 
+// Tipo + hora de inicio y fin (sugeridas: terminó ahora, empezó hace 60 min). Las reglas son las de
+// js/ejercicio/logica.js (las mismas de la página Movimiento y de la API).
+
 function formularioGym(form, enviar) {
+  const campoInicio = form.elements.inicio;
+  const campoFin = form.elements.fin;
+  const campoRutina = form.querySelector("[data-campo-rutina]");
+  const textoDuracion = form.querySelector("[data-duracion]");
+
+  const tipo = chips(form.querySelector('[data-chips="tipo"]'), () => revisar());
   const rutina = chips(form.querySelector('[data-chips="rutina"]'), () => revisar());
+  tipo.opciones(TIPOS_EJERCICIO);
   rutina.opciones(RUTINAS);
 
-  const revisar = () => (form.querySelector("[data-guardar]").disabled = !rutina.valor);
+  /** Lo de la hoja revisado: { fila } o { error }, más los minutos entre las dos horas. */
+  function leer() {
+    const horas = instantesRecientes(new Date(), campoInicio.value, campoFin.value);
+    if (!horas) return { error: "⚠️ Revisa las horas", minutos: null };
+    const minutos = minutosEntre(horas.inicio, horas.fin);
+    const r = validarSesion(
+      { tipo: tipo.valor, rutina: tipo.valor === "fuerza" ? rutina.valor : null, inicio: horas.inicio, fin: horas.fin },
+      new Date(),
+    );
+    return { ...r, minutos };
+  }
+
+  function revisar() {
+    campoRutina.hidden = tipo.valor !== "fuerza";
+    const r = leer();
+    if (r.fila) textoDuracion.textContent = `⏱️ ${formatoDuracion(r.fila.duracion_min)}`;
+    else if (!tipo.valor) textoDuracion.textContent = r.minutos ? `⏱️ ${formatoDuracion(r.minutos)}` : r.error;
+    else textoDuracion.textContent = r.error;
+    form.querySelector("[data-guardar]").disabled = !r.fila;
+  }
+
+  campoInicio.addEventListener("input", revisar);
+  campoFin.addEventListener("input", revisar);
 
   form.addEventListener("submit", (evento) => {
     evento.preventDefault();
-    if (!VALIDOS.rutina.has(rutina.valor)) return avisar("⚠️ Revisa los datos.");
-    enviar("gym_sesiones", { rutina: rutina.valor }, "🏋️ Entreno anotado");
+    const r = leer();
+    if (!r.fila || !VALIDOS.tipoEjercicio.has(r.fila.tipo)) return avisar(r.error ?? "⚠️ Revisa los datos.");
+    enviar("gym_sesiones", r.fila, `${emojiTipo(r.fila.tipo)} Entreno anotado`).then((guardado) => guardado && marcarCubiertos(r.fila));
   });
+
+  // Para un entreno que empieza ahora: la página Movimiento tiene el cronómetro.
+  form.querySelector("[data-cronometro]").addEventListener("click", () => location.assign("ejercicio.html#entreno"));
 
   return {
     preparar() {
+      const sugerido = horarioSugerido(new Date());
+      campoInicio.value = sugerido.inicio;
+      campoFin.value = sugerido.fin;
+      tipo.poner(null);
       rutina.poner(null);
     },
     revisar,
@@ -268,15 +237,21 @@ function formularioGym(form, enviar) {
  * (la pantalla de inicio muestra el aviso y vuelve a cargar los datos).
  */
 export function iniciarRegistros({ alGuardar }) {
-  const hoja = document.getElementById("hoja");
-  const velo = document.getElementById("velo");
   const titulo = document.getElementById("hoja-titulo");
-  const fondo = [document.getElementById("hoy"), document.getElementById("dock")];
+  // Lo que queda detrás de la hoja se vuelve inerte mientras está abierta.
+  const fondo = [...document.querySelectorAll("[data-fondo-hoja]")];
 
   let abierta = null;
   let idCliente = null; // Uno por cada vez que se abre: un doble toque no guarda dos veces.
   let enviando = false;
-  let focoPrevio = null;
+
+  const hoja = crearHoja({
+    hoja: document.getElementById("hoja"),
+    velo: document.getElementById("velo"),
+    manija: document.getElementById("hoja-manija"),
+    fondo,
+    alCerrar: () => (abierta = null),
+  });
 
   async function enviar(tabla, fila, mensaje) {
     if (enviando) return;
@@ -285,6 +260,7 @@ export function iniciarRegistros({ alGuardar }) {
       if (await guardar(tabla, { ...fila, id_cliente: idCliente })) {
         cerrar();
         await alGuardar(mensaje);
+        return true;
       } else {
         avisar(navigator.onLine ? "⚠️ No se guardó. Intenta otra vez." : "⚠️ Sin conexión. Intenta otra vez.");
       }
@@ -320,62 +296,14 @@ export function iniciarRegistros({ alGuardar }) {
     if (!formularios[accion]) return;
     abierta = accion;
     idCliente = nuevoId();
-    focoPrevio = document.activeElement;
     titulo.textContent = TITULO[accion];
     for (const nombre of Object.keys(formularios)) document.getElementById(`form-${nombre}`).hidden = nombre !== accion;
     formularios[accion].preparar(sugerencia, new Date());
     formularios[accion].revisar();
-    hoja.scrollTop = 0;
-    hoja.classList.add("abierta");
-    velo.classList.add("abierto");
-    fondo.forEach((el) => (el.inert = true));
-    hoja.focus({ preventScroll: true });
+    hoja.abrir();
   }
 
-  function cerrar() {
-    if (!abierta) return;
-    abierta = null;
-    hoja.classList.remove("abierta");
-    hoja.style.removeProperty("--arrastre");
-    velo.classList.remove("abierto");
-    fondo.forEach((el) => (el.inert = false));
-    focoPrevio?.focus?.({ preventScroll: true });
-  }
-
-  velo.addEventListener("click", cerrar);
-  window.addEventListener("keydown", (evento) => {
-    if (evento.key === "Escape") cerrar();
-  });
-  arrastrarParaCerrar(document.getElementById("hoja-manija"), hoja, cerrar);
+  const cerrar = () => hoja.cerrar();
 
   return { abrir, cerrar };
-}
-
-/** Arrastrar la manija hacia abajo cierra la hoja (más de 110 px o un gesto rápido). */
-function arrastrarParaCerrar(manija, hoja, cerrar) {
-  let inicio = null;
-
-  manija.addEventListener("pointerdown", (evento) => {
-    inicio = { y: evento.clientY, t: performance.now() };
-    manija.setPointerCapture(evento.pointerId);
-    hoja.classList.add("arrastrando");
-  });
-
-  manija.addEventListener("pointermove", (evento) => {
-    if (!inicio) return;
-    const bajada = Math.max(0, evento.clientY - inicio.y) * 0.7;
-    hoja.style.setProperty("--arrastre", `${bajada}px`);
-  });
-
-  const soltar = (evento) => {
-    if (!inicio) return;
-    const bajada = Math.max(0, evento.clientY - inicio.y);
-    const velocidad = bajada / Math.max(performance.now() - inicio.t, 1); // px por ms
-    inicio = null;
-    hoja.classList.remove("arrastrando");
-    if (bajada > 110 || velocidad > 0.6) cerrar();
-    else hoja.style.removeProperty("--arrastre");
-  };
-  manija.addEventListener("pointerup", soltar);
-  manija.addEventListener("pointercancel", soltar);
 }

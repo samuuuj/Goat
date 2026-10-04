@@ -1,0 +1,652 @@
+/* Goat · Tu tiempo (desbloqueo.html). Va después de base.css y comun.css.
+   Referencia: Tiempo en pantalla de iOS (anillo por app, minutos grandes) sobre el sistema de Goat:
+   anillos en blanco y naranja solo para lo accionable o el pase (nunca los colores de los anillos de Hoy). */
+
+.barra-estado {
+  color: var(--texto-2);
+  white-space: nowrap;
+}
+
+/* Las filas de comun.css usan <p>; aquí son <span> dentro de flex. */
+.fila-texto > span {
+  display: block;
+}
+
+/* ── 1. La puerta ──────────────────────────────────────────────────────── */
+
+.estado-titular {
+  font-size: clamp(3.5rem, 16.5vw, 7rem);
+  animation: desde-abajo 0.95s var(--curva) 0.15s both;
+}
+
+.estado .frase {
+  margin-top: 1.25rem;
+}
+
+.faltan-lista {
+  margin-top: 2rem;
+}
+
+.falta + .falta {
+  border-top: 1px solid var(--linea);
+}
+
+.falta {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s var(--curva), transform 0.8s var(--curva);
+  transition-delay: calc(var(--i, 0) * 0.08s);
+}
+
+.falta.visto {
+  opacity: 1;
+  transform: none;
+}
+
+.falta-enlace {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 0;
+  color: var(--texto);
+  text-decoration: none;
+  transition: transform 0.15s var(--curva);
+}
+
+.falta-enlace:active {
+  transform: scale(0.97);
+}
+
+.falta-izquierda {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.falta-emoji {
+  font-size: 1.6rem;
+}
+
+.falta-texto {
+  font-size: clamp(1.75rem, 8vw, 2.4rem);
+}
+
+.falta-flecha {
+  font-size: 1.4rem;
+  color: var(--acento);
+  transition: transform 0.3s var(--curva);
+}
+
+.falta-enlace:hover .falta-flecha {
+  transform: translateX(4px);
+}
+
+/* ── 2. Niveles ────────────────────────────────────────────────────────── */
+
+.puntaje {
+  display: grid;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.puntaje-numero {
+  font-size: clamp(4rem, 21vw, 7rem);
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.puntaje-unidad {
+  margin-left: 0.4rem;
+  font-size: 0.28em;
+  color: var(--texto-2);
+}
+
+.puntaje-pista {
+  margin-top: 0.75rem;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--texto-2);
+}
+
+.nivel-icono {
+  font-size: 1rem;
+}
+
+.nivel.actual .fila-valor {
+  color: var(--acento);
+}
+
+.nivel.actual .nivel-icono {
+  background: rgb(255 106 31 / 0.16);
+}
+
+.nivel-ahora {
+  margin-left: 0.5rem;
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  background: var(--acento);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: 0.15em;
+  color: #000;
+}
+
+/* ── 3. Apps: una tarjeta con anillo por app ───────────────────────────── */
+
+.apps-nota {
+  color: var(--texto-3);
+}
+
+.apps-rejilla {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.app-tarjeta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.9rem;
+  border-radius: 22px;
+  padding: 1rem 1rem 1.1rem;
+  background: var(--superficie-2);
+}
+
+.app-cabeza {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-emoji {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.app-nombre {
+  overflow: hidden;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Punto naranja: la app está abierta ahora mismo. */
+.app-abierta {
+  flex: none;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--acento);
+  animation: latir 1.6s ease-in-out infinite;
+}
+
+.app-anillo {
+  position: relative;
+  width: 100%;
+  max-width: 9.5rem;
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+
+.app-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.app-svg circle {
+  fill: none;
+  stroke-width: 11;
+}
+
+.app-pista {
+  stroke: rgb(255 255 255 / 0.1);
+}
+
+.app-relleno {
+  stroke: var(--texto);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.5s var(--curva), stroke 0.3s;
+}
+
+/* Sin minutos no se dibuja nada (la punta redonda dejaría un punto). */
+.app-relleno.vacio {
+  visibility: hidden;
+}
+
+/* Con pase de emergencia, el anillo se vuelve naranja. */
+.con-pase .app-relleno {
+  stroke: var(--acento);
+}
+
+.app-centro {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.app-numero {
+  display: block;
+  font-size: clamp(2.2rem, 11vw, 2.9rem);
+  text-transform: none;
+}
+
+.app-unidad {
+  margin-top: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--texto-2);
+}
+
+.agotada .app-numero {
+  color: var(--texto-3);
+}
+
+.app-detalle {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--texto-2);
+}
+
+.app-pase {
+  padding: 0.55rem 0.5rem;
+  font-size: 0.8rem;
+  color: var(--acento);
+  box-shadow: inset 0 0 0 1px rgb(255 106 31 / 0.45);
+}
+
+.app-pase:hover {
+  color: var(--texto);
+}
+
+/* ── 4. Pase ───────────────────────────────────────────────────────────── */
+
+.pase-titular {
+  font-size: clamp(3.5rem, 17vw, 6.5rem);
+}
+
+.pase .frase {
+  margin-top: 1.25rem;
+}
+
+.pase-boton {
+  margin-top: 2rem;
+  padding: 0.9rem 1.4rem;
+}
+
+/* ── 5. Juegos ─────────────────────────────────────────────────────────── */
+
+.juegos-frase {
+  margin: 0 0 1.5rem;
+}
+
+.juegos-vacio {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: var(--texto-3);
+}
+
+.juego-quitar {
+  flex: none;
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--texto-3);
+  transition: color 0.2s, transform 0.15s var(--curva);
+}
+
+.juego-quitar:hover {
+  color: var(--texto);
+}
+
+.juego-quitar:active {
+  transform: scale(0.94);
+}
+
+.form-juego {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.form-juego .entrada {
+  min-width: 0;
+  flex: 1;
+}
+
+.form-juego .boton-principal {
+  flex: none;
+  padding: 0.8rem 1.25rem;
+}
+
+/* ── 6. Uso de hoy: barras por hora como Tiempo en pantalla ─────────────── */
+
+.uso-grafica {
+  margin-bottom: 2rem;
+}
+
+.uso-horas {
+  display: grid;
+  height: 8.5rem;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  align-items: end;
+  gap: 3px;
+  border-bottom: 1px solid var(--linea);
+  /* Línea guía a la mitad (30 min). */
+  background-image: linear-gradient(
+    to top,
+    transparent calc(50% - 0.5px),
+    var(--linea) calc(50% - 0.5px),
+    var(--linea) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+}
+
+.uso-hora {
+  display: flex;
+  height: 100%;
+  align-items: flex-end;
+}
+
+.uso-barra {
+  width: 100%;
+  height: calc(var(--alto, 0) * 100%);
+  border-radius: 3px 3px 1px 1px;
+  background: rgb(255 255 255 / 0.6);
+  transform-origin: bottom;
+  animation: crecer 0.9s var(--curva) 0.2s both;
+}
+
+.uso-hora.con-uso .uso-barra {
+  min-height: 3px;
+}
+
+.uso-hora.ahora .uso-barra {
+  min-height: 3px;
+  background: var(--acento);
+}
+
+.uso-hora.futura {
+  opacity: 0.3;
+}
+
+.uso-eje {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--texto-3);
+}
+
+.sesion.bloqueada .sesion-app {
+  color: var(--texto-2);
+}
+
+.sesion.en-curso .sesion-minutos {
+  color: var(--acento);
+}
+
+/* ── 7. Guía del iPhone ────────────────────────────────────────────────── */
+
+.guia-titular {
+  margin: 0 0 2rem;
+  font-size: clamp(3rem, 14vw, 6.5rem);
+}
+
+.guia-parrafo {
+  max-width: 42ch;
+}
+
+.guia-parrafo + .guia-parrafo {
+  margin-top: 0.75rem;
+}
+
+.guia-subtitulo {
+  margin: 2.5rem 0 1rem;
+}
+
+.guia-textos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.guia-texto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  background: rgb(255 255 255 / 0.06);
+  font-size: 0.85rem;
+}
+
+.guia-texto-nombre {
+  color: var(--texto-2);
+}
+
+.guia-texto-valor {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  color: var(--texto);
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.guia-atajos {
+  display: grid;
+  align-items: start;
+  gap: 0.75rem;
+  margin-top: 2.5rem;
+}
+
+.guia-atajo {
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--superficie-2);
+}
+
+.guia-resumen {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  cursor: pointer;
+  list-style: none;
+  transition: background-color 0.2s;
+}
+
+.guia-resumen::-webkit-details-marker {
+  display: none;
+}
+
+.guia-resumen:active {
+  background: rgb(255 255 255 / 0.05);
+}
+
+.guia-emoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.guia-cabeza {
+  min-width: 0;
+  flex: 1;
+}
+
+.guia-nombre {
+  display: block;
+  font-weight: 600;
+}
+
+.guia-para {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--texto-2);
+}
+
+.guia-flecha {
+  flex: none;
+  font-size: 1.2rem;
+  color: var(--texto-3);
+  transition: transform 0.3s var(--curva);
+}
+
+.guia-atajo[open] .guia-flecha {
+  transform: rotate(180deg);
+}
+
+.guia-cuerpo {
+  border-top: 1px solid var(--linea);
+  padding: 1.1rem 1.1rem 1.3rem;
+  animation: subir 0.5s var(--curva) both;
+}
+
+.guia-pasos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 0.75rem 0 1.4rem;
+  list-style: none;
+  counter-reset: paso;
+}
+
+.guia-pasos li {
+  position: relative;
+  padding-left: 2rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  counter-increment: paso;
+}
+
+.guia-pasos li::before {
+  content: counter(paso);
+  position: absolute;
+  top: 0.05rem;
+  left: 0;
+  display: grid;
+  width: 1.4rem;
+  height: 1.4rem;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.1);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.guia-disparador {
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.guia-permisos {
+  font-size: 0.85rem;
+  color: var(--texto-2);
+}
+
+.pie-seccion p {
+  max-width: 40ch;
+}
+
+/* ── Hoja ──────────────────────────────────────────────────────────────── */
+
+.hoja-texto {
+  margin-top: -0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--texto-2);
+}
+
+.niveles-editar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Tablet ────────────────────────────────────────────────────────────── */
+
+@media (min-width: 48rem) {
+  .apps-rejilla {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .uso-horas {
+    height: 11rem;
+    gap: 5px;
+  }
+
+  .puntaje {
+    grid-template-columns: auto 1fr;
+    align-items: end;
+    gap: 2.5rem;
+  }
+
+  .puntaje-lado {
+    padding-bottom: 0.75rem;
+  }
+}
+
+/* ── Computador ────────────────────────────────────────────────────────── */
+
+@media (min-width: 64rem) {
+  /* La puerta y los niveles (y el pase y los juegos) lado a lado. */
+  .dos-bloques {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--linea);
+  }
+
+  .dos-bloques > .seccion {
+    border-top: 0;
+  }
+
+  .dos-bloques > .seccion + .seccion {
+    border-left: 1px solid var(--linea);
+  }
+
+  .puntaje {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .apps-rejilla {
+    grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+    gap: 1rem;
+  }
+
+  .app-tarjeta {
+    padding: 1.25rem;
+  }
+
+  .uso-horas {
+    height: 13rem;
+    gap: 6px;
+  }
+
+  .guia-atajos {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@keyframes crecer {
+  from {
+    transform: scaleY(0);
+  }
+}

@@ -20,3 +20,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Copias de trabajo de los agentes (una por rama goat/*).
+/.claude/worktrees/

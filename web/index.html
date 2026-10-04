@@ -19,7 +19,9 @@
     <link rel="apple-touch-icon" href="img/icono-180.png" />
     <link rel="preload" href="fuentes/archivo.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/comun.css" />
     <link rel="stylesheet" href="css/hoy.css" />
+    <link rel="stylesheet" href="css/notificaciones.css" />
     <script src="js/vendor/supabase.js" defer></script>
     <script type="module" src="js/paginas/hoy.js"></script>
   </head>
@@ -32,18 +34,33 @@
     </div>
 
     <!-- ═══ Pantalla de inicio ═══ -->
-    <main id="hoy" class="contenedor" hidden>
+    <main id="hoy" class="contenedor" data-fondo-hoja hidden>
       <!-- Portada: titulares gigantes que se comprimen al hacer scroll. -->
       <section id="portada" class="portada">
         <div class="barra">
           <p id="fecha-hora" class="etiqueta cifras"></p>
-          <button type="button" id="boton-discreto" class="boton-circulo" aria-pressed="true" aria-label="Mostrar montos">
-            <svg class="ojo" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-              <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
-              <circle cx="12" cy="12" r="3" />
-              <path class="tachado" d="M4 4l16 16" />
-            </svg>
-          </button>
+          <div class="barra-botones">
+            <button type="button" id="campana" class="boton-circulo" aria-label="Notificaciones">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z" />
+                <path d="M10 20a2 2 0 0 0 4 0" />
+              </svg>
+              <span id="campana-contador" class="contador" aria-live="polite"></span>
+            </button>
+            <a href="conectar.html#ajustes" class="boton-circulo" aria-label="Ajustes">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+              </svg>
+            </a>
+            <button type="button" id="boton-discreto" class="boton-circulo" aria-pressed="true" aria-label="Mostrar montos">
+              <svg class="ojo" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="3" />
+                <path class="tachado" d="M4 4l16 16" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div class="portada-contenido">
@@ -106,17 +123,52 @@
         <div id="barras" class="barras" role="img" aria-label="Puntuación de los últimos 7 días"></div>
       </section>
 
+      <!-- Cada parte de la app tiene su página. data-mini: dato corto que pone js/<modulo>/mini.js. -->
+      <nav class="secciones" aria-label="Secciones">
+        <p class="etiqueta">Secciones</p>
+        <div class="secciones-rejilla">
+          <a class="seccion-tarjeta" href="finanzas.html" data-modulo="finanzas">
+            <span class="seccion-tarjeta-emoji" aria-hidden="true">💸</span>
+            <span><span class="titular seccion-tarjeta-titulo">Dinero.</span><span class="seccion-tarjeta-mini" data-mini></span></span>
+          </a>
+          <a class="seccion-tarjeta" href="rutina.html" data-modulo="rutina">
+            <span class="seccion-tarjeta-emoji" aria-hidden="true">🗓️</span>
+            <span><span class="titular seccion-tarjeta-titulo">Tu día.</span><span class="seccion-tarjeta-mini" data-mini></span></span>
+          </a>
+          <a class="seccion-tarjeta" href="ejercicio.html" data-modulo="ejercicio">
+            <span class="seccion-tarjeta-emoji" aria-hidden="true">🏃</span>
+            <span><span class="titular seccion-tarjeta-titulo largo">Movimiento.</span><span class="seccion-tarjeta-mini" data-mini></span></span>
+          </a>
+          <a class="seccion-tarjeta" href="sueno.html" data-modulo="sueno">
+            <span class="seccion-tarjeta-emoji" aria-hidden="true">🌙</span>
+            <span><span class="titular seccion-tarjeta-titulo">Tu noche.</span><span class="seccion-tarjeta-mini" data-mini></span></span>
+          </a>
+          <a class="seccion-tarjeta" href="desbloqueo.html" data-modulo="desbloqueo">
+            <span class="seccion-tarjeta-emoji" aria-hidden="true">🔓</span>
+            <span><span class="titular seccion-tarjeta-titulo">Tu tiempo.</span><span class="seccion-tarjeta-mini" data-mini></span></span>
+          </a>
+          <a class="seccion-tarjeta" href="widgets.html" data-modulo="widgets">
+            <span class="seccion-tarjeta-emoji" aria-hidden="true">🧩</span>
+            <span><span class="titular seccion-tarjeta-titulo">Widgets.</span><span class="seccion-tarjeta-mini" data-mini></span></span>
+          </a>
+          <a class="seccion-tarjeta ancha" href="conectar.html" data-modulo="conectar">
+            <span class="seccion-tarjeta-emoji" aria-hidden="true">📲</span>
+            <span><span class="titular seccion-tarjeta-titulo">Conectar iPhone.</span><span class="seccion-tarjeta-mini" data-mini></span></span>
+          </a>
+        </div>
+      </nav>
+
       <footer class="pie">
-        <span>Goat · v0.3</span>
+        <span>Goat · v0.4</span>
         <button type="button" id="cerrar-sesion" class="boton-borde">Cerrar sesión</button>
       </footer>
     </main>
 
     <!-- Barra flotante de vidrio con los cuatro registros rápidos. -->
-    <nav id="dock" class="dock" aria-label="Registro rápido" hidden>
+    <nav id="dock" class="dock" aria-label="Registro rápido" data-fondo-hoja hidden>
       <div class="dock-vidrio">
         <button type="button" data-accion="comida"><span aria-hidden="true">🍽️</span>Comí</button>
-        <button type="button" data-accion="gasto"><span aria-hidden="true">💸</span>Gasto</button>
+        <button type="button" data-accion="gasto"><span aria-hidden="true">💸</span>Dinero</button>
         <button type="button" data-accion="estudio"><span aria-hidden="true">📚</span>Estudio</button>
         <button type="button" data-accion="gym"><span aria-hidden="true">🏋️</span>Gym</button>
       </div>
@@ -128,23 +180,35 @@
       <div id="hoja-manija" class="hoja-manija" aria-hidden="true"><span></span></div>
       <h2 id="hoja-titulo" class="titular hoja-titulo"></h2>
 
-      <!-- Gasto -->
+      <!-- Gasto: los 4 tipos con el flujo de Finanzas (js/finanzas/formulario.js) -->
       <form id="form-gasto" class="form-registro" hidden>
-        <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Tipo"></div>
+        <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Tipo de movimiento"></div>
         <div>
           <label class="campo-grande">
-            <span class="etiqueta">Monto</span>
+            <span class="etiqueta">Valor</span>
             <input name="monto" class="titular cifras entrada-grande" inputmode="numeric" autocomplete="off" placeholder="$0" />
           </label>
           <div class="montos-rapidos" data-montos></div>
         </div>
-        <div>
+        <div data-bloque="categoria">
           <p class="etiqueta campo-titulo">Categoría</p>
           <div class="chips" data-chips="categoria" role="radiogroup" aria-label="Categoría"></div>
         </div>
+        <div data-bloque="otra" hidden>
+          <p class="etiqueta campo-titulo"><label for="gasto-otra">¿Cuál categoría?</label></p>
+          <input id="gasto-otra" name="categoria_otra" class="entrada" maxlength="40" autocomplete="off" placeholder="Ej. Cita" />
+        </div>
         <div>
-          <p class="etiqueta campo-titulo">Cómo pagaste</p>
+          <p class="etiqueta campo-titulo" data-titulo="cuenta">Cómo pagaste</p>
           <div class="chips" data-chips="cuenta" role="radiogroup" aria-label="Cuenta"></div>
+        </div>
+        <div data-bloque="destino" hidden>
+          <p class="etiqueta campo-titulo" data-titulo="destino">Hacia</p>
+          <div class="chips" data-chips="destino" role="radiogroup" aria-label="Hacia"></div>
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo"><label for="gasto-descripcion">Descripción</label></p>
+          <input id="gasto-descripcion" name="descripcion" class="entrada" maxlength="200" autocomplete="off" placeholder="Opcional · ej. Cena" />
         </div>
         <div class="botones">
           <button type="submit" class="boton-principal" data-guardar>Guardar</button>
@@ -189,12 +253,30 @@
       </form>
 
       <!-- Gym -->
-      <form id="form-gym" class="form-registro" hidden>
+      <form id="form-gym" class="form-registro" novalidate hidden>
         <div>
-          <p class="etiqueta campo-titulo">Qué entrenaste</p>
+          <p class="etiqueta campo-titulo">Qué hiciste</p>
+          <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Tipo de ejercicio"></div>
+        </div>
+        <div data-campo-rutina hidden>
+          <p class="etiqueta campo-titulo">Rutina (opcional)</p>
           <div class="chips" data-chips="rutina" role="radiogroup" aria-label="Rutina"></div>
         </div>
-        <button type="submit" class="boton-principal" data-guardar>Guardar entreno</button>
+        <div class="dos-columnas">
+          <div>
+            <label class="etiqueta campo-titulo campo-grande" for="gym-inicio">Empezó</label>
+            <input id="gym-inicio" name="inicio" type="time" class="entrada" required />
+          </div>
+          <div>
+            <label class="etiqueta campo-titulo campo-grande" for="gym-fin">Terminó</label>
+            <input id="gym-fin" name="fin" type="time" class="entrada" required />
+          </div>
+        </div>
+        <p class="etiqueta cifras" data-duracion aria-live="polite"></p>
+        <div class="botones">
+          <button type="submit" class="boton-principal" data-guardar>Guardar entreno</button>
+          <button type="button" class="boton-secundario" data-cronometro>⏱️ Empezar ahora con cronómetro</button>
+        </div>
       </form>
     </div>
 

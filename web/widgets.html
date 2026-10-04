@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="es" class="discreto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Goat · Widgets</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Goat" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="img/icono-512.png" type="image/png" />
+    <link rel="apple-touch-icon" href="img/icono-180.png" />
+    <link rel="preload" href="fuentes/archivo.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/comun.css" />
+    <link rel="stylesheet" href="css/widgets.css" />
+    <script src="js/vendor/supabase.js" defer></script>
+    <script type="module" src="js/widgets/pagina.js"></script>
+  </head>
+
+  <body class="grano">
+    <div id="cargando" class="cargando" role="status">
+      <span class="cargando-anillo" aria-hidden="true"></span>
+      <span class="solo-lector">Cargando…</span>
+    </div>
+
+    <main id="contenido" class="contenedor" data-fondo-hoja hidden>
+      <header class="barra-seccion">
+        <a class="volver" href="index.html"><span aria-hidden="true">‹</span>Hoy</a>
+        <div class="barra-acciones">
+          <button type="button" id="boton-discreto" class="boton-circulo" aria-pressed="true" aria-label="Mostrar montos">
+            <svg class="ojo" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+              <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+              <circle cx="12" cy="12" r="3" />
+              <path class="tachado" d="M4 4l16 16" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="cabecera-seccion">
+        <p class="etiqueta">Goat · Widgets</p>
+        <h1 class="titular">Widgets.</h1>
+        <p class="cabecera-texto">Tu día en la pantalla de inicio: puntaje, racha, lo que sigue y una frase nueva cada día.</p>
+      </section>
+
+      <!-- 1. Vitrina: réplicas de cada tamaño con tus datos de hoy (o de ejemplo). -->
+      <section class="seccion vitrina" aria-labelledby="vitrina-etiqueta">
+        <div class="seccion-cabeza">
+          <p id="vitrina-etiqueta" class="etiqueta">Así se ven</p>
+          <p id="vitrina-fuente" class="etiqueta cifras"></p>
+        </div>
+
+        <div class="vitrina-rejilla">
+          <figure class="pantalla pantalla-inicio">
+            <div class="inicio-rejilla">
+              <div id="w-pequeno" class="ranura ranura-pequeno"></div>
+              <div id="w-atajo" class="ranura ranura-pequeno"></div>
+              <div id="w-mediano" class="ranura ranura-mediano"></div>
+              <div id="w-grande" class="ranura ranura-grande"></div>
+            </div>
+            <figcaption class="pantalla-pie">Pantalla de inicio · pequeño, mediano y grande</figcaption>
+          </figure>
+
+          <figure class="pantalla pantalla-bloqueo">
+            <div class="bloqueo-cuerpo">
+              <p class="bloqueo-fecha"><span id="b-fecha"></span><span class="bloqueo-separador" aria-hidden="true">·</span><span id="b-linea" class="cifras"></span></p>
+              <p id="b-hora" class="bloqueo-hora cifras"></p>
+              <div class="bloqueo-widgets">
+                <a class="w-circular" href="index.html" aria-label="Widget circular">
+                  <svg class="w-medidor" viewBox="0 0 100 100" aria-hidden="true">
+                    <circle class="medidor-pista" cx="50" cy="50" r="44" pathLength="100" />
+                    <circle id="b-medidor" class="medidor-progreso" cx="50" cy="50" r="44" pathLength="100" />
+                  </svg>
+                  <span id="b-puntaje" class="w-circular-numero cifras"></span>
+                  <span class="w-circular-etiqueta">PTS</span>
+                </a>
+                <a id="b-rectangular" class="w-rectangular" href="index.html">
+                  <span id="b-titulo" class="w-rect-titulo cifras"></span>
+                  <span id="b-detalle" class="w-rect-linea"></span>
+                  <span id="b-extra" class="w-rect-linea w-rect-suave"></span>
+                </a>
+              </div>
+            </div>
+            <figcaption class="pantalla-pie">Pantalla bloqueada · en línea, circular y rectangular · nunca dinero</figcaption>
+          </figure>
+        </div>
+
+        <div class="vitrina-opciones">
+          <button type="button" id="ver-dinero" class="chip" role="switch" aria-checked="false">💸 Dinero en mediano y grande</button>
+        </div>
+        <p class="frase vitrina-nota">
+          Se actualizan solos cada 15 minutos y guardan lo último por si no hay internet. Al tocarlos abren Goat donde toca: lo que falta,
+          tu día, tu noche o tu tiempo.
+        </p>
+      </section>
+
+      <!-- 2. La frase de hoy, en grande. -->
+      <section class="seccion frase-dia" aria-labelledby="frase-etiqueta">
+        <p id="frase-etiqueta" class="etiqueta">La frase de hoy</p>
+        <blockquote class="frase-dia-cita">
+          <p id="frase-dia" class="titular frase-dia-texto"></p>
+        </blockquote>
+        <p class="frase">Cambia cada día y según la hora, tu racha y tu puntaje. Nunca regaña.</p>
+      </section>
+
+      <!-- 3. Instalar el widget de Scriptable. -->
+      <section class="seccion instalar" aria-labelledby="instalar-titulo">
+        <p class="etiqueta">Instálalo</p>
+        <h2 id="instalar-titulo" class="titular seccion-titular">En dos <span class="acento">minutos.</span></h2>
+        <ol id="pasos-scriptable" class="pasos"></ol>
+      </section>
+
+      <!-- 4. Pantalla bloqueada. -->
+      <section class="seccion" aria-labelledby="bloqueo-titulo">
+        <p class="etiqueta">Pantalla bloqueada</p>
+        <h2 id="bloqueo-titulo" class="titular seccion-titular">Sin abrir <span class="acento">nada.</span></h2>
+        <ol id="pasos-bloqueo" class="pasos pasos-cortos"></ol>
+        <p class="frase">Ahí solo salen el puntaje, la racha y lo que falta. El dinero nunca, aunque lo actives.</p>
+      </section>
+
+      <!-- 5. Widget de la app Atajos: botones de registro. -->
+      <section class="seccion atajos-widget" aria-labelledby="atajos-titulo">
+        <p class="etiqueta">Widget de Atajos</p>
+        <h2 id="atajos-titulo" class="titular seccion-titular">Registra en <span class="acento">un toque.</span></h2>
+        <div class="atajos-rejilla">
+          <div id="w-atajos-mediano" class="ranura ranura-mediano atajos-muestra"></div>
+          <ol id="pasos-atajos" class="pasos pasos-cortos"></ol>
+        </div>
+        <div id="guias-atajos" class="guias"></div>
+      </section>
+
+      <!-- 6. Opciones. -->
+      <section class="seccion opciones" aria-labelledby="opciones-etiqueta">
+        <p id="opciones-etiqueta" class="etiqueta">Opciones</p>
+        <ul class="lista-agrupada">
+          <li class="fila">
+            <span class="fila-icono" aria-hidden="true">💸</span>
+            <span class="fila-texto">
+              <span class="fila-titulo">Dinero</span>
+              <span class="fila-detalle fila-detalle-largo">Apagado. Para verlo en el mediano y el grande, toca el script en Scriptable › Mostrar dinero. Solo en un widget: escribe dinero en su campo Parameter.</span>
+            </span>
+          </li>
+          <li class="fila">
+            <span class="fila-icono" aria-hidden="true">🔑</span>
+            <span class="fila-texto">
+              <span class="fila-titulo">Cambiar la llave</span>
+              <span class="fila-detalle fila-detalle-largo">Toca el script › Cambiar dirección o llave. Si revocas la llave en Conectar iPhone, el widget dice “Revisa el token”.</span>
+            </span>
+          </li>
+          <li>
+            <a class="fila" href="conectar.html">
+              <span class="fila-icono" aria-hidden="true">📲</span>
+              <span class="fila-texto">
+                <span class="fila-titulo">Conectar iPhone</span>
+                <span class="fila-detalle">Crea tu llave y el atajo ⚙️ Goat</span>
+              </span>
+              <span class="fila-flecha" aria-hidden="true">›</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <footer class="pie-seccion">Los widgets leen tu Goat con tu llave cada 15 minutos. El script no guarda tu dinero en el teléfono.</footer>
+    </main>
+
+    <!-- Si la base de datos aún no tiene tablas -->
+    <main id="falta-base" class="contenedor pantalla-simple" hidden>
+      <p class="etiqueta">Goat · casi listo</p>
+      <h1 class="titular">Falta <span class="acento">un paso.</span></h1>
+      <p class="explicacion">
+        La base de datos todavía no tiene las tablas de esta sección. Pega todo supabase/schema.sql en Supabase › SQL Editor y
+        presiona Run. Después recarga esta página.
+      </p>
+      <a class="boton-borde ancho-justo" href="index.html">Volver a Hoy</a>
+    </main>
+
+    <!-- Si algo falla al cargar -->
+    <main id="fallo" class="contenedor pantalla-simple" hidden>
+      <p class="etiqueta">Goat</p>
+      <h1 class="titular">Algo <span class="acento">falló.</span></h1>
+      <p class="explicacion">Revisa tu conexión e intenta otra vez. Tus registros están a salvo.</p>
+      <button type="button" id="reintentar" class="boton-principal">Reintentar</button>
+    </main>
+
+    <div class="aviso-zona">
+      <p id="aviso" class="aviso" role="status" aria-live="polite"></p>
+    </div>
+
+    <!-- ── Plantillas (se llenan con textContent) ─────────────────────── -->
+
+    <template id="plantilla-chip">
+      <button type="button" class="chip" role="radio" aria-checked="false"></button>
+    </template>
+
+    <template id="plantilla-anillos">
+      <span class="w-anillos-caja">
+        <svg class="w-anillos" viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="anillo-pista color-registro" cx="50" cy="50" r="45.6" />
+          <circle class="anillo-arco color-registro" data-anillo="registro" cx="50" cy="50" r="45.6" pathLength="100" />
+          <circle class="anillo-pista color-cuerpo" cx="50" cy="50" r="34.8" />
+          <circle class="anillo-arco color-cuerpo" data-anillo="cuerpo" cx="50" cy="50" r="34.8" pathLength="100" />
+          <circle class="anillo-pista color-mente" cx="50" cy="50" r="24" />
+          <circle class="anillo-arco color-mente" data-anillo="mente" cx="50" cy="50" r="24" pathLength="100" />
+        </svg>
+        <span class="w-puntaje cifras" data-puntaje></span>
+      </span>
+    </template>
+
+    <template id="plantilla-pequeno">
+      <a class="w w-pequeno" href="index.html" aria-label="Widget pequeño">
+        <span class="w-fila">
+          <span class="w-etiqueta" data-dia></span>
+          <span class="w-racha cifras" data-racha></span>
+        </span>
+        <span class="w-centro" data-anillos></span>
+        <span class="w-pendiente" data-pendiente></span>
+      </a>
+    </template>
+
+    <template id="plantilla-mediano">
+      <div class="w w-mediano" aria-label="Widget mediano">
+        <div class="w-mediano-arriba">
+          <a class="w-enlace" href="index.html" data-anillos aria-label="Tus anillos"></a>
+          <div class="w-columna">
+            <span class="w-fila">
+              <span class="w-etiqueta w-mayus" data-dia></span>
+              <span class="w-avisos cifras" data-avisos></span>
+              <span class="w-racha cifras" data-racha></span>
+            </span>
+            <a class="w-rutina" href="rutina.html">
+              <span class="w-rutina-titulo" data-rutina-1></span>
+              <span class="w-rutina-detalle" data-rutina-2></span>
+            </a>
+            <span class="w-pendiente" data-pendiente></span>
+            <a class="w-linea" href="desbloqueo.html" data-desbloqueo></a>
+            <a class="w-linea" href="finanzas.html" data-dinero hidden>💸 Hoy <span class="w-dinero sensible cifras" data-dinero-valor></span></a>
+          </div>
+        </div>
+        <p class="w-frase" data-frase></p>
+      </div>
+    </template>
+
+    <template id="plantilla-grande">
+      <div class="w w-grande" aria-label="Widget grande">
+        <span class="w-fila">
+          <span class="w-marca">Goat</span>
+          <span class="w-fecha" data-dia></span>
+          <span class="w-avisos cifras" data-avisos></span>
+          <span class="w-racha cifras" data-racha></span>
+        </span>
+        <div class="w-grande-anillos">
+          <a class="w-enlace" href="index.html" data-anillos aria-label="Tus anillos"></a>
+          <div class="w-leyenda">
+            <span class="w-leyenda-fila" data-leyenda="registro"><span class="w-punto color-registro"></span><span class="w-leyenda-nombre">Registro</span><span class="w-leyenda-valor cifras"></span></span>
+            <span class="w-leyenda-fila" data-leyenda="cuerpo"><span class="w-punto color-cuerpo"></span><span class="w-leyenda-nombre">Cuerpo</span><span class="w-leyenda-valor cifras"></span></span>
+            <span class="w-leyenda-fila" data-leyenda="mente"><span class="w-punto color-mente"></span><span class="w-leyenda-nombre">Mente</span><span class="w-leyenda-valor cifras"></span></span>
+            <span class="w-ayer cifras" data-ayer></span>
+          </div>
+        </div>
+        <a class="w-rutina" href="rutina.html">
+          <span class="w-rutina-titulo" data-rutina-1></span>
+          <span class="w-rutina-detalle" data-rutina-2></span>
+        </a>
+        <span class="w-fila w-estado">
+          <span class="w-pendiente" data-pendiente></span>
+          <a class="w-linea" href="desbloqueo.html" data-desbloqueo></a>
+        </span>
+        <span class="w-semana" data-semana aria-label="Puntaje de la semana"></span>
+        <span class="w-fila w-pie">
+          <a class="w-linea" href="sueno.html" data-sueno></a>
+          <a class="w-linea" href="finanzas.html" data-dinero hidden>💸 Hoy <span class="w-dinero sensible cifras" data-dinero-valor></span></a>
+        </span>
+        <p class="w-frase-grande" data-frase></p>
+      </div>
+    </template>
+
+    <template id="plantilla-dia-semana">
+      <span class="w-dia">
+        <span class="w-barra"><span class="w-barra-relleno"></span></span>
+        <span class="w-dia-letra"></span>
+      </span>
+    </template>
+
+    <template id="plantilla-atajos">
+      <div class="w w-atajos" aria-label="Widget de Atajos"></div>
+    </template>
+
+    <template id="plantilla-boton-atajo">
+      <span class="w-boton-atajo">
+        <span class="w-boton-emoji" aria-hidden="true"></span>
+        <span class="w-boton-nombre"></span>
+      </span>
+    </template>
+
+    <template id="plantilla-paso">
+      <li class="paso">
+        <span class="paso-numero cifras" aria-hidden="true"></span>
+        <div class="paso-cuerpo">
+          <p class="paso-titulo"></p>
+          <p class="paso-texto"></p>
+          <div class="paso-acciones"></div>
+        </div>
+      </li>
+    </template>
+
+    <template id="plantilla-paso-corto">
+      <li class="paso paso-corto">
+        <span class="paso-numero cifras" aria-hidden="true"></span>
+        <p class="paso-texto"></p>
+      </li>
+    </template>
+
+    <template id="plantilla-guia">
+      <details class="guia">
+        <summary class="guia-cabeza">
+          <span class="guia-emoji" aria-hidden="true"></span>
+          <span class="guia-texto"><span class="guia-nombre"></span><span class="guia-para"></span></span>
+          <span class="guia-flecha" aria-hidden="true">›</span>
+        </summary>
+        <ol class="guia-pasos"></ol>
+      </details>
+    </template>
+
+    <!-- Acciones de los pasos de instalación -->
+    <template id="plantilla-accion-tienda">
+      <a class="boton-secundario ancho-justo accion" href="https://apps.apple.com/app/scriptable/id1405459188" target="_blank" rel="noopener noreferrer">Abrir en la App Store ›</a>
+    </template>
+
+    <template id="plantilla-accion-copiar">
+      <div class="accion-copiar">
+        <button type="button" class="boton-principal ancho-justo accion" data-copiar-script>📋 Copiar script</button>
+        <a class="accion-enlace" href="scriptable/goat.js" target="_blank" rel="noopener">Ver el archivo</a>
+        <p class="accion-nota cifras" data-script-nota></p>
+      </div>
+    </template>
+
+    <template id="plantilla-accion-direccion">
+      <div class="accion-direccion">
+        <p class="direccion">
+          <span class="etiqueta">Dirección</span>
+          <span class="direccion-valor cifras" data-direccion></span>
+        </p>
+        <button type="button" class="boton-secundario ancho-justo accion" data-copiar-direccion>Copiar dirección</button>
+        <a class="accion-enlace" href="conectar.html">¿Sin llave? Créala en Conectar iPhone ›</a>
+      </div>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="es" class="discreto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Goat · Conectar</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Goat" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="img/icono-512.png" type="image/png" />
+    <link rel="apple-touch-icon" href="img/icono-180.png" />
+    <link rel="preload" href="fuentes/archivo.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/comun.css" />
+    <link rel="stylesheet" href="css/conectar.css" />
+    <script src="js/vendor/supabase.js" defer></script>
+    <script type="module" src="js/conectar/pagina.js"></script>
+  </head>
+
+  <body class="grano">
+    <div id="cargando" class="cargando" role="status">
+      <span class="cargando-anillo" aria-hidden="true"></span>
+      <span class="solo-lector">Cargando…</span>
+    </div>
+
+    <main id="contenido" class="contenedor" data-fondo-hoja hidden>
+      <!-- ═══ Asistente "Configura tu iPhone" (conectar.html o #paso-<id>) ═══ -->
+      <div id="asistente" class="asistente" hidden>
+        <header class="asistente-barra">
+          <button type="button" id="atras" class="asistente-atras"><span aria-hidden="true">‹</span>Atrás</button>
+          <div
+            id="avance"
+            class="progreso asistente-progreso"
+            role="progressbar"
+            aria-label="Avance del asistente"
+            aria-valuemin="1"
+            aria-valuemax="7"
+            aria-valuenow="1"
+          >
+            <div class="progreso-relleno"></div>
+          </div>
+          <button type="button" id="salir" class="asistente-salir">Salir</button>
+        </header>
+
+        <!-- 1. Hola -->
+        <section class="paso" data-paso="hola" aria-labelledby="hola-titulo" hidden>
+          <div class="paso-cabeza">
+            <img class="paso-icono" src="img/icono-180.png" alt="" width="84" height="84" />
+            <p class="etiqueta paso-etiqueta">Configura tu iPhone</p>
+            <h1 id="hola-titulo" class="titular paso-titular" tabindex="-1">
+              <span class="linea"><span id="hola-saludo">Hola,</span></span>
+              <span class="linea"><span id="hola-nombre" class="acento"></span></span>
+            </h1>
+            <p class="paso-texto">Vamos a dejar Goat conectado con tu iPhone. Son 20 a 30 minutos, una sola vez.</p>
+          </div>
+          <div class="paso-cuerpo">
+            <ul class="lista-agrupada paso-lista">
+              <li class="fila">
+                <span class="fila-icono" aria-hidden="true">📲</span>
+                <span class="fila-texto"><span class="fila-titulo">Goat en tu inicio</span><span class="fila-detalle">Se abre como una app.</span></span>
+              </li>
+              <li class="fila">
+                <span class="fila-icono" aria-hidden="true">🔑</span>
+                <span class="fila-texto"><span class="fila-titulo">Una llave para tus atajos</span><span class="fila-detalle">Solo tu iPhone la tiene.</span></span>
+              </li>
+              <li class="fila">
+                <span class="fila-icono" aria-hidden="true">🛡️</span>
+                <span class="fila-texto"><span class="fila-titulo">Los permisos de iOS</span><span class="fila-detalle">Qué te va a pedir y qué tocar.</span></span>
+              </li>
+              <li class="fila">
+                <span class="fila-icono" aria-hidden="true">⚡</span>
+                <span class="fila-texto"><span class="fila-titulo">Atajos que registran por ti</span><span class="fila-detalle">Sueño, pasos, rutina, avisos y la puerta.</span></span>
+              </li>
+              <li class="fila">
+                <span class="fila-icono" aria-hidden="true">🧩</span>
+                <span class="fila-texto"><span class="fila-titulo">Widgets</span><span class="fila-detalle">Tu día de un vistazo.</span></span>
+              </li>
+            </ul>
+            <p class="paso-frase">Goat registra por ti; <span class="acento">tú solo confirmas.</span></p>
+          </div>
+        </section>
+
+        <!-- 2. Instálala -->
+        <section class="paso" data-paso="instala" aria-labelledby="instala-titulo" hidden>
+          <div class="paso-cabeza">
+            <p class="paso-emoji" aria-hidden="true">📲</p>
+            <p class="etiqueta paso-etiqueta">Instalar</p>
+            <h1 id="instala-titulo" class="titular paso-titular" tabindex="-1">
+              <span class="linea"><span>Instálala.</span></span>
+            </h1>
+            <p id="instala-texto" class="paso-texto">Así Goat se abre como una app: a pantalla completa y sin la barra de Safari.</p>
+          </div>
+          <div class="paso-cuerpo">
+            <div id="instala-hecho" class="hecho-grande" hidden>
+              <span class="hecho-marca" aria-hidden="true">✓</span>
+              <p>Ya está en tu inicio.</p>
+            </div>
+            <ol id="instala-guia" class="lista-agrupada paso-lista instalar">
+              <li class="fila">
+                <span class="fila-icono" aria-hidden="true">🧭</span>
+                <span class="fila-texto"><span class="fila-titulo">Abre Goat en Safari</span><span class="fila-detalle">En otra app no aparece la opción.</span></span>
+              </li>
+              <li class="fila">
+                <span class="fila-icono icono-svg" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 15V3" />
+                    <path d="m7.5 7.5 4.5-4.5 4.5 4.5" />
+                    <path d="M8 10H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-2" />
+                  </svg>
+                </span>
+                <span class="fila-texto"><span class="fila-titulo">Toca Compartir</span><span class="fila-detalle">El cuadro con la flecha, en la barra de Safari.</span></span>
+              </li>
+              <li class="fila">
+                <span class="fila-icono icono-svg" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3.5" y="3.5" width="17" height="17" rx="4" />
+                    <path d="M12 8v8M8 12h8" />
+                  </svg>
+                </span>
+                <span class="fila-texto"><span class="fila-titulo">«Agregar a inicio»</span><span class="fila-detalle">Desliza hacia abajo si no la ves.</span></span>
+              </li>
+              <li class="fila">
+                <img class="fila-icono icono-goat" src="img/icono-180.png" alt="" width="32" height="32" />
+                <span class="fila-texto"><span class="fila-titulo">Toca «Agregar» y ábrela</span><span class="fila-detalle">Inicia sesión otra vez y sigue aquí.</span></span>
+              </li>
+            </ol>
+            <p id="instala-otro" class="paso-nota" hidden>
+              Esto se hace en el iPhone. Abre esta misma dirección en Safari allá; aquí puedes seguir leyendo lo demás.
+            </p>
+            <p id="instala-sesion" class="paso-nota">La app guarda su sesión aparte de Safari: la primera vez que la abras, entra con tu correo.</p>
+          </div>
+        </section>
+
+        <!-- 3. Conecta tu iPhone: llave + atajo "⚙️ Goat" + prueba -->
+        <section class="paso" data-paso="conecta" aria-labelledby="conecta-titulo" hidden>
+          <div class="paso-cabeza">
+            <p class="paso-emoji" aria-hidden="true">🔑</p>
+            <p class="etiqueta paso-etiqueta">Conectar</p>
+            <h1 id="conecta-titulo" class="titular paso-titular" tabindex="-1">
+              <span class="linea"><span>Tu</span></span>
+              <span class="linea"><span class="acento">llave.</span></span>
+            </h1>
+            <p class="paso-texto">Los atajos hablan con Goat usando una llave personal. La creas aquí y la guardas en un solo atajo: «⚙️ Goat».</p>
+          </div>
+          <div class="paso-cuerpo">
+            <div class="bloque">
+              <p class="etiqueta bloque-titulo"><span class="bloque-numero">1</span>Crea tu llave</p>
+              <div id="llave-crear">
+                <button type="button" id="crear-llave" class="boton-principal ancho-justo">🔑 Crear llave</button>
+              </div>
+              <div id="llave-nueva" hidden>
+                <div class="copiable">
+                  <label class="copiable-clave" for="llave-token">token</label>
+                  <input id="llave-token" class="copiable-valor" readonly autocomplete="off" autocapitalize="off" spellcheck="false" />
+                  <button type="button" class="boton-copiar" data-copiar="llave-token">Copiar</button>
+                </div>
+                <p class="aviso-llave">⚠️ No la compartas. Se ve una sola vez: cópiala ahora y pégala en «⚙️ Goat».</p>
+              </div>
+              <div id="llave-activas" hidden>
+                <p id="llave-activas-texto" class="bloque-texto"></p>
+                <button type="button" id="otra-llave" class="boton-borde">Crear otra llave</button>
+              </div>
+            </div>
+
+            <div class="bloque">
+              <p class="etiqueta bloque-titulo"><span class="bloque-numero">2</span>Arma «⚙️ Goat»</p>
+              <p class="bloque-texto">Un diccionario con dos datos. Los demás atajos lo usan para no repetir tu llave.</p>
+              <div class="copiable">
+                <label class="copiable-clave" for="url-goat">url</label>
+                <input id="url-goat" class="copiable-valor" readonly autocomplete="off" autocapitalize="off" spellcheck="false" />
+                <button type="button" class="boton-copiar" data-copiar="url-goat">Copiar</button>
+              </div>
+              <div class="copiable copiable-guia">
+                <span class="copiable-clave">token</span>
+                <span class="copiable-valor">tu llave, la de arriba</span>
+              </div>
+              <ol id="pasos-goat" class="pasos-lista"></ol>
+            </div>
+
+            <div class="bloque">
+              <p class="etiqueta bloque-titulo"><span class="bloque-numero">3</span>Pruébalo</p>
+              <p class="bloque-texto">Arma «🧪 Goat · Probar», toca «Probar conexión» y córrelo en tu iPhone.</p>
+              <details class="desplegable">
+                <summary>Pasos de «🧪 Goat · Probar»</summary>
+                <ol id="pasos-probar" class="pasos-lista"></ol>
+              </details>
+              <button type="button" id="probar-conexion" class="boton-secundario boton-probar">Probar conexión</button>
+              <p id="conexion-estado" class="estado-prueba" role="status" aria-live="polite"></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Permisos que iOS te pedirá -->
+        <section class="paso" data-paso="permisos" aria-labelledby="permisos-titulo" hidden>
+          <div class="paso-cabeza">
+            <p class="paso-emoji" aria-hidden="true">🛡️</p>
+            <p class="etiqueta paso-etiqueta">Permisos</p>
+            <h1 id="permisos-titulo" class="titular paso-titular" tabindex="-1">
+              <span class="linea"><span>Tus</span></span>
+              <span class="linea"><span>permisos.</span></span>
+            </h1>
+            <p class="paso-texto">iOS los pide la primera vez que corre cada atajo. Esto es lo que vas a ver y qué tocar.</p>
+          </div>
+          <div class="paso-cuerpo">
+            <ul id="permisos-lista" class="permisos"></ul>
+            <p class="paso-nota">
+              Una web no puede leer Salud ni Tiempo en pantalla, ni pedir estos permisos. Por eso Goat usa Atajos: tú decides qué
+              comparte tu iPhone y lo puedes quitar cuando quieras en Ajustes › Salud o Ajustes › Privacidad.
+            </p>
+          </div>
+        </section>
+
+        <!-- 5. Atajos y automatizaciones de todos los módulos -->
+        <section class="paso" data-paso="atajos" aria-labelledby="atajos-titulo" hidden>
+          <div class="paso-cabeza">
+            <p class="paso-emoji" aria-hidden="true">⚡</p>
+            <p class="etiqueta paso-etiqueta">Atajos</p>
+            <h1 id="atajos-titulo" class="titular paso-titular" tabindex="-1">
+              <span class="linea"><span>Tus</span></span>
+              <span class="linea"><span>atajos.</span></span>
+            </h1>
+            <p class="paso-texto">Ármalos una vez, sin prisa. Cada uno trae sus pasos, su automatización y un botón para probarlo.</p>
+            <div class="avance-atajos" data-avance>
+              <p class="titular cifras avance-numero"><span data-hechos>0</span><span class="avance-de">/<span data-total>0</span></span></p>
+              <div class="avance-lado">
+                <div class="progreso" aria-hidden="true"><div class="progreso-relleno" data-relleno></div></div>
+                <p class="avance-texto" data-avance-texto></p>
+              </div>
+            </div>
+          </div>
+          <div class="paso-cuerpo">
+            <div id="grupos" class="grupos"></div>
+          </div>
+        </section>
+
+        <!-- 6. Widgets -->
+        <section class="paso" data-paso="widgets" aria-labelledby="widgets-titulo" hidden>
+          <div class="paso-cabeza">
+            <p class="paso-emoji" aria-hidden="true">🧩</p>
+            <p class="etiqueta paso-etiqueta">Widgets</p>
+            <h1 id="widgets-titulo" class="titular paso-titular" tabindex="-1">
+              <span class="linea"><span>Widgets.</span></span>
+            </h1>
+            <p class="paso-texto">Tu puntaje, tus anillos y lo que falta, en la pantalla de inicio y en la bloqueada.</p>
+          </div>
+          <div class="paso-cuerpo">
+            <ul class="lista-agrupada paso-lista">
+              <li>
+                <a class="fila" href="widgets.html">
+                  <span class="fila-icono" aria-hidden="true">🧩</span>
+                  <span class="fila-texto"><span class="fila-titulo">Guía de widgets</span><span class="fila-detalle">Scriptable (gratis) y la misma llave de «⚙️ Goat».</span></span>
+                  <span class="fila-flecha" aria-hidden="true">›</span>
+                </a>
+              </li>
+            </ul>
+            <p class="paso-nota">Puedes usar la misma llave o crear otra en Ajustes › Dispositivos conectados. Los widgets nunca muestran dinero en la pantalla bloqueada.</p>
+          </div>
+        </section>
+
+        <!-- 7. Listo -->
+        <section class="paso" data-paso="listo" aria-labelledby="listo-titulo" hidden>
+          <div class="paso-cabeza">
+            <p id="listo-emoji" class="paso-emoji" aria-hidden="true">✅</p>
+            <p class="etiqueta paso-etiqueta">Listo</p>
+            <h1 id="listo-titulo" class="titular paso-titular" tabindex="-1">
+              <span class="linea"><span id="listo-linea-1">Listo.</span></span>
+              <span class="linea" id="listo-linea-2-caja" hidden><span id="listo-linea-2" class="acento"></span></span>
+            </h1>
+            <p id="listo-texto" class="paso-texto"></p>
+          </div>
+          <div class="paso-cuerpo">
+            <ul id="listo-lista" class="lista-agrupada paso-lista"></ul>
+          </div>
+        </section>
+
+        <footer class="asistente-pie">
+          <button type="button" id="siguiente" class="boton-principal">Empezar</button>
+          <button type="button" id="ahora-no" class="asistente-secundario">Ahora no</button>
+        </footer>
+      </div>
+
+      <!-- ═══ Ajustes (conectar.html#ajustes, desde ⚙️ en Hoy) ═══ -->
+      <div id="ajustes" class="ajustes" hidden>
+        <header class="barra-seccion">
+          <a class="volver" href="index.html"><span aria-hidden="true">‹</span>Hoy</a>
+          <div class="barra-acciones"></div>
+        </header>
+
+        <section class="cabecera-seccion">
+          <p class="etiqueta">Goat · Ajustes</p>
+          <h1 id="ajustes-titulo" class="titular" tabindex="-1">Ajustes.</h1>
+          <p class="cabecera-texto">Tu iPhone, tus llaves y lo que cuenta en Goat.</p>
+        </section>
+
+        <div class="ajustes-rejilla">
+          <!-- Tu iPhone: atajos listos y asistente -->
+          <section class="seccion" aria-labelledby="iphone-titulo">
+            <p id="iphone-titulo" class="etiqueta">Tu iPhone</p>
+            <div class="avance-atajos" data-avance>
+              <p class="titular cifras avance-numero"><span data-hechos>0</span><span class="avance-de">/<span data-total>0</span></span></p>
+              <div class="avance-lado">
+                <div class="progreso" aria-hidden="true"><div class="progreso-relleno" data-relleno></div></div>
+                <p class="avance-texto" data-avance-texto></p>
+              </div>
+            </div>
+            <div class="botones-fila">
+              <a class="boton-principal ancho-justo" href="#paso-atajos">Ver atajos</a>
+              <a class="boton-secundario ancho-justo" href="#asistente">Abrir el asistente</a>
+            </div>
+          </section>
+
+          <!-- Dispositivos conectados (llaves) -->
+          <section class="seccion" aria-labelledby="llaves-titulo">
+            <div class="seccion-cabeza">
+              <h2 id="llaves-titulo" class="etiqueta">Dispositivos conectados</h2>
+              <button type="button" id="nueva-llave" class="boton-borde">Crear otra llave</button>
+            </div>
+            <ul id="llaves-lista" class="lista-agrupada" aria-labelledby="llaves-titulo"></ul>
+            <p id="llaves-vacio" class="vacio" hidden>Ningún iPhone conectado todavía.</p>
+            <p class="nota">Revocar una llave apaga al instante los atajos que la usan. Las demás siguen funcionando.</p>
+          </section>
+        </div>
+
+        <div class="ajustes-rejilla">
+          <!-- Juegos que cuentan en el desbloqueo (perfil.ajustes.desbloqueo.juegos) -->
+          <section class="seccion" aria-labelledby="juegos-titulo">
+            <p id="juegos-titulo" class="etiqueta">Apps del desbloqueo</p>
+            <p class="frase juegos-frase">TikTok, Instagram y YouTube siempre cuentan. Agrega los juegos que quieras frenar.</p>
+            <ul id="juegos-lista" class="lista-agrupada" aria-label="Juegos"></ul>
+            <form id="form-juego" class="form-juego" autocomplete="off">
+              <label class="solo-lector" for="juego-nombre">Nombre del juego</label>
+              <input id="juego-nombre" name="nombre" class="entrada" maxlength="30" placeholder="Ej. Clash Royale" enterkeyhint="done" />
+              <button type="submit" class="boton-principal ancho-justo">Agregar</button>
+            </form>
+            <a class="enlace-seccion" href="desbloqueo.html">Niveles y uso en Tu tiempo <span aria-hidden="true">›</span></a>
+          </section>
+
+          <!-- Metas que no tienen otra página -->
+          <section class="seccion" aria-labelledby="metas-titulo">
+            <p id="metas-titulo" class="etiqueta">Metas</p>
+            <p class="campo-titulo meta-titulo">Entrenos por semana</p>
+            <div id="meta-gym" class="chips" data-chips="gym" role="radiogroup" aria-label="Entrenos por semana"></div>
+            <p class="nota">Cuentan fuerza, trote, cardio y deporte. Lo ves en Movimiento.</p>
+            <ul class="lista-agrupada metas-enlaces">
+              <li>
+                <a class="fila" href="sueno.html">
+                  <span class="fila-icono" aria-hidden="true">🌙</span>
+                  <span class="fila-texto"><span class="fila-titulo">Metas de sueño</span><span class="fila-detalle">Horas, hora de dormir y de despertar.</span></span>
+                  <span class="fila-flecha" aria-hidden="true">›</span>
+                </a>
+              </li>
+            </ul>
+          </section>
+        </div>
+
+        <footer class="pie-seccion">
+          <button type="button" class="boton-borde" data-cerrar-sesion>Cerrar sesión</button>
+        </footer>
+      </div>
+    </main>
+
+    <!-- Hoja inferior: detalle de un atajo o crear otra llave (js/piezas/hoja.js) -->
+    <div id="velo" class="velo"></div>
+    <div id="hoja" class="hoja sin-scrollbar" role="dialog" aria-modal="true" aria-labelledby="hoja-titulo" tabindex="-1">
+      <div id="hoja-manija" class="hoja-manija" aria-hidden="true"><span></span></div>
+      <p id="hoja-emoji" class="hoja-emoji" aria-hidden="true"></p>
+      <h2 id="hoja-titulo" class="titular hoja-titulo"></h2>
+
+      <div id="hoja-atajo" hidden>
+        <p id="atajo-para" class="hoja-texto"></p>
+        <div id="atajo-requisitos" class="hoja-bloque">
+          <p class="etiqueta">Antes</p>
+          <ul class="puntos"></ul>
+        </div>
+        <div class="hoja-bloque">
+          <p class="etiqueta">Pasos</p>
+          <ol id="atajo-pasos" class="pasos-lista"></ol>
+        </div>
+        <div id="atajo-autos"></div>
+        <div id="atajo-permisos" class="hoja-bloque">
+          <p class="etiqueta">iOS te pedirá</p>
+          <ul class="puntos"></ul>
+        </div>
+        <div class="hoja-acciones">
+          <p id="atajo-prueba" class="estado-prueba" role="status" aria-live="polite"></p>
+          <div class="hoja-acciones-fila">
+            <button type="button" id="atajo-probar" class="boton-secundario boton-probar">Probar</button>
+            <label class="interruptor">
+              <input type="checkbox" id="atajo-hecho" role="switch" />
+              <span class="interruptor-texto">Hecho</span>
+              <span class="interruptor-pista" aria-hidden="true"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <form id="form-llave" class="form-registro" hidden>
+        <p class="hoja-texto">Una llave por dispositivo o por uso: así puedes revocar una sin apagar las demás.</p>
+        <div id="llave-opciones">
+          <p class="etiqueta campo-titulo">¿Para qué?</p>
+          <div class="chips" data-chips="nombre" role="radiogroup" aria-label="Nombre de la llave"></div>
+        </div>
+        <button type="submit" id="crear-otra" class="boton-principal">Crear llave</button>
+        <div id="otra-nueva" hidden>
+          <div class="copiable">
+            <label class="copiable-clave" for="otra-token">token</label>
+            <input id="otra-token" class="copiable-valor" readonly autocomplete="off" autocapitalize="off" spellcheck="false" />
+            <button type="button" class="boton-copiar" data-copiar="otra-token">Copiar</button>
+          </div>
+          <p class="aviso-llave">⚠️ No la compartas. Se ve una sola vez: cópiala ahora.</p>
+        </div>
+      </form>
+    </div>
+
+    <!-- Si la base de datos aún no tiene tablas -->
+    <main id="falta-base" class="contenedor pantalla-simple" hidden>
+      <p class="etiqueta">Goat · casi listo</p>
+      <h1 class="titular">Falta <span class="acento">un paso.</span></h1>
+      <p class="explicacion">
+        La base de datos todavía no tiene las tablas de esta sección. Pega todo supabase/schema.sql en Supabase › SQL Editor y
+        presiona Run. Después recarga esta página.
+      </p>
+      <a class="boton-borde ancho-justo" href="index.html">Volver a Hoy</a>
+    </main>
+
+    <!-- Si algo falla al cargar -->
+    <main id="fallo" class="contenedor pantalla-simple" hidden>
+      <p class="etiqueta">Goat</p>
+      <h1 class="titular">Algo <span class="acento">falló.</span></h1>
+      <p class="explicacion">Revisa tu conexión e intenta otra vez. Tus registros están a salvo.</p>
+      <button type="button" id="reintentar" class="boton-principal">Reintentar</button>
+    </main>
+
+    <div class="aviso-zona">
+      <p id="aviso" class="aviso" role="status" aria-live="polite"></p>
+    </div>
+
+    <!-- ═══ Plantillas: js/conectar/pagina.js las copia y llena con textContent ═══ -->
+    <template id="plantilla-chip">
+      <button type="button" class="chip" role="radio" aria-checked="false"></button>
+    </template>
+
+    <template id="plantilla-item">
+      <li></li>
+    </template>
+
+    <template id="plantilla-permiso">
+      <li class="permiso aparece">
+        <span class="permiso-emoji" aria-hidden="true"></span>
+        <div class="permiso-texto">
+          <p class="permiso-titulo"></p>
+          <p class="permiso-que"></p>
+          <p class="permiso-para"></p>
+        </div>
+        <p class="permiso-tocar"></p>
+      </li>
+    </template>
+
+    <template id="plantilla-grupo">
+      <section class="grupo">
+        <h2 class="grupo-cabeza">
+          <span class="etiqueta grupo-nombre"></span>
+          <span class="etiqueta cifras grupo-cuenta"></span>
+        </h2>
+        <ul class="lista-agrupada grupo-lista"></ul>
+      </section>
+    </template>
+
+    <template id="plantilla-atajo">
+      <li>
+        <button type="button" class="fila atajo-fila">
+          <span class="fila-icono atajo-emoji" aria-hidden="true"></span>
+          <span class="fila-texto">
+            <span class="fila-titulo atajo-nombre"></span>
+            <span class="fila-detalle atajo-para"></span>
+          </span>
+          <span class="atajo-marca" aria-hidden="true"></span>
+          <span class="solo-lector atajo-estado"></span>
+        </button>
+      </li>
+    </template>
+
+    <template id="plantilla-auto">
+      <div class="hoja-bloque auto">
+        <p class="etiqueta auto-etiqueta">Automatización</p>
+        <p class="auto-disparador"></p>
+        <ol class="pasos-lista"></ol>
+      </div>
+    </template>
+
+    <template id="plantilla-resumen">
+      <li class="fila resumen">
+        <span class="fila-icono resumen-emoji" aria-hidden="true"></span>
+        <span class="fila-texto">
+          <span class="fila-titulo resumen-titulo"></span>
+          <span class="fila-detalle resumen-detalle"></span>
+        </span>
+        <span class="resumen-marca"></span>
+      </li>
+    </template>
+
+    <template id="plantilla-llave">
+      <li class="fila llave">
+        <span class="fila-icono" aria-hidden="true">📱</span>
+        <span class="fila-texto">
+          <span class="fila-titulo llave-nombre"></span>
+          <span class="fila-detalle cifras llave-detalle"></span>
+        </span>
+        <button type="button" class="llave-revocar">Revocar</button>
+      </li>
+    </template>
+
+    <template id="plantilla-juego">
+      <li class="fila juego">
+        <span class="fila-icono" aria-hidden="true">🎮</span>
+        <span class="fila-texto">
+          <span class="fila-titulo juego-nombre"></span>
+          <span class="fila-detalle juego-texto"></span>
+        </span>
+        <button type="button" class="juego-quitar">Quitar</button>
+      </li>
+    </template>
+  </body>
+</html>

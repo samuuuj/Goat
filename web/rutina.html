@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="es" class="discreto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Goat · Tu día</title>
+    <meta name="description" content="Tu rutina, tus clases y tus tareas." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Goat" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="img/icono-512.png" type="image/png" />
+    <link rel="apple-touch-icon" href="img/icono-180.png" />
+    <link rel="preload" href="fuentes/archivo.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/comun.css" />
+    <link rel="stylesheet" href="css/rutina.css" />
+    <script src="js/vendor/supabase.js" defer></script>
+    <script type="module" src="js/rutina/pagina.js"></script>
+  </head>
+
+  <body class="grano">
+    <div id="cargando" class="cargando" role="status">
+      <span class="cargando-anillo" aria-hidden="true"></span>
+      <span class="solo-lector">Cargando…</span>
+    </div>
+
+    <main id="contenido" class="contenedor" hidden>
+      <header class="barra-seccion">
+        <a class="volver" href="index.html"><span aria-hidden="true">‹</span>Hoy</a>
+        <div class="barra-acciones">
+          <a class="boton-borde" href="#seccion-tareas">Tareas</a>
+          <a class="boton-borde" href="#plantilla" data-con-rutina>Editar</a>
+        </div>
+      </header>
+
+      <section class="cabecera-seccion">
+        <p id="cabecera-fecha" class="etiqueta cifras">Goat · Rutina</p>
+        <h1 class="titular">Tu <span class="acento">día.</span></h1>
+        <p id="cabecera-texto" class="cabecera-texto"></p>
+        <div id="avance-dia" class="avance-dia" hidden>
+          <div class="progreso" role="progressbar" aria-label="Obligatorios hechos hoy" aria-valuemin="0" aria-valuemax="100">
+            <div id="avance-relleno" class="progreso-relleno"></div>
+          </div>
+          <p class="etiqueta">Obligatorios <span id="avance-texto" class="cifras"></span></p>
+        </div>
+      </section>
+
+      <!-- Sin rutina todavía: invitación a la encuesta. -->
+      <section id="sin-rutina" class="seccion sin-rutina" hidden>
+        <p class="etiqueta">Empieza aquí</p>
+        <p class="titular sin-rutina-titulo">Arma tu semana en <span class="acento">2 minutos.</span></p>
+        <p class="frase">12 preguntas cortas, una por pantalla: a qué hora te levantas, caminata, desayuno, trabajo útil con pausas, comidas, ejercicio, estudio, clases y trabajos de la U.</p>
+        <button type="button" class="boton-principal ancho-justo" data-abrir-encuesta>Empezar la encuesta</button>
+      </section>
+
+      <div class="rutina-rejilla" data-con-rutina hidden>
+        <!-- 1. Ahora: el bloque en curso, con su tiempo restante. -->
+        <section class="seccion seccion-ahora" aria-labelledby="ahora-etiqueta">
+          <p id="ahora-etiqueta" class="etiqueta">Ahora</p>
+          <article id="ahora" class="ahora tarjeta">
+            <div class="ahora-cabeza">
+              <span id="ahora-emoji" class="ahora-emoji" aria-hidden="true"></span>
+              <span id="ahora-rango" class="etiqueta cifras ahora-rango"></span>
+            </div>
+            <h2 id="ahora-titulo" class="titular ahora-titulo"></h2>
+            <p id="ahora-detalle" class="ahora-detalle"></p>
+            <div id="ahora-reloj" class="ahora-reloj">
+              <p id="ahora-quedan" class="titular cifras ahora-quedan" aria-hidden="true"></p>
+              <p id="ahora-quedan-texto" class="etiqueta" aria-hidden="true"></p>
+              <p id="ahora-lector" class="solo-lector" aria-live="polite"></p>
+            </div>
+            <div id="ahora-progreso-caja" class="progreso ahora-progreso"><div id="ahora-progreso" class="progreso-relleno"></div></div>
+            <a id="ahora-enlace" class="boton-secundario ahora-enlace" target="_blank" rel="noopener noreferrer" hidden>Unirse a la clase ↗</a>
+            <div id="ahora-botones" class="ahora-botones" hidden>
+              <button type="button" class="boton-principal" data-marcar="hecho">✓ Hecho</button>
+              <button type="button" class="boton-secundario" data-marcar="saltado">⤼ Saltar</button>
+            </div>
+            <div id="ahora-marcado" class="ahora-marcado" hidden>
+              <p id="ahora-marcado-texto"></p>
+              <button type="button" id="ahora-cambiar" class="boton-borde">Cambiar</button>
+            </div>
+          </article>
+          <p id="despues" class="despues" hidden>
+            <span class="etiqueta">Después</span>
+            <span id="despues-texto" class="despues-texto"></span>
+            <span id="despues-hora" class="cifras despues-hora"></span>
+          </p>
+
+          <!-- Lo que terminó sin marcar: la web pide confirmarlo. -->
+          <div id="por-confirmar" class="por-confirmar" hidden>
+            <p class="etiqueta">¿Lo hiciste?</p>
+            <ul id="por-confirmar-lista" class="lista-agrupada"></ul>
+          </div>
+        </section>
+
+        <!-- 2. El día como en Calendario: horas a la izquierda, bloques proporcionales y la línea de "ahora". -->
+        <section id="seccion-dia" class="seccion seccion-dia" aria-labelledby="dia-etiqueta">
+          <div class="seccion-cabeza">
+            <p id="dia-etiqueta" class="etiqueta">Hoy</p>
+            <button type="button" id="volver-hoy" class="boton-borde" hidden>Ir a hoy</button>
+          </div>
+          <p id="lt-vacio" class="vacio" hidden>Nada en tu plantilla este día.</p>
+          <div id="linea-tiempo" class="linea-tiempo">
+            <div id="lt-horas" class="lt-horas" aria-hidden="true"></div>
+            <ol id="lt-carril" class="lt-carril" aria-label="Bloques del día">
+              <li id="lt-ahora" class="lt-ahora" aria-hidden="true" hidden><span id="lt-ahora-hora" class="cifras"></span></li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- 3. La semana: un mini calendario por día con su cumplimiento. -->
+        <section class="seccion seccion-semana" aria-labelledby="semana-etiqueta">
+          <div class="seccion-cabeza">
+            <p id="semana-etiqueta" class="etiqueta">Tu semana</p>
+            <p id="semana-total" class="etiqueta cifras"></p>
+          </div>
+          <div id="semana-rejilla" class="semana-rejilla"></div>
+          <p class="semana-leyenda">
+            <span><span class="leyenda-muestra es-hecho" aria-hidden="true"></span>Hecho</span>
+            <span><span class="leyenda-muestra es-obligatorio" aria-hidden="true"></span>Obligatorio</span>
+            <span><span class="leyenda-muestra" aria-hidden="true"></span>Pendiente</span>
+          </p>
+        </section>
+      </div>
+
+      <!-- 4. Tareas de la universidad. -->
+      <section id="seccion-tareas" class="seccion" aria-labelledby="tareas-etiqueta">
+        <div class="seccion-cabeza">
+          <p id="tareas-etiqueta" class="etiqueta">Tareas de la U</p>
+          <button type="button" id="nueva-tarea" class="boton-borde">＋ Tarea</button>
+        </div>
+        <ul id="tareas-lista" class="tareas"></ul>
+        <p id="tareas-vacio" class="vacio" hidden>Nada pendiente. Cuando te dejen algo, anótalo con su primer paso.</p>
+        <p id="tareas-hechas" class="tareas-hechas"></p>
+      </section>
+
+      <!-- 5. Qué hace el iPhone por ti. -->
+      <section class="seccion iphone" aria-labelledby="iphone-etiqueta">
+        <p id="iphone-etiqueta" class="etiqueta">Qué hace el iPhone por ti</p>
+        <h2 class="titular iphone-titulo">Él recuerda. <span class="acento">Tú confirmas.</span></h2>
+        <div class="iphone-columnas">
+          <div class="tarjeta">
+            <p class="etiqueta">Automático</p>
+            <ul class="iphone-lista">
+              <li><span aria-hidden="true">☀️</span>Al despertar, cada bloque de hoy llega a Recordatorios (lista "Goat") con alerta a su hora.</li>
+              <li><span aria-hidden="true">🔔</span>Te avisa con notificaciones normales del iPhone. La clase virtual trae su enlace.</li>
+              <li><span aria-hidden="true">🌙</span>A las 21:45 sube a Goat lo que completaste en Recordatorios.</li>
+            </ul>
+          </div>
+          <div class="tarjeta">
+            <p class="etiqueta">Necesita tu toque</p>
+            <ul class="iphone-lista">
+              <li><span aria-hidden="true">✅</span>Dar el visto bueno: completa el recordatorio desde la pantalla bloqueada, toca dos veces atrás del iPhone o márcalo aquí.</li>
+              <li><span aria-hidden="true">🤷</span>El iPhone no sabe si de verdad caminaste: eso lo confirmas tú. Saltar también cuenta.</li>
+              <li><span aria-hidden="true">🛠️</span>Armar los atajos una sola vez (unos 15 min) siguiendo los pasos de abajo.</li>
+            </ul>
+          </div>
+        </div>
+        <div id="atajos-lista" class="atajos"></div>
+        <a class="boton-secundario ancho-justo iphone-conectar" href="conectar.html">Abrir el asistente Conectar iPhone</a>
+      </section>
+
+      <!-- 6. La plantilla semanal: cada bloque se edita aquí. -->
+      <section id="plantilla" class="seccion" aria-labelledby="plantilla-etiqueta" data-con-rutina hidden>
+        <p id="plantilla-etiqueta" class="etiqueta">Tu plantilla semanal</p>
+        <p id="plantilla-resumen" class="frase plantilla-resumen"></p>
+        <div id="choques" class="choques tarjeta" role="status" hidden>
+          <p class="etiqueta acento">Choques de horario</p>
+          <ul id="choques-lista" class="choques-lista"></ul>
+        </div>
+        <div class="plantilla-botones">
+          <button type="button" id="nuevo-bloque" class="boton-secundario">＋ Bloque</button>
+          <button type="button" class="boton-secundario" data-abrir-encuesta>Rehacer con la encuesta</button>
+        </div>
+        <ul id="plantilla-lista" class="lista-agrupada"></ul>
+      </section>
+
+      <footer class="pie-seccion">Los festivos usan tu plantilla del domingo. Un bloque obligatorio que no marques 30 min después de terminar aparece en lo que falta.</footer>
+    </main>
+
+    <!-- ═══ Hoja inferior: detalle de un bloque, editar bloque, tarea ═══ -->
+    <div id="velo" class="velo"></div>
+    <div id="hoja" class="hoja sin-scrollbar" role="dialog" aria-modal="true" aria-labelledby="hoja-titulo" tabindex="-1">
+      <div id="hoja-manija" class="hoja-manija" aria-hidden="true"><span></span></div>
+      <h2 id="hoja-titulo" class="titular hoja-titulo"></h2>
+
+      <div id="vista-bloque" class="form-registro" hidden>
+        <p id="vb-rango" class="cifras hoja-sub"></p>
+        <p id="vb-detalle" class="hoja-texto"></p>
+        <a id="vb-enlace" class="boton-secundario" target="_blank" rel="noopener noreferrer" hidden>Unirse a la clase ↗</a>
+        <p id="vb-futuro" class="hoja-texto" hidden>Este día aún no llega: lo marcas cuando pase.</p>
+        <div class="botones">
+          <button type="button" class="boton-principal" data-vb="hecho">✓ Hecho</button>
+          <button type="button" class="boton-secundario" data-vb="saltado">⤼ Saltar</button>
+          <button type="button" class="boton-secundario" data-vb="quitar">↩️ Quitar marca</button>
+          <button type="button" class="boton-borde ancho-justo" data-vb="editar">Editar bloque</button>
+        </div>
+      </div>
+
+      <form id="form-bloque" class="form-registro" novalidate hidden>
+        <label class="campo">
+          <span class="etiqueta">Nombre</span>
+          <input name="titulo" class="entrada" maxlength="60" autocomplete="off" placeholder="Caminar" />
+        </label>
+        <div>
+          <p class="etiqueta campo-titulo">Tipo</p>
+          <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Tipo"></div>
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo">Días</p>
+          <div id="dias-bloque" class="dias" role="group" aria-label="Días"></div>
+        </div>
+        <div class="dos-columnas">
+          <label class="campo">
+            <span class="etiqueta">Empieza</span>
+            <input name="hora_inicio" type="time" step="300" class="entrada" />
+          </label>
+          <label class="campo">
+            <span class="etiqueta">Dura (min)</span>
+            <input name="duracion_min" type="number" min="5" max="600" step="5" inputmode="numeric" class="entrada" />
+          </label>
+        </div>
+        <label class="interruptor">
+          <span class="interruptor-textos">
+            <span class="interruptor-titulo">Obligatorio</span>
+            <span class="interruptor-ayuda">Si no lo marcas 30 min después de terminar, aparece en lo que falta (y en la puerta del desbloqueo).</span>
+          </span>
+          <input name="obligatorio" type="checkbox" role="switch" />
+          <span class="interruptor-pista" aria-hidden="true"></span>
+        </label>
+        <div>
+          <p class="etiqueta campo-titulo">Aviso</p>
+          <div class="chips" data-chips="aviso" role="radiogroup" aria-label="Aviso"></div>
+        </div>
+        <label class="campo" data-campo="lugar">
+          <span class="etiqueta">Lugar</span>
+          <input name="lugar" class="entrada" maxlength="80" autocomplete="off" placeholder="Bloque 5, salón 301" />
+        </label>
+        <label class="campo" data-campo="enlace">
+          <span class="etiqueta">Enlace de la clase (https://)</span>
+          <input name="enlace" type="url" inputmode="url" class="entrada" maxlength="300" autocomplete="off" placeholder="https://meet.google.com/…" />
+        </label>
+        <label class="campo" data-campo="materia">
+          <span class="etiqueta">Materia</span>
+          <input name="materia" class="entrada" maxlength="60" autocomplete="off" placeholder="Cálculo" />
+        </label>
+        <p id="error-bloque" class="error-form" role="alert"></p>
+        <div class="botones">
+          <button type="submit" class="boton-principal">Guardar</button>
+          <button type="button" id="borrar-bloque" class="boton-secundario">Quitar de la rutina</button>
+        </div>
+      </form>
+
+      <form id="form-tarea" class="form-registro" novalidate hidden>
+        <label class="campo">
+          <span class="etiqueta">Qué tienes que entregar</span>
+          <input name="titulo" class="entrada entrada-tarea" maxlength="120" autocomplete="off" placeholder="Taller 3 de Cálculo" />
+        </label>
+        <div>
+          <p class="etiqueta campo-titulo">Materia</p>
+          <div class="chips" data-chips="materia" role="radiogroup" aria-label="Materia"></div>
+          <input name="materia" class="entrada campo-extra" maxlength="60" autocomplete="off" placeholder="Otra materia" aria-label="Otra materia" />
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo">Para cuándo</p>
+          <div class="chips" data-chips="cuando" role="radiogroup" aria-label="Para cuándo"></div>
+          <input name="fecha_limite" type="datetime-local" class="entrada campo-extra" aria-label="Fecha y hora de entrega" hidden />
+        </div>
+        <label class="campo">
+          <span class="etiqueta">Primer paso</span>
+          <input name="primer_paso" class="entrada" maxlength="120" autocomplete="off" placeholder="Lo más pequeño: abrir el PDF y leer el punto 1" />
+          <span class="campo-ayuda">Algo que puedas hacer en 5 minutos. Empezar es lo que más cuesta.</span>
+        </label>
+        <p id="error-tarea" class="error-form" role="alert"></p>
+        <div class="botones">
+          <button type="submit" class="boton-principal">Guardar</button>
+          <button type="button" id="tarea-empezar" class="boton-secundario">▶️ Empezar ahora</button>
+          <button type="button" id="tarea-borrar" class="boton-secundario">Borrar tarea</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ═══ Encuesta a pantalla completa (js/rutina/encuesta.js) ═══ -->
+    <section id="encuesta" class="encuesta" role="dialog" aria-modal="true" aria-labelledby="encuesta-titulo" hidden>
+      <header class="encuesta-barra">
+        <button type="button" id="encuesta-atras" class="volver"><span aria-hidden="true">‹</span>Atrás</button>
+        <div class="progreso encuesta-progreso" aria-hidden="true"><div id="encuesta-relleno" class="progreso-relleno"></div></div>
+        <button type="button" id="encuesta-cerrar" class="boton-borde">Cerrar</button>
+      </header>
+      <div id="encuesta-cuerpo" class="encuesta-cuerpo"></div>
+      <footer class="encuesta-pie">
+        <button type="button" id="encuesta-siguiente" class="boton-principal">Siguiente</button>
+      </footer>
+    </section>
+
+    <!-- Si la base de datos aún no tiene tablas -->
+    <main id="falta-base" class="contenedor pantalla-simple" hidden>
+      <p class="etiqueta">Goat · casi listo</p>
+      <h1 class="titular">Falta <span class="acento">un paso.</span></h1>
+      <p class="explicacion">
+        La base de datos todavía no tiene las tablas de esta sección. Pega todo supabase/schema.sql en Supabase › SQL Editor y
+        presiona Run. Después recarga esta página.
+      </p>
+      <a class="boton-borde ancho-justo" href="index.html">Volver a Hoy</a>
+    </main>
+
+    <!-- Si algo falla al cargar -->
+    <main id="fallo" class="contenedor pantalla-simple" hidden>
+      <p class="etiqueta">Goat</p>
+      <h1 class="titular">Algo <span class="acento">falló.</span></h1>
+      <p class="explicacion">Revisa tu conexión e intenta otra vez. Tus registros están a salvo.</p>
+      <button type="button" id="reintentar" class="boton-principal">Reintentar</button>
+    </main>
+
+    <div class="aviso-zona">
+      <p id="aviso" class="aviso" role="status" aria-live="polite"></p>
+    </div>
+
+    <!-- ═══ Plantillas: js/rutina/pagina.js las copia y llena con textContent ═══ -->
+    <template id="plantilla-chip">
+      <button type="button" class="chip" role="radio" aria-checked="false"></button>
+    </template>
+
+    <template id="plantilla-bloque">
+      <li class="lt-bloque">
+        <button type="button" class="lt-boton">
+          <span class="lt-cabeza">
+            <span class="lt-emoji" aria-hidden="true"></span>
+            <span class="lt-titulo"></span>
+            <span class="lt-marca" aria-hidden="true"></span>
+          </span>
+          <span class="lt-hora cifras"></span>
+        </button>
+        <a class="lt-enlace" target="_blank" rel="noopener noreferrer" hidden>Unirse ↗</a>
+      </li>
+    </template>
+
+    <template id="plantilla-confirmar">
+      <li class="fila confirmar">
+        <span class="fila-icono" aria-hidden="true"></span>
+        <span class="fila-texto">
+          <span class="fila-titulo"></span>
+          <span class="fila-detalle cifras"></span>
+        </span>
+        <button type="button" class="confirmar-boton es-hecho">✓</button>
+        <button type="button" class="confirmar-boton">⤼</button>
+      </li>
+    </template>
+
+    <template id="plantilla-semana-dia">
+      <button type="button" class="sd" aria-pressed="false">
+        <span class="sd-letra" aria-hidden="true"></span>
+        <span class="sd-numero cifras" aria-hidden="true"></span>
+        <span class="sd-mapa" aria-hidden="true"></span>
+        <span class="sd-pct cifras" aria-hidden="true"></span>
+        <span class="sd-festivo" aria-hidden="true" hidden>Festivo</span>
+      </button>
+    </template>
+
+    <template id="plantilla-tarea">
+      <li class="tarea">
+        <button type="button" class="tarea-check"><span aria-hidden="true"></span></button>
+        <button type="button" class="tarea-cuerpo">
+          <span class="tarea-titulo"></span>
+          <span class="tarea-meta"><span class="tarea-vence cifras"></span><span class="tarea-materia"></span></span>
+          <span class="tarea-paso"><span class="tarea-paso-etiqueta">Primer paso →</span> <span class="tarea-paso-texto"></span></span>
+        </button>
+      </li>
+    </template>
+
+    <template id="plantilla-fila-bloque">
+      <li>
+        <button type="button" class="fila">
+          <span class="fila-icono" aria-hidden="true"></span>
+          <span class="fila-texto">
+            <span class="fila-titulo"></span>
+            <span class="fila-detalle cifras"></span>
+          </span>
+          <span class="punto-obligatorio" aria-label="obligatorio">●</span>
+          <span class="fila-flecha" aria-hidden="true">›</span>
+        </button>
+      </li>
+    </template>
+
+    <template id="plantilla-atajo">
+      <details class="atajo">
+        <summary>
+          <span class="atajo-emoji" aria-hidden="true"></span>
+          <span class="atajo-textos"><span class="atajo-nombre"></span><span class="atajo-para"></span></span>
+          <span class="atajo-flecha" aria-hidden="true">›</span>
+        </summary>
+        <div class="atajo-cuerpo">
+          <p class="etiqueta">Pasos en Atajos</p>
+          <ol class="atajo-pasos"></ol>
+          <div class="atajo-auto">
+            <p class="etiqueta">Automatización · <span class="atajo-disparador"></span></p>
+            <ol class="atajo-auto-pasos"></ol>
+          </div>
+          <p class="atajo-permisos"></p>
+        </div>
+      </details>
+    </template>
+  </body>
+</html>

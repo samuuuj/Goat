@@ -25,6 +25,7 @@ import {
   validarActividad,
   validarSesion,
 } from "../../web/js/ejercicio/logica.js";
+import { marcarRutinaCubierta } from "../_lib/cruces.js";
 
 const COLUMNAS = "id,tipo,rutina,inicio,fin,duracion_min,distancia_km,pasos,notas,en_curso,momento,fecha,origen,id_cliente";
 const MINUTO = 60_000;
@@ -127,7 +128,8 @@ export default {
     const sesion = { ...activa.sesion, ...cerrada, ...r.cambios };
     if (r.olvidada) return ok("⚠️ Más de 6 h: pon la hora de fin en la web", { sesion, olvidada: true });
     const semana = await avisarSiCumplio(db, ahora, sesion);
-    return ok(mensajeGuardada(sesion), { sesion, semana });
+    const rutina = await marcarRutinaCubierta(db, sesion);
+    return ok(mensajeGuardada(sesion), { sesion, semana, rutina });
   },
 
   /** Un entreno ya hecho: { tipo, inicio, fin | duracion_min, rutina?, distancia_km?, pasos?, notas? }. */
@@ -157,7 +159,8 @@ export default {
     fila.id_cliente = await idCliente(db, "gym_sesiones", fila, ["tipo", "inicio"], cuerpo.id_cliente, ahora);
     if (fila.id_cliente) await db.insert("gym_sesiones", fila, { devolver: false });
     const semana = await avisarSiCumplio(db, ahora, fila);
-    return ok(`${emojiTipo(fila.tipo)} ${nombreTipo(fila.tipo)} · ${formatoDuracion(fila.duracion_min)}`, { sesion: fila, semana }, 201);
+    const rutina = fila.id_cliente ? await marcarRutinaCubierta(db, fila) : [];
+    return ok(`${emojiTipo(fila.tipo)} ${nombreTipo(fila.tipo)} · ${formatoDuracion(fila.duracion_min)}`, { sesion: fila, semana, rutina }, 201);
   },
 
   /** Pasos, distancia y energía del día desde Salud: { fecha?, pasos, distancia_km?, energia_kcal? }. Una fila por fecha. */

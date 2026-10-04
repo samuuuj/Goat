@@ -4,27 +4,24 @@
 import { SesionVencida, guardar } from "../supabase/datos.js";
 import { cerrarSesion } from "../supabase/sesion.js";
 import { horaDecimal } from "../logica/dia.js";
-import { formatoCOP, formatoDuracion } from "../logica/formato.js";
+import { formatoDuracion } from "../logica/formato.js";
 import { avisar, nuevoId } from "./ui.js";
 import { chips } from "./chips.js";
 import { crearHoja } from "./hoja.js";
 import {
-  CATEGORIAS,
-  CUENTAS,
   DURACIONES,
   FRECUENTES,
   MATERIAS,
-  MONTOS_RAPIDOS,
-  MONTO_MAXIMO,
   RUTINAS,
   TIPOS_COMIDA,
   TIPOS_EJERCICIO,
-  TIPOS_MOVIMIENTO,
   VALIDOS,
 } from "../logica/catalogos.js";
 import { emojiTipo, horarioSugerido, instantesRecientes, minutosEntre, validarSesion } from "../ejercicio/logica.js";
+import { marcarCubiertos } from "../rutina/datos.js";
 
-const TITULO = { comida: "Comí", gasto: "Gasto", estudio: "Estudio", gym: "Gym" };
+// La hoja "gasto" registra los 4 tipos de Finanzas (gasto, ingreso, transferencia, retiro).
+const TITULO = { comida: "Comí", gasto: "Dinero", estudio: "Estudio", gym: "Gym" };
 
 const soloDigitos = (texto) => texto.replace(/\D/g, "");
 const entero = (valor, minimo, maximo) => Number.isInteger(valor) && valor >= minimo && valor <= maximo;
@@ -215,7 +212,7 @@ function formularioGym(form, enviar) {
     evento.preventDefault();
     const r = leer();
     if (!r.fila || !VALIDOS.tipoEjercicio.has(r.fila.tipo)) return avisar(r.error ?? "⚠️ Revisa los datos.");
-    enviar("gym_sesiones", r.fila, `${emojiTipo(r.fila.tipo)} Entreno anotado`);
+    enviar("gym_sesiones", r.fila, `${emojiTipo(r.fila.tipo)} Entreno anotado`).then((guardado) => guardado && marcarCubiertos(r.fila));
   });
 
   // Para un entreno que empieza ahora: la página Movimiento tiene el cronómetro.
@@ -263,6 +260,7 @@ export function iniciarRegistros({ alGuardar }) {
       if (await guardar(tabla, { ...fila, id_cliente: idCliente })) {
         cerrar();
         await alGuardar(mensaje);
+        return true;
       } else {
         avisar(navigator.onLine ? "⚠️ No se guardó. Intenta otra vez." : "⚠️ Sin conexión. Intenta otra vez.");
       }

@@ -38,6 +38,7 @@ import {
 import { cargar, encolar, leerCola, sincronizar } from "./datos.js";
 import { crearFormulario } from "./formulario.js";
 import { ATAJOS } from "./atajos.js";
+import { marcarCubiertos } from "../rutina/datos.js";
 
 const $ = (id) => document.getElementById(id);
 const CLAVE_ULTIMO_TIPO = "goat:ejercicio:ultimo-tipo";
@@ -169,6 +170,7 @@ async function terminarCon(sesion, extra) {
   pintar();
   if (r.olvidada) formulario.editar(fila);
   await subir();
+  if (!r.olvidada) marcarCubiertos(fila);
 }
 
 async function descartar() {
@@ -194,6 +196,7 @@ async function guardar(fila, original) {
   avisar(original ? "✅ Guardado" : mensajeGuardada(fila));
   pintar();
   await subir();
+  marcarCubiertos(fila); // Si cubre un bloque de la rutina (caminar, ejercicio), queda hecho.
 }
 
 async function borrar(original) {

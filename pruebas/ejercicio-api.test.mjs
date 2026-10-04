@@ -256,7 +256,10 @@ test("las consultas de ejercicio siempre van filtradas por el usuario", async ()
   await llamar(falso, "GET ejercicio/semana", { token });
   await llamar(falso, "POST ejercicio/inicio", { token, cuerpo: { tipo: "fuerza" } });
   await llamar(falso, "POST ejercicio/fin", { token, cuerpo: {} });
-  const deDatos = falso.llamadas.filter((l) => l.ruta.startsWith("/rest/v1/") && !l.ruta.includes("api_tokens"));
+  // festivos es una tabla común (sin user_id): la lee también el cruce con la rutina.
+  const deDatos = falso.llamadas.filter(
+    (l) => l.ruta.startsWith("/rest/v1/") && !l.ruta.includes("api_tokens") && !l.ruta.startsWith("/rest/v1/festivos"),
+  );
   for (const l of deDatos) {
     if (l.metodo !== "POST") assert.match(l.ruta, new RegExp(`user_id=eq.${A}`), l.ruta);
   }

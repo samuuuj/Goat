@@ -5,6 +5,8 @@ import { leer, revisar } from "../supabase/datos.js";
 import { nuevoId } from "../piezas/ui.js";
 import { diaLogico } from "../logica/dia.js";
 import { lunesDe, sumarDias } from "./logica.js";
+import { fechaDe } from "../ejercicio/logica.js";
+import { TIPOS_BLOQUE_CUBRIBLES, bloquesCubiertos } from "../logica/cruces.js";
 
 const COLUMNAS_BLOQUE = "id, titulo, tipo, dias, hora_inicio, duracion_min, obligatorio, aviso_min, lugar, enlace, materia, notas, orden, activo";
 const COLUMNAS_TAREA = "id, titulo, materia, fecha_limite, estimado_min, estado, prioridad, primer_paso, hecha_en, creado_en";
@@ -50,6 +52,33 @@ export async function marcar({ bloqueId, fecha, estado, checkId = null }) {
     supabase.from("rutina_checks").update(cambios).eq("bloque_id", bloqueId).eq("fecha", fecha).select("id, bloque_id, fecha, estado, origen"),
   );
   return filas[0];
+}
+
+/**
+ * Un entreno terminado marca "hecho" los bloques de la rutina que cubre (Movimiento y la hoja Gym de Hoy).
+ * No pisa lo que ya marcaste (hecho o saltado) y nunca falla: la rutina es un extra del entreno.
+ */
+export async function marcarCubiertos(sesion) {
+  try {
+    const fecha = sesion?.fin ? fechaDe(sesion) : null;
+    if (!fecha) return 0;
+    const [bloques, festivos] = await Promise.all([
+      leer(
+        supabase
+          .from("rutina_bloques")
+          .select("id, titulo, tipo, dias, hora_inicio, duracion_min, orden, activo")
+          .eq("activo", true)
+          .in("tipo", TIPOS_BLOQUE_CUBRIBLES),
+      ),
+      leer(supabase.from("festivos").select("fecha, nombre").eq("fecha", fecha)),
+    ]);
+    const filas = bloquesCubiertos(sesion, bloques ?? [], festivos ?? []).map((f) => ({ ...f, estado: "hecho", origen: "automatizacion" }));
+    if (filas.length === 0) return 0;
+    const { error } = await supabase.from("rutina_checks").upsert(filas, { onConflict: "bloque_id,fecha", ignoreDuplicates: true });
+    return error ? 0 : filas.length;
+  } catch {
+    return 0;
+  }
 }
 
 export async function quitarMarca(checkId) {

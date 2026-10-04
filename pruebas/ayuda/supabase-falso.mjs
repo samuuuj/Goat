@@ -123,9 +123,10 @@ export function crearSupabaseFalso({ datos = {}, sesiones = {}, unicas = {} } = 
           fila.momento ??= new Date().toISOString();
           fila.fecha ??= diaLogico(new Date(fila.momento));
         }
-        if (conflicto && prefer.includes("merge-duplicates")) {
+        if (conflicto && /(merge|ignore)-duplicates/.test(prefer)) {
           const existente = filasTabla.find((f) => conflicto.every((c) => comoValor(f[c]) === comoValor(fila[c])));
           if (existente) {
+            if (prefer.includes("ignore-duplicates")) continue;
             Object.assign(existente, entrada);
             guardadas.push(existente);
             continue;

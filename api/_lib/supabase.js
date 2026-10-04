@@ -70,7 +70,7 @@ const tablaValida = (tabla) => {
  * Acceso a los datos de UN usuario. Todo lleva user_id = userId.
  * select(tabla, { columnas, filtros, orden, limite })  → filas
  * insert(tabla, filas, { devolver })                   → filas insertadas ([] si id_cliente repetido)
- * upsert(tabla, filas, { conflicto })                  → filas
+ * upsert(tabla, filas, { conflicto, ignorarRepetidas }) → filas (ignorarRepetidas: no pisa la fila que ya existe)
  * update(tabla, cambios, filtros)                      → filas actualizadas
  * delete(tabla, filtros)                               → filas borradas
  */
@@ -104,11 +104,11 @@ export function baseDeDatos(config, userId, { fetch: f = fetch } = {}) {
       }
     },
 
-    async upsert(tabla, filas, { conflicto } = {}) {
+    async upsert(tabla, filas, { conflicto, ignorarRepetidas = false } = {}) {
       return (
         (await peticionRest(config, "POST", `${tablaValida(tabla)}?${parametros({}, { on_conflict: conflicto, select: "*" })}`, {
           cuerpo: conUsuario(filas),
-          prefer: "resolution=merge-duplicates,return=representation",
+          prefer: `resolution=${ignorarRepetidas ? "ignore" : "merge"}-duplicates,return=representation`,
           fetch: f,
         })) ?? []
       );

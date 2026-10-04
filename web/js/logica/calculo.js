@@ -3,6 +3,9 @@
 
 import { HORA_CORTE, diaLogico, horaDecimal } from "./dia.js";
 import { formatoDuracion, formatoMiles } from "./formato.js";
+// Cruces con otros módulos (funciones puras que no importan este archivo: no hay ciclo).
+import { obligatoriosVencidos } from "../rutina/logica.js";
+import { cuentaParaMeta } from "../ejercicio/logica.js";
 
 // ── Entradas ─────────────────────────────────────────────────────────────
 
@@ -87,7 +90,8 @@ function agrupar(registros) {
     dia.ultimoFinanzas = Math.max(dia.ultimoFinanzas, Date.parse(checkin.momento));
   }
   for (const sesion of registros.estudio) del(sesion.fecha).estudioMin += Number(sesion.minutos);
-  for (const sesion of registros.gym) del(sesion.fecha).gym += 1;
+  // Caminata y movilidad se ven en Movimiento, pero no cuentan para la meta semanal de entrenos.
+  for (const sesion of registros.gym) if (cuentaParaMeta(sesion)) del(sesion.fecha).gym += 1;
   return dias;
 }
 
@@ -264,7 +268,7 @@ function construirMetricas(hoy, dia, metas, dias) {
 // ── Resumen completo ─────────────────────────────────────────────────────
 
 /**
- * `registros`: { metas, comidas, movimientos, checkins (solo finanzas), estudio, gym, festivos }.
+ * `registros`: { metas, comidas, movimientos, checkins (solo finanzas), estudio, gym, festivos, rutinaBloques, rutinaChecks }.
  * Devuelve lo que pinta la pantalla de inicio (y lo que devolverá GET /api/v1/hoy).
  */
 export function construirResumen(registros, ahora) {
@@ -307,7 +311,14 @@ export function construirResumen(registros, ahora) {
     scoreAyer: semana[5].score,
     racha: calcularRacha(hoy, dias),
     anillos,
-    pendientes: faltantes(hoy, dia, ahora).map((clave) => ({ clave, ...PENDIENTES[clave] })),
+    pendientes: [
+      ...faltantes(hoy, dia, ahora).map((clave) => ({ clave, ...PENDIENTES[clave] })),
+      // Bloques obligatorios de la rutina que ya vencieron sin marcar ("saltado" también cuenta como registro).
+      ...obligatoriosVencidos(registros.rutinaBloques ?? [], registros.rutinaChecks ?? [], ahora, {
+        fecha: hoy,
+        festivos: registros.festivos ?? [],
+      }).map((pendiente) => ({ ...pendiente, modulo: "rutina" })),
+    ],
     metricas: construirMetricas(hoy, dia, metas, dias),
     semana,
   };

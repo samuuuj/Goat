@@ -28,11 +28,12 @@ try {
   console.warn("[simulador] sin localStorage");
 }
 
-let datos = null;
-async function cargarDatos() {
-  if (datos) return datos;
+// Se guarda la promesa (no el resultado): si varias consultas arrancan a la vez, los datos se arman una sola vez.
+let cargando = null;
+const cargarDatos = () => (cargando ??= armarDatos());
+async function armarDatos() {
   const base = await import("./datos.js");
-  datos = parametros.get("escenario") === "vacio" ? base.vacio() : base.ejemplo(USUARIO);
+  const datos = parametros.get("escenario") === "vacio" ? base.vacio() : base.ejemplo(USUARIO);
   // Cada módulo puede sumar su archivo pruebas/navegador/datos-<modulo>.js con `export function agregar(datos, usuario)`.
   for (const modulo of ["finanzas", "sueno", "desbloqueo", "rutina", "ejercicio", "notificaciones", "widgets", "conectar"]) {
     try {
@@ -50,8 +51,9 @@ async function cargarDatos() {
   return datos;
 }
 
+// Un 204 no puede llevar cuerpo (ni siquiera "null"): el navegador lanzaría un error.
 const respuesta = (cuerpo, estado = 200) =>
-  new Response(cuerpo === undefined ? null : JSON.stringify(cuerpo), {
+  new Response(cuerpo === undefined || estado === 204 ? null : JSON.stringify(cuerpo), {
     status: estado,
     headers: { "Content-Type": "application/json" },
   });
@@ -82,6 +84,9 @@ function cumple(fila, columna, condicion) {
       return true;
   }
 }
+
+/** Día lógico de un momento (la columna calculada "fecha" de las tablas de registros). */
+const fechaDe = (momento) => window.__goatDiaLogico?.(new Date(momento)) ?? String(momento).slice(0, 10);
 
 const fetchReal = window.fetch.bind(window);
 
@@ -122,21 +127,30 @@ window.fetch = async (entrada, opciones = {}) => {
       return respuesta(unico ? (lista[0] ?? null) : lista);
     }
     if (metodo === "POST") {
-      const nuevas = [].concat(JSON.parse(opciones.body ?? "[]")).map((f) => ({
-        id: crypto.randomUUID(),
-        user_id: USUARIO,
-        momento: new Date().toISOString(),
-        creado_en: new Date().toISOString(),
-        ...f,
-      }));
-      for (const fila of nuevas) fila.fecha ??= window.__goatDiaLogico?.(new Date(fila.momento)) ?? fila.momento.slice(0, 10);
-      filas.push(...nuevas);
-      return respuesta(nuevas, 201);
+      // Upsert de supabase-js: ?on_conflict=col1,col2 + Prefer: resolution=merge-duplicates | ignore-duplicates.
+      const conflicto = url.searchParams.get("on_conflict")?.split(",");
+      const ignorar = (new Headers(opciones.headers ?? {}).get("prefer") ?? "").includes("ignore-duplicates");
+      const devueltas = [];
+      for (const f of [].concat(JSON.parse(opciones.body ?? "[]"))) {
+        const fila = { user_id: USUARIO, ...f };
+        const previa = conflicto && filas.find((x) => conflicto.every((c) => String(x[c]) === String(fila[c])));
+        if (previa) {
+          if (!ignorar) Object.assign(previa, f);
+          if (!ignorar) devueltas.push(previa);
+          continue;
+        }
+        const nueva = { id: crypto.randomUUID(), momento: new Date().toISOString(), creado_en: new Date().toISOString(), ...fila };
+        nueva.fecha ??= fechaDe(nueva.momento);
+        filas.push(nueva);
+        devueltas.push(nueva);
+      }
+      return respuesta(devueltas, 201);
     }
     if (metodo === "PATCH") {
       const cambios = JSON.parse(opciones.body ?? "{}");
       const tocadas = filas.filter(coincide);
-      tocadas.forEach((f) => Object.assign(f, cambios));
+      // En Supabase "fecha" es una columna calculada desde "momento".
+      tocadas.forEach((f) => Object.assign(f, cambios, "momento" in cambios && !("fecha" in cambios) ? { fecha: fechaDe(cambios.momento) } : {}));
       return respuesta(tocadas);
     }
     if (metodo === "DELETE") {

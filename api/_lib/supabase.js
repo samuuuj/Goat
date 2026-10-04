@@ -39,7 +39,7 @@ export async function peticionRest(config, metodo, ruta, { cuerpo, prefer, fetch
   }
   if (!respuesta.ok) {
     const codigo = datos?.code ?? String(respuesta.status);
-    if (codigo === "PGRST205" || codigo === "42P01") {
+    if (codigo === "PGRST205" || codigo === "42P01" || codigo === "42703") {
       throw new ErrorApi("BASE_SIN_INSTALAR", "🛠️ Falta actualizar la base de datos", 503);
     }
     throw new ErrorBD(respuesta.status, codigo, datos?.message ?? "Error de base de datos");

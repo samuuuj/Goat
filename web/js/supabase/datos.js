@@ -11,8 +11,9 @@ export class BaseSinInstalar extends Error {}
 /** La sesión venció o la cerraron desde otro lado: hay que volver a entrar. */
 export class SesionVencida extends Error {}
 
-// PostgREST: tabla inexistente (PGRST205) · Postgres: relación inexistente (42P01).
-const SIN_TABLA = new Set(["PGRST205", "42P01"]);
+// PostgREST: tabla inexistente (PGRST205) · Postgres: relación inexistente (42P01) o columna inexistente (42703):
+// en los tres casos falta pegar la versión nueva de supabase/schema.sql.
+const SIN_TABLA = new Set(["PGRST205", "42P01", "42703"]);
 
 /** Convierte el error de una respuesta de supabase-js en BaseSinInstalar, SesionVencida o Error. */
 export function revisar(respuesta) {
@@ -45,12 +46,18 @@ export async function cargarRegistros(userId, ahora = new Date()) {
       .eq("modulo", "finanzas")
       .gte("fecha", desde),
     supabase.from("uni_sesiones").select("minutos, fecha").eq("user_id", userId).gte("fecha", desde),
-    supabase.from("gym_sesiones").select("fecha").eq("user_id", userId).gte("fecha", desde),
+    supabase.from("gym_sesiones").select("fecha, tipo").eq("user_id", userId).gte("fecha", desde),
     supabase.from("festivos").select("fecha, nombre").gte("fecha", sumarDias(hoy, -6)).lte("fecha", hoy),
+    supabase
+      .from("rutina_bloques")
+      .select("id, titulo, tipo, dias, hora_inicio, duracion_min, obligatorio, orden, activo")
+      .eq("user_id", userId)
+      .eq("activo", true),
+    supabase.from("rutina_checks").select("bloque_id, fecha, estado").eq("user_id", userId).eq("fecha", hoy),
   ]);
   respuestas.forEach(revisar);
 
-  const [perfil, comidas, movimientos, checkins, estudio, gym, festivos] = respuestas;
+  const [perfil, comidas, movimientos, checkins, estudio, gym, festivos, rutinaBloques, rutinaChecks] = respuestas;
   return {
     metas: leerMetas(perfil.data?.metas),
     comidas: comidas.data ?? [],
@@ -59,6 +66,8 @@ export async function cargarRegistros(userId, ahora = new Date()) {
     estudio: estudio.data ?? [],
     gym: gym.data ?? [],
     festivos: festivos.data ?? [],
+    rutinaBloques: rutinaBloques.data ?? [],
+    rutinaChecks: rutinaChecks.data ?? [],
   };
 }
 

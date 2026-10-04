@@ -829,6 +829,16 @@ a.w:active {
   background: var(--superficie-2);
 }
 
+/* Texto oculto para el plan B de "Copiar" (seleccionable, fuera de la pantalla). */
+.copiar-oculto {
+  position: fixed;
+  top: 0;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
 .direccion-valor {
   font-size: 1rem;
   font-weight: 600;

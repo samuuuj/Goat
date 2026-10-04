@@ -39,8 +39,28 @@ const traerScript = () =>
   });
 const scriptListo = traerScript().then((texto) => (script = texto));
 
+/** Plan B para navegadores que no dejan usar el portapapeles moderno: seleccionar un texto oculto y copiar. */
+function copiarConSeleccion(texto) {
+  const area = document.createElement("textarea");
+  area.className = "copiar-oculto";
+  area.readOnly = true;
+  area.value = texto;
+  document.body.append(area);
+  area.select();
+  area.setSelectionRange(0, texto.length);
+  const listo = document.execCommand("copy");
+  area.remove();
+  if (!listo) throw new Error("No se pudo copiar");
+}
+
 async function copiar(texto, promesa) {
-  if (texto !== null) return navigator.clipboard.writeText(texto);
+  if (texto !== null) {
+    try {
+      return await navigator.clipboard.writeText(texto);
+    } catch {
+      return copiarConSeleccion(texto);
+    }
+  }
   // Safari acepta una promesa en ClipboardItem: copia cuando llega el archivo sin perder el toque.
   if (window.ClipboardItem && navigator.clipboard.write) {
     return navigator.clipboard.write([new ClipboardItem({ "text/plain": promesa.then((t) => new Blob([t], { type: "text/plain" })) })]);
@@ -77,7 +97,7 @@ function accionDelPaso(i) {
     accion.querySelector("[data-direccion]").textContent = location.origin;
     accion.querySelector("[data-copiar-direccion]").addEventListener("click", async () => {
       try {
-        await navigator.clipboard.writeText(location.origin);
+        await copiar(location.origin);
         avisar("📋 Dirección copiada");
       } catch {
         avisar("⚠️ No se pudo copiar");
@@ -120,7 +140,7 @@ function pintarGuias() {
     ...ATAJOS.filter((a) => a.id !== "widgets-botones").map((atajo) => {
       const guia = clonar("plantilla-guia");
       guia.querySelector(".guia-emoji").textContent = atajo.emoji;
-      guia.querySelector(".guia-nombre").textContent = `Atajo “${atajo.emoji} ${atajo.nombre}”`;
+      guia.querySelector(".guia-nombre").textContent = `Atajo “${atajo.nombre}”`;
       guia.querySelector(".guia-para").textContent = atajo.para;
       guia.querySelector(".guia-pasos").replaceChildren(
         ...atajo.pasos.map((texto) => {

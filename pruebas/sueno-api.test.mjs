@@ -211,6 +211,19 @@ test("resumen: última noche, índice y semana; sin datos lo dice", async () => 
   sinMontos(r);
 });
 
+test("resumen: las metas cambiadas en la web (perfil.ajustes.sueno) mandan sobre perfil.metas", async () => {
+  const falso = crearSupabaseFalso({
+    datos: {
+      perfil: [{ user_id: A, metas: { sueno_horas: 7.5, kcal: 2600 }, ajustes: { sueno: { sueno_horas: 8, hora_acostarse: "23:00" } } }],
+      api_tokens: [],
+    },
+    sesiones: { [SESION_A]: A },
+  });
+  const token = await conToken(falso);
+  const r = await llamar(falso, "GET sueno/resumen", { token });
+  assert.deepEqual(r.cuerpo.datos.metas, { sueno_horas: 8, hora_despertar: "06:00", hora_acostarse: "23:00" });
+});
+
 test("las consultas de sueño siempre van filtradas por el usuario", async () => {
   const falso = base();
   const token = await conToken(falso);

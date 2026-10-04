@@ -67,6 +67,7 @@
 }
 
 .seccion-tarjeta {
+  container-type: inline-size;
   display: flex;
   min-height: 9.5rem;
   flex-direction: column;
@@ -101,8 +102,13 @@
 .seccion-tarjeta-titulo {
   display: block;
   font-size: clamp(1.25rem, 6.4vw, 1.65rem);
-  overflow-wrap: anywhere;
   line-height: 0.9;
+  overflow-wrap: anywhere;
+}
+
+/* Una sola palabra larga (MOVIMIENTO.): se achica para caber entera en vez de partirse. */
+.seccion-tarjeta-titulo.largo {
+  font-size: min(1.65rem, 100cqi / 7.2);
 }
 
 .seccion-tarjeta-mini {

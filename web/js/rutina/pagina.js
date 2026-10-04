@@ -37,16 +37,7 @@ let primeraVez = true;
 
 const ahoraLinea = $("lt-ahora");
 const hoja = crearHoja({ hoja: $("hoja"), velo: $("velo"), manija: $("hoja-manija"), fondo: [$("contenido")] });
-
-conectarControles();
-pintarAtajos();
-await cargar();
-
-window.setInterval(tic, 1000);
-window.setInterval(() => datos && pintar(), 30_000);
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && Date.now() - ultimaCarga > 60_000) cargar();
-});
+// (El arranque está al final del archivo: primero se declaran todas las variables.)
 
 // ── Carga ────────────────────────────────────────────────────────────────
 
@@ -302,7 +293,7 @@ function pintarLinea(items, fecha, hoy, t) {
         li.classList.toggle("es-pausa", !b.marcable);
         li.classList.toggle("es-corto", b.finMin - b.inicioMin < 25);
         li.classList.toggle("es-pasado", b.fin <= t.getTime());
-        if (primeraVez) li.classList.add("aparece");
+        if (primeraVez) li.classList.add("entra");
         li.querySelector(".lt-emoji").textContent = L.emojiDe(b.tipo);
         li.querySelector(".lt-titulo").textContent = b.titulo;
         li.querySelector(".lt-hora").textContent = L.rangoTexto(b);
@@ -323,7 +314,6 @@ function pintarLinea(items, fecha, hoy, t) {
         return li;
       });
       $("lt-carril").replaceChildren(...bloques, ahoraLinea);
-      if (primeraVez) bloques.forEach((li) => alVerse(li, () => li.classList.add("visto"), "0px 0px -5% 0px"));
     },
   );
 
@@ -510,6 +500,12 @@ async function quitarMarca(b) {
 
 // ── Hoja: detalle de un bloque ───────────────────────────────────────────
 
+/** Si la hoja ya está abierta (del detalle a "Editar bloque"), solo cambia su contenido. */
+function abrirHoja() {
+  if (hoja.abierta) $("hoja").scrollTop = 0;
+  else hoja.abrir();
+}
+
 const FORMULARIOS = ["vista-bloque", "form-bloque", "form-tarea"];
 function mostrarFormulario(id, titulo) {
   FORMULARIOS.forEach((f) => ($(f).hidden = f !== id));
@@ -536,7 +532,7 @@ function abrirDetalle(b, hoy) {
   hecho.hidden = !puede || b.check?.estado === "hecho";
   saltar.hidden = !puede || b.check?.estado === "saltado";
   quitar.hidden = !puede || !b.check;
-  hoja.abrir();
+  abrirHoja();
 }
 
 // ── Hoja: editar un bloque ───────────────────────────────────────────────
@@ -592,7 +588,7 @@ function abrirBloque(bloque) {
   camposPorTipo(base.tipo);
   $("error-bloque").textContent = "";
   $("borrar-bloque").hidden = !bloque;
-  hoja.abrir();
+  abrirHoja();
 }
 
 async function guardarBloque(evento) {
@@ -686,7 +682,7 @@ function abrirTarea(tarea = null) {
   $("error-tarea").textContent = "";
   $("tarea-empezar").hidden = !tarea || tarea.estado === "en_progreso";
   $("tarea-borrar").hidden = !tarea;
-  hoja.abrir();
+  abrirHoja();
   if (!tarea) window.setTimeout(() => f.elements.titulo.focus({ preventScroll: true }), 350);
 }
 
@@ -890,3 +886,15 @@ function conectarControles() {
   $("tarea-empezar").addEventListener("click", empezarTarea);
   $("tarea-borrar").addEventListener("click", borrarTarea);
 }
+
+// ── Arranque ─────────────────────────────────────────────────────────────
+
+conectarControles();
+pintarAtajos();
+await cargar();
+
+window.setInterval(tic, 1000);
+window.setInterval(() => datos && pintar(), 30_000);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && Date.now() - ultimaCarga > 60_000) cargar();
+});

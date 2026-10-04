@@ -524,7 +524,8 @@ function vistaPrevia(filas) {
   const nodos = [];
   const resumen = el("p", "vista-resumen cifras");
   const obligatorios = filas.filter((f) => f.obligatorio).reduce((n, f) => n + f.dias.length, 0);
-  resumen.textContent = `${filas.length} bloques · ${obligatorios} obligatorios a la semana · ${lista.length ? `${lista.length} ${lista.length === 1 ? "choque" : "choques"}` : "sin choques"}`;
+  const choquesTexto = lista.length ? `${lista.length} ${lista.length === 1 ? "choque" : "choques"} por revisar` : "sin choques";
+  resumen.textContent = `${filas.length} bloques en tu plantilla · ${obligatorios} obligatorios por semana · ${choquesTexto}.`;
   nodos.push(resumen);
 
   if (lista.length) {

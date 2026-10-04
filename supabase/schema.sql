@@ -339,6 +339,117 @@ create policy finanzas_movimientos_propios on public.finanzas_movimientos
   using (user_id = (select auth.uid()))
   with check (user_id = (select auth.uid()));
 
+-- ---------------------------------------------------------------------
+-- Finanzas v2 (D-053): cuentas, deudas y los 4 tipos de movimiento.
+--   Gasto (egreso) · Ingreso · Transferencia · Retiro. Solo "egreso"
+--   cuenta para el presupuesto (web/js/logica/calculo.js no cambia).
+--   Las reglas viven en web/js/finanzas/logica.js (web y API).
+-- ---------------------------------------------------------------------
+
+-- Cuentas: Efectivo, Nu, Nequi (las crea la app la primera vez) y las que
+-- agregues. Saldo = saldo_inicial + entradas − salidas. La deuda de una
+-- tarjeta de crédito es el saldo negativo de su cuenta.
+create table if not exists public.finanzas_cuentas (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  nombre        text not null check (char_length(nombre) between 1 and 40),
+  tipo          text not null default 'banco' check (tipo in ('efectivo','banco','billetera','tarjeta_credito')),
+  banco         text check (char_length(banco) <= 40),
+  saldo_inicial bigint not null default 0 check (saldo_inicial between -10000000000 and 10000000000),
+  cupo          bigint check (cupo > 0 and cupo <= 10000000000),
+  dia_corte     int check (dia_corte between 1 and 31),
+  dia_pago      int check (dia_pago between 1 and 31),
+  orden         int not null default 0 check (orden between 0 and 1000),
+  activa        boolean not null default true,
+  creado_en     timestamptz not null default now(),
+  unique (user_id, nombre),
+  -- Para que movimientos y deudas solo apunten a cuentas del mismo usuario.
+  unique (user_id, id)
+);
+create index if not exists finanzas_cuentas_user_idx on public.finanzas_cuentas (user_id, orden);
+
+revoke all on table public.finanzas_cuentas from anon, authenticated;
+grant select, insert, update, delete on table public.finanzas_cuentas to authenticated;
+alter table public.finanzas_cuentas enable row level security;
+
+drop policy if exists finanzas_cuentas_propias on public.finanzas_cuentas;
+create policy finanzas_cuentas_propias on public.finanzas_cuentas
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+
+-- Deudas: lo que debo (persona, préstamo, otro) y lo que me deben.
+-- Saldo = monto_inicial − abonos (movimientos con deuda_id). Las tarjetas
+-- de crédito se llevan como cuentas (arriba).
+create table if not exists public.finanzas_deudas (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  direccion     text not null check (direccion in ('debo','me_deben')),
+  tipo          text not null default 'persona' check (tipo in ('persona','tarjeta_credito','prestamo','otro')),
+  nombre        text not null check (char_length(nombre) between 1 and 60),
+  banco         text check (char_length(banco) <= 40),
+  cuenta_id     uuid,
+  monto_inicial bigint not null check (monto_inicial > 0 and monto_inicial <= 10000000000),
+  cuota         bigint check (cuota > 0 and cuota <= 10000000000),
+  dia_pago      int check (dia_pago between 1 and 31),
+  tasa_mensual  numeric(5,2) check (tasa_mensual between 0 and 100),
+  fecha_inicio  date,
+  estado        text not null default 'activa' check (estado in ('activa','pagada')),
+  notas         text check (char_length(notas) <= 200),
+  momento       timestamptz not null default now(),
+  origen        text not null default 'web' check (origen in ('atajo','web','automatizacion','widget')),
+  id_cliente    uuid unique,
+  creado_en     timestamptz not null default now(),
+  unique (user_id, id)
+);
+create index if not exists finanzas_deudas_user_idx on public.finanzas_deudas (user_id, estado);
+
+alter table public.finanzas_deudas drop constraint if exists finanzas_deudas_cuenta_fkey;
+alter table public.finanzas_deudas add constraint finanzas_deudas_cuenta_fkey
+  foreign key (user_id, cuenta_id) references public.finanzas_cuentas (user_id, id) on delete set null (cuenta_id);
+
+revoke all on table public.finanzas_deudas from anon, authenticated;
+grant select, insert, update, delete on table public.finanzas_deudas to authenticated;
+alter table public.finanzas_deudas enable row level security;
+
+drop policy if exists finanzas_deudas_propias on public.finanzas_deudas;
+create policy finanzas_deudas_propias on public.finanzas_deudas
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+
+-- Movimientos: se agrega "retiro" y las cuentas de origen/destino.
+--   egreso/ingreso: cuenta_id = la cuenta del movimiento.
+--   transferencia/retiro: cuenta_id = origen, cuenta_destino_id = destino
+--   (en abonos y préstamos uno de los dos lados es la deuda: deuda_id).
+-- `cuenta` (texto) se mantiene: guarda el nombre, como antes.
+alter table public.finanzas_movimientos drop constraint if exists finanzas_movimientos_tipo_check;
+alter table public.finanzas_movimientos add constraint finanzas_movimientos_tipo_check
+  check (tipo in ('egreso','ingreso','transferencia','retiro'));
+
+alter table public.finanzas_movimientos add column if not exists cuenta_id uuid;
+alter table public.finanzas_movimientos add column if not exists cuenta_destino_id uuid;
+alter table public.finanzas_movimientos add column if not exists categoria_libre boolean not null default false;
+alter table public.finanzas_movimientos add column if not exists deuda_id uuid;
+
+alter table public.finanzas_movimientos drop constraint if exists finanzas_movimientos_cuenta_fkey;
+alter table public.finanzas_movimientos add constraint finanzas_movimientos_cuenta_fkey
+  foreign key (user_id, cuenta_id) references public.finanzas_cuentas (user_id, id) on delete set null (cuenta_id);
+alter table public.finanzas_movimientos drop constraint if exists finanzas_movimientos_destino_fkey;
+alter table public.finanzas_movimientos add constraint finanzas_movimientos_destino_fkey
+  foreign key (user_id, cuenta_destino_id) references public.finanzas_cuentas (user_id, id) on delete set null (cuenta_destino_id);
+alter table public.finanzas_movimientos drop constraint if exists finanzas_movimientos_deuda_fkey;
+alter table public.finanzas_movimientos add constraint finanzas_movimientos_deuda_fkey
+  foreign key (user_id, deuda_id) references public.finanzas_deudas (user_id, id) on delete set null (deuda_id);
+
+-- Solo transferencias y retiros tienen destino, y nunca es la misma cuenta.
+alter table public.finanzas_movimientos drop constraint if exists finanzas_movimientos_destino_check;
+alter table public.finanzas_movimientos add constraint finanzas_movimientos_destino_check
+  check (cuenta_destino_id is null or (tipo in ('transferencia','retiro') and cuenta_destino_id is distinct from cuenta_id));
+
+create index if not exists finanzas_movimientos_user_momento_idx on public.finanzas_movimientos (user_id, momento desc);
+create index if not exists finanzas_movimientos_deuda_idx on public.finanzas_movimientos (user_id, deuda_id) where deuda_id is not null;
+
 
 -- #####################################################################
 -- 3. COMIDAS · dueña: 02 · Comidas (v1 creada por Central, D-040)

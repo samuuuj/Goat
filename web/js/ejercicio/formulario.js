@@ -3,7 +3,7 @@
 
 import { chips } from "../piezas/chips.js";
 import { crearHoja } from "../piezas/hoja.js";
-import { avisar } from "../piezas/ui.js";
+import { avisar, nuevoId } from "../piezas/ui.js";
 import { diaLogico, diaYMes, horaBogota, nombreDia } from "../logica/dia.js";
 import { formatoDuracion } from "../logica/formato.js";
 import { RUTINAS, TIPOS_EJERCICIO } from "../logica/catalogos.js";
@@ -119,7 +119,7 @@ export function crearFormulario({ alGuardar, alTerminar, alBorrar }) {
     }
 
     const km = leerKm(f.distancia.value);
-    const r2 = TIPOS_CON_RITMO.has(tipo.valor) && km > 0 && minutos > 0 ? ritmo(km, minutos) : null;
+    const r2 = r.fila && TIPOS_CON_RITMO.has(tipo.valor) && km > 0 ? ritmo(km, r.fila.duracion_min) : null;
     textoRitmo.textContent = r2 ? `Ritmo ${formatoRitmo(r2)}` : "";
     botonGuardar.disabled = !r.fila;
     return r;
@@ -131,13 +131,11 @@ export function crearFormulario({ alGuardar, alTerminar, alBorrar }) {
     evento.preventDefault();
     const r = revisar();
     if (!r.fila) return avisar(r.error);
-    const fila = { ...r.fila };
-    if (original) {
-      if (original.id) fila.id = original.id;
-      fila.id_cliente = original.id_cliente ?? null;
-      if (!fila.id_cliente) delete fila.id_cliente;
-      fila.origen = original.origen ?? "web";
-    }
+    const fila = { ...r.fila, origen: original?.origen ?? "web" };
+    if (original?.id) fila.id = original.id;
+    // Nuevo: id_cliente propio (un doble toque o un reintento sin internet no duplica). Editado: el que ya tenía.
+    if (original?.id_cliente) fila.id_cliente = original.id_cliente;
+    else if (!original) fila.id_cliente = nuevoId();
     hoja.cerrar();
     alGuardar(fila, original);
   });

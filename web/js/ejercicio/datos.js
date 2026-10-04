@@ -4,6 +4,7 @@
 import { supabase } from "../supabase/sesion.js";
 import { BaseSinInstalar, SesionVencida, revisar } from "../supabase/datos.js";
 import { leerMetas } from "../logica/calculo.js";
+import { nuevoId } from "../piezas/ui.js";
 import { sumarDias } from "./logica.js";
 
 export const COLUMNAS =
@@ -76,6 +77,7 @@ function guardarCola(cola) {
 export function encolar(fila, { borrar = false } = {}) {
   const limpia = {};
   for (const campo of ["id", "id_cliente", "origen", ...ESCRIBIBLES]) if (fila[campo] !== undefined) limpia[campo] = fila[campo];
+  if (!limpia.id && !limpia.id_cliente) limpia.id_cliente = nuevoId(); // Sin clave no se podría subir ni reconocer.
   const cola = leerCola().filter((p) => claveDe(p.fila) !== claveDe(limpia));
   cola.push({ fila: limpia, borrar });
   guardarCola(cola);

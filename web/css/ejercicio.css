@@ -567,24 +567,22 @@
   margin-top: 0.75rem;
 }
 
+/* En el celular, una fila por hora (el iPhone en 12 h escribe "11:30 p. m." y no cabe en media pantalla). */
 .horas {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: end;
   gap: 0.6rem;
 }
 
 .hora-campo {
-  display: flex;
+  display: grid;
   min-width: 0;
-  flex-direction: column;
-  gap: 0.6rem;
+  grid-template-columns: 4.75rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .horas-flecha {
-  padding-bottom: 1.35rem;
-  font-size: 1.25rem;
-  color: var(--texto-3);
+  display: none;
 }
 
 /* Selector de hora grande (en el iPhone abre la rueda de hora). */
@@ -673,8 +671,28 @@
     height: 8.5rem;
   }
 
+  /* En la tablet y el computador la hoja es más ancha: las dos horas lado a lado. */
+  .horas {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .hora-campo {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .horas-flecha {
+    display: block;
+    padding-bottom: 1.35rem;
+    font-size: 1.25rem;
+    color: var(--texto-3);
+  }
+
   .hora-grande {
-    font-size: 2.75rem;
+    font-size: 2rem;
   }
 
   .atajos-lista {

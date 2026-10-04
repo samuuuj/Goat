@@ -241,12 +241,30 @@
       </form>
 
       <!-- Gym -->
-      <form id="form-gym" class="form-registro" hidden>
+      <form id="form-gym" class="form-registro" novalidate hidden>
         <div>
-          <p class="etiqueta campo-titulo">Qué entrenaste</p>
+          <p class="etiqueta campo-titulo">Qué hiciste</p>
+          <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Tipo de ejercicio"></div>
+        </div>
+        <div data-campo-rutina hidden>
+          <p class="etiqueta campo-titulo">Rutina (opcional)</p>
           <div class="chips" data-chips="rutina" role="radiogroup" aria-label="Rutina"></div>
         </div>
-        <button type="submit" class="boton-principal" data-guardar>Guardar entreno</button>
+        <div class="dos-columnas">
+          <div>
+            <label class="etiqueta campo-titulo campo-grande" for="gym-inicio">Empezó</label>
+            <input id="gym-inicio" name="inicio" type="time" class="entrada" required />
+          </div>
+          <div>
+            <label class="etiqueta campo-titulo campo-grande" for="gym-fin">Terminó</label>
+            <input id="gym-fin" name="fin" type="time" class="entrada" required />
+          </div>
+        </div>
+        <p class="etiqueta cifras" data-duracion aria-live="polite"></p>
+        <div class="botones">
+          <button type="submit" class="boton-principal" data-guardar>Guardar entreno</button>
+          <button type="button" class="boton-secundario" data-cronometro>⏱️ Empezar ahora con cronómetro</button>
+        </div>
       </form>
     </div>
 

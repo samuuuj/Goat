@@ -1,1 +1,967 @@
-/* Goat · Conectar (conectar.html). Lo llena el objetivo de .claude/objetivos/B-conectar.md. */
+/* Goat · Conectar iPhone (conectar.html). Va después de base.css y comun.css.
+   Referencia: el asistente "Configura tu iPhone" de iOS sobre el sistema de Goat: una idea por pantalla,
+   titular grande, ícono arriba, botón naranja en la zona del pulgar y "Ahora no" en gris. */
+
+/* Las filas de comun.css esperan bloques; aquí son <span> dentro de flex. */
+.fila-texto > span {
+  display: block;
+}
+
+/* ══ Asistente ═══════════════════════════════════════════════════════════ */
+
+.asistente {
+  min-height: 100svh;
+  /* La entrada lateral de cada pantalla no debe ensanchar la página (clip no rompe la barra pegajosa). */
+  overflow-x: clip;
+}
+
+/* Barra de arriba: Atrás · progreso · Salir */
+.asistente-barra {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 5.25rem minmax(0, 1fr) 5.25rem;
+  align-items: center;
+  gap: 1rem;
+  padding: calc(var(--arriba) + 10px) var(--margen) 10px;
+  background: linear-gradient(rgb(0 0 0 / 0.94), rgb(0 0 0 / 0.78) 70%, transparent);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+.asistente-atras {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  justify-self: start;
+  margin-left: -0.35rem;
+  padding: 0.35rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--acento);
+  transition: opacity 0.2s, transform 0.15s var(--curva);
+}
+
+.asistente-atras span {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.asistente-atras:active,
+.asistente-salir:active {
+  transform: scale(0.95);
+}
+
+.asistente-salir {
+  justify-self: end;
+  padding: 0.35rem;
+  margin-right: -0.35rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--texto-3);
+  transition: color 0.2s, transform 0.15s var(--curva);
+}
+
+.asistente-salir:hover {
+  color: var(--texto);
+}
+
+/* Ocultos sin mover la barra. */
+.asistente-barra .oculto {
+  visibility: hidden;
+}
+
+.asistente-progreso .progreso-relleno {
+  transform: scaleX(var(--avance, 0));
+  transition: transform 0.7s var(--curva);
+}
+
+/* ── Cada pantalla ───────────────────────────────────────────────────── */
+
+.paso {
+  padding: 1.75rem var(--margen) calc(var(--abajo) + 11rem);
+  animation: paso-entra 0.7s var(--curva) both;
+}
+
+.paso.desde-atras {
+  animation-name: paso-vuelve;
+}
+
+@keyframes paso-entra {
+  from {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+}
+
+@keyframes paso-vuelve {
+  from {
+    opacity: 0;
+    transform: translateX(-2rem);
+  }
+}
+
+.paso-icono {
+  width: 84px;
+  height: 84px;
+  border-radius: 22%;
+  box-shadow: 0 18px 60px rgb(255 106 31 / 0.22);
+  animation: emoji-entra 0.9s var(--resorte) both;
+}
+
+.paso-emoji {
+  font-size: 3.5rem;
+  line-height: 1;
+  animation: emoji-entra 0.9s var(--resorte) both;
+}
+
+@keyframes emoji-entra {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+.paso-etiqueta {
+  margin-top: 2rem;
+}
+
+/* Titular editorial: una palabra por línea, cada una sube con máscara (90 ms entre líneas). */
+.paso-titular {
+  margin-top: 0.75rem;
+  font-size: clamp(3.4rem, 16.5vw, 7.5rem);
+  font-stretch: 84%;
+  outline: none;
+}
+
+.linea {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+
+.linea > span {
+  display: inline-block;
+  animation: desde-abajo 0.95s var(--curva) 0.05s both;
+}
+
+.linea + .linea > span {
+  animation-delay: 0.14s;
+}
+
+/* Nombres largos ("Alejandro.") no se salen de la pantalla. */
+.paso-titular .nombre-largo {
+  font-size: 0.72em;
+}
+
+.paso-texto {
+  max-width: 32ch;
+  margin-top: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  color: var(--texto-2);
+  animation: subir 0.8s var(--curva) 0.25s both;
+}
+
+.paso-cuerpo {
+  margin-top: 2.5rem;
+  animation: subir 0.8s var(--curva) 0.35s both;
+}
+
+.paso-lista .fila {
+  min-height: 3.75rem;
+}
+
+/* En el asistente se lee todo: nada de "…". */
+.paso-lista .fila-titulo,
+.paso-lista .fila-detalle,
+.llave .fila-detalle {
+  white-space: normal;
+}
+
+.paso-frase {
+  margin-top: 2.5rem;
+  font-family: var(--fuente-titular);
+  font-size: clamp(1.6rem, 7.4vw, 2.4rem);
+  font-weight: 800;
+  font-stretch: 84%;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.paso-nota {
+  max-width: 44ch;
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--texto-3);
+}
+
+/* ── Botón de abajo (zona del pulgar) ─────────────────────────────────── */
+
+.asistente-pie {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 3rem var(--margen) calc(var(--abajo) + 14px);
+  background: linear-gradient(transparent, rgb(0 0 0 / 0.88) 40%, #000);
+  pointer-events: none;
+}
+
+.asistente-pie > * {
+  width: 100%;
+  max-width: 24rem;
+  pointer-events: auto;
+}
+
+.asistente-secundario {
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--texto-3);
+  transition: color 0.2s, transform 0.15s var(--curva);
+}
+
+.asistente-secundario:hover {
+  color: var(--texto);
+}
+
+.asistente-secundario:active {
+  transform: scale(0.97);
+}
+
+/* ── 2. Instálala ────────────────────────────────────────────────────── */
+
+.icono-svg {
+  color: var(--texto);
+}
+
+.icono-goat {
+  padding: 0;
+  object-fit: cover;
+}
+
+.hecho-grande {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.hecho-marca {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--texto);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #000;
+  animation: emoji-entra 0.8s var(--resorte) both;
+}
+
+/* ── 3. Tu llave ─────────────────────────────────────────────────────── */
+
+.bloque + .bloque {
+  margin-top: 2.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--linea);
+}
+
+.bloque-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.bloque-numero {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.1);
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  color: var(--texto);
+}
+
+.bloque-texto {
+  max-width: 40ch;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--texto-2);
+}
+
+/* Dato para copiar: clave · valor monoespaciado · Copiar */
+.copiable {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  border-radius: 14px;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  background: var(--superficie-2);
+}
+
+.copiable-clave {
+  flex: none;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.8125rem;
+  color: var(--texto-3);
+}
+
+.copiable-valor {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  padding: 0.5rem 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--texto);
+  outline: none;
+}
+
+.copiable-guia {
+  padding-right: 1rem;
+}
+
+.copiable-guia .copiable-valor {
+  font-family: var(--fuente);
+  color: var(--texto-3);
+}
+
+.boton-copiar {
+  flex: none;
+  border-radius: 999px;
+  padding: 0.55rem 0.95rem;
+  background: var(--acento);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #000;
+  transition: transform 0.15s var(--curva), background-color 0.25s;
+}
+
+.boton-copiar:active {
+  transform: scale(0.94);
+}
+
+.boton-copiar.copiado {
+  background: var(--texto);
+}
+
+.aviso-llave {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--texto-2);
+}
+
+#llave-nueva {
+  animation: subir 0.6s var(--curva) both;
+}
+
+/* Pasos numerados (los de cada atajo) */
+.pasos-lista {
+  counter-reset: paso;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 1.25rem;
+  list-style: none;
+}
+
+.pasos-lista > li {
+  position: relative;
+  padding-left: 2.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--texto);
+  overflow-wrap: anywhere;
+}
+
+.pasos-lista > li::before {
+  counter-increment: paso;
+  content: counter(paso);
+  position: absolute;
+  top: 0.05rem;
+  left: 0;
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.08);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--texto-2);
+}
+
+/* Desplegable estilo iOS */
+.desplegable {
+  border-radius: 14px;
+  background: var(--superficie);
+  box-shadow: inset 0 0 0 1px var(--linea);
+}
+
+.desplegable summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.desplegable summary::-webkit-details-marker {
+  display: none;
+}
+
+.desplegable summary::after {
+  content: "⌄";
+  color: var(--texto-3);
+  transition: transform 0.3s var(--curva);
+}
+
+.desplegable[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.desplegable .pasos-lista {
+  margin: 0;
+  padding: 0.25rem 1rem 1.1rem;
+}
+
+.boton-probar {
+  margin-top: 1rem;
+}
+
+/* Estado de una prueba: esperando (punto que late) o lista (✓) */
+.estado-prueba {
+  min-height: 1.5rem;
+  margin-top: 0.85rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--texto-2);
+}
+
+.estado-prueba:empty {
+  display: none;
+}
+
+.estado-prueba.esperando::before {
+  content: "";
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-right: 0.55rem;
+  border-radius: 50%;
+  background: var(--acento);
+  vertical-align: 0.05em;
+  animation: latir 1.2s ease-in-out infinite;
+}
+
+.estado-prueba.bien {
+  font-weight: 600;
+  color: var(--texto);
+}
+
+/* ── 4. Permisos ─────────────────────────────────────────────────────── */
+
+.permisos {
+  display: flex;
+  flex-direction: column;
+}
+
+.permiso {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 0.25rem 1rem;
+  padding: 1.25rem 0;
+}
+
+.permiso + .permiso {
+  border-top: 1px solid var(--linea);
+}
+
+.permiso-emoji {
+  grid-row: span 2;
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.permiso-titulo {
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.permiso-que,
+.permiso-para {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--texto-2);
+}
+
+.permiso-para {
+  color: var(--texto-3);
+}
+
+.permiso-tocar {
+  grid-column: 2;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 0.4rem;
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  background: rgb(255 106 31 / 0.14);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--acento);
+}
+
+/* ── 5. Atajos ───────────────────────────────────────────────────────── */
+
+.avance-atajos {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 2rem;
+  animation: subir 0.8s var(--curva) 0.3s both;
+}
+
+.avance-numero {
+  flex: none;
+  font-size: clamp(3.25rem, 15vw, 5rem);
+  font-stretch: 84%;
+  white-space: nowrap;
+}
+
+.avance-de {
+  color: var(--texto-3);
+}
+
+.avance-lado {
+  min-width: 0;
+  flex: 1;
+}
+
+.avance-lado .progreso {
+  height: 6px;
+}
+
+.avance-texto {
+  margin-top: 0.6rem;
+  font-size: 0.9375rem;
+  color: var(--texto-2);
+}
+
+.grupos {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.grupo-cabeza {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 0.25rem 0.6rem;
+}
+
+.atajo-fila {
+  min-height: 4rem;
+}
+
+.atajo-fila .fila-detalle {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Hecho: ✓ blanco · pendiente: círculo vacío */
+.atajo-marca {
+  display: grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--texto-3);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #000;
+  transition: background-color 0.3s var(--curva), box-shadow 0.3s;
+}
+
+.atajo-fila.hecho .atajo-marca {
+  background: var(--texto);
+  box-shadow: none;
+}
+
+.atajo-fila.hecho .atajo-marca::before {
+  content: "✓";
+}
+
+/* ── 7. Listo ────────────────────────────────────────────────────────── */
+
+.resumen-marca {
+  flex: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--acento);
+}
+
+.resumen.listo .resumen-marca {
+  display: grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--texto);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #000;
+}
+
+/* ══ Hoja: detalle de un atajo ═══════════════════════════════════════════ */
+
+.hoja-emoji {
+  font-size: 2.75rem;
+  line-height: 1;
+  margin-bottom: 0.75rem;
+}
+
+.hoja-emoji:empty {
+  display: none;
+}
+
+.hoja-titulo {
+  font-stretch: 84%;
+  overflow-wrap: break-word;
+}
+
+.hoja-texto {
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  color: var(--texto-2);
+}
+
+.hoja-bloque {
+  margin-top: 2rem;
+}
+
+.puntos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+
+.puntos > li {
+  position: relative;
+  padding-left: 1.1rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--texto-2);
+}
+
+.puntos > li::before {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--texto-3);
+}
+
+.auto {
+  border-radius: 18px;
+  padding: 1.1rem 1.1rem 1.25rem;
+  background: rgb(255 255 255 / 0.05);
+}
+
+.auto-disparador {
+  margin-top: 0.4rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.auto-disparador::before {
+  content: "⚡ ";
+}
+
+/* Probar + Hecho, siempre a mano al final de la hoja */
+/* Con el detalle de un atajo la hoja no lleva relleno abajo: lo pone la barra pegajosa (zona segura incluida). */
+.hoja.con-acciones {
+  padding-bottom: 0;
+}
+
+.hoja-acciones {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin: 2rem -1.5rem 0;
+  padding: 1rem 1.5rem calc(var(--abajo) + 20px);
+  border-top: 1px solid var(--linea);
+  background: rgb(28 28 30 / 0.97);
+}
+
+.hoja-acciones .estado-prueba {
+  margin: 0 0 0.85rem;
+}
+
+.hoja-acciones-fila {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hoja-acciones-fila .boton-probar {
+  width: auto;
+  flex: 1;
+  margin: 0;
+}
+
+/* Interruptor estilo iOS */
+.interruptor {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.interruptor input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.interruptor-pista {
+  position: relative;
+  width: 51px;
+  height: 31px;
+  flex: none;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.16);
+  transition: background-color 0.25s var(--curva);
+}
+
+.interruptor-pista::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.3);
+  transition: transform 0.35s var(--resorte);
+}
+
+.interruptor input:checked ~ .interruptor-pista {
+  background: var(--acento);
+}
+
+.interruptor input:checked ~ .interruptor-pista::after {
+  transform: translateX(20px);
+}
+
+.interruptor input:focus-visible ~ .interruptor-pista {
+  outline: 2px solid var(--acento);
+  outline-offset: 3px;
+}
+
+.interruptor input:disabled ~ * {
+  opacity: 0.5;
+}
+
+/* ══ Ajustes ═════════════════════════════════════════════════════════════ */
+
+.ajustes .cabecera-seccion .titular {
+  font-stretch: 84%;
+  outline: none;
+}
+
+.ajustes .seccion-cabeza .boton-borde {
+  flex: none;
+  white-space: nowrap;
+}
+
+.ajustes .avance-atajos {
+  margin-top: 0;
+  animation: none;
+}
+
+.botones-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.botones-fila a {
+  padding-inline: 1.4rem;
+  text-decoration: none;
+}
+
+.botones-fila .boton-secundario {
+  display: flex;
+  align-items: center;
+}
+
+.nota {
+  max-width: 44ch;
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--texto-3);
+}
+
+.llave-revocar,
+.juego-quitar {
+  flex: none;
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--texto-2);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+  transition: color 0.2s, background-color 0.2s, transform 0.15s var(--curva);
+}
+
+.llave-revocar:active,
+.juego-quitar:active {
+  transform: scale(0.95);
+}
+
+.llave-revocar.confirmar {
+  background: var(--acento);
+  box-shadow: none;
+  color: #000;
+}
+
+.llave-revocar:disabled {
+  opacity: 0.4;
+}
+
+.juegos-frase {
+  margin: 0 0 1.5rem;
+}
+
+.form-juego {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.form-juego .entrada {
+  min-width: 0;
+  flex: 1;
+}
+
+.enlace-seccion {
+  display: inline-flex;
+  gap: 0.35rem;
+  margin-top: 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--acento);
+  text-decoration: none;
+}
+
+.meta-titulo {
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.metas-enlaces {
+  margin-top: 2rem;
+}
+
+.metas-enlaces a,
+.paso-lista a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ══ Tablet y computador ═════════════════════════════════════════════════ */
+
+@media (min-width: 48rem) {
+  .paso {
+    padding-top: 3rem;
+  }
+
+  .paso-cuerpo,
+  .paso-texto {
+    max-width: 36rem;
+  }
+
+  .ajustes-rejilla {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ajustes-rejilla .seccion + .seccion {
+    border-left: 1px solid var(--linea);
+  }
+
+  .hoja-acciones {
+    margin-inline: -2rem;
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  /* Titular a la izquierda (quieto), contenido a la derecha. */
+  .paso {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 5rem;
+    align-items: start;
+    padding-top: 4rem;
+  }
+
+  .paso-cabeza {
+    position: sticky;
+    top: calc(var(--arriba) + 6rem);
+  }
+
+  .paso-cuerpo {
+    margin-top: 0;
+    max-width: none;
+  }
+
+  .paso-titular {
+    font-size: clamp(5rem, 8.5vw, 8rem);
+  }
+}

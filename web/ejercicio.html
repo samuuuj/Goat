@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Goat · Ejercicio</title>
+    <title>Goat · Movimiento</title>
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
     <meta name="theme-color" content="#000000" />
@@ -33,17 +33,218 @@
     <main id="contenido" class="contenedor" data-fondo-hoja hidden>
       <header class="barra-seccion">
         <a class="volver" href="index.html"><span aria-hidden="true">‹</span>Hoy</a>
-        <div class="barra-acciones"></div>
+        <div class="barra-acciones">
+          <button type="button" id="sin-subir" class="pastilla-nube" aria-live="polite" hidden></button>
+          <button type="button" id="boton-registrar" class="boton-circulo" aria-label="Registrar un entreno a mano">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </div>
       </header>
 
       <section class="cabecera-seccion">
         <p class="etiqueta">Goat · Ejercicio</p>
-        <h1 class="titular">Movimiento.</h1>
-        <p class="cabecera-texto">Pronto.</p>
+        <h1 class="titular"><span class="cabecera-linea">Movimiento.</span></h1>
+        <p class="cabecera-texto">Entrenos, caminatas y trotes. De qué hora a qué hora.</p>
       </section>
 
-      <footer class="pie-seccion"></footer>
+      <div class="tablero">
+        <!-- 1 · Entreno en curso (cronómetro que aguanta sin internet) -->
+        <section id="entreno" class="seccion entreno" aria-labelledby="entreno-titulo">
+          <p id="entreno-titulo" class="etiqueta">Entreno</p>
+
+          <!-- Sin entreno: elegir tipo y empezar -->
+          <div id="empezar" class="empezar" hidden>
+            <p class="titular empezar-titulo">¿Qué vas <span class="acento">a hacer?</span></p>
+            <div class="chips chips-grandes" id="chips-tipo" role="radiogroup" aria-label="Tipo de entreno"></div>
+            <div id="campo-rutina" class="campo-rutina" hidden>
+              <p class="etiqueta campo-titulo">Rutina (opcional)</p>
+              <div class="chips" id="chips-rutina" role="radiogroup" aria-label="Rutina"></div>
+            </div>
+            <button type="button" id="boton-empezar" class="boton-principal boton-grande">
+              <span aria-hidden="true">▶</span>Empezar
+            </button>
+            <p id="hoy-llevas" class="nota" hidden></p>
+          </div>
+
+          <!-- Con entreno en curso -->
+          <div id="corriendo" class="corriendo" hidden>
+            <p class="en-vivo"><span class="punto-vivo" aria-hidden="true"></span><span id="corriendo-tipo"></span></p>
+            <p id="crono" class="titular cifras crono" role="timer" aria-live="off">00:00</p>
+            <div class="segundero" aria-hidden="true"><span id="segundero-relleno"></span></div>
+            <p id="corriendo-desde" class="nota cifras"></p>
+            <p id="corriendo-olvido" class="aviso-olvido" hidden>
+              Llevas más de 6 horas. ¿Se te olvidó terminar? Pon la hora real de fin.
+            </p>
+            <div class="botones">
+              <button type="button" id="boton-terminar" class="boton-principal boton-grande">
+                <span id="terminar-icono" aria-hidden="true">■</span><span id="terminar-texto">Terminar</span>
+              </button>
+              <button type="button" id="boton-descartar" class="boton-secundario">Descartar</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2 · Esta semana contra la meta -->
+        <section id="semana" class="seccion semana-ejercicio" aria-labelledby="semana-titulo">
+          <div class="seccion-cabeza">
+            <p id="semana-titulo" class="etiqueta">Esta semana</p>
+            <p id="semana-rango" class="etiqueta cifras rango"></p>
+          </div>
+          <div class="meta">
+            <svg id="anillo-meta" class="anillo-meta" viewBox="0 0 120 120" role="img" aria-label="Entrenos de la semana">
+              <circle class="anillo-meta-fondo" cx="60" cy="60" r="50" />
+              <circle id="anillo-meta-progreso" class="anillo-meta-progreso" cx="60" cy="60" r="50" />
+              <circle id="anillo-meta-extra" class="anillo-meta-progreso extra" cx="60" cy="60" r="50" />
+            </svg>
+            <div class="meta-texto">
+              <p class="etiqueta leyenda"><span class="leyenda-color" aria-hidden="true"></span>Entrenos</p>
+              <p class="titular cifras meta-numero">
+                <span id="meta-hechos">0</span><span class="meta-de">/<span id="meta-total">4</span></span>
+              </p>
+              <p id="meta-frase" class="frase"></p>
+            </div>
+          </div>
+          <dl class="cifras-semana">
+            <div>
+              <dt class="etiqueta">Minutos</dt>
+              <dd id="semana-minutos" class="titular cifras">0</dd>
+            </div>
+            <div>
+              <dt class="etiqueta">Km</dt>
+              <dd id="semana-km" class="titular cifras">0</dd>
+            </div>
+            <div>
+              <dt class="etiqueta">Pasos/día</dt>
+              <dd id="semana-pasos" class="titular cifras">—</dd>
+            </div>
+          </dl>
+          <div id="semana-dias" class="dias-barras" role="img" aria-label="Minutos por día"></div>
+          <ul id="semana-tipos" class="tipos-semana" aria-label="Sesiones por tipo"></ul>
+        </section>
+      </div>
+
+      <!-- 3 · Pasos (desde Salud con el atajo 📈 Actividad del día) -->
+      <section id="pasos" class="seccion pasos" aria-labelledby="pasos-titulo">
+        <div class="seccion-cabeza">
+          <p id="pasos-titulo" class="etiqueta">Pasos de hoy</p>
+          <p class="etiqueta">Desde Salud</p>
+        </div>
+        <div id="pasos-con-datos">
+          <p class="titular cifras cifra-gigante"><span id="pasos-hoy">0</span></p>
+          <p id="pasos-detalle" class="frase"></p>
+          <div id="pasos-dias" class="dias-barras dias-pasos" role="img" aria-label="Pasos por día esta semana"></div>
+        </div>
+        <p id="pasos-vacio" class="explicacion" hidden>
+          Aún no llegan tus pasos. El atajo 📈 Actividad del día los trae de Salud cada noche (el iPhone los cuenta sin Watch).
+          <a class="enlace" href="#atajos">Ver cómo armarlo</a>
+        </p>
+      </section>
+
+      <!-- 4 · Historial -->
+      <section id="historial" class="seccion historial" aria-labelledby="historial-titulo">
+        <div class="seccion-cabeza historial-cabeza">
+          <p id="historial-titulo" class="etiqueta">Historial</p>
+          <div class="pestanas" role="tablist" aria-label="Agrupar historial">
+            <button type="button" role="tab" id="pestana-semana" aria-selected="true" aria-controls="historial-grupos" data-modo="semana">Por semana</button>
+            <button type="button" role="tab" id="pestana-tipo" aria-selected="false" aria-controls="historial-grupos" data-modo="tipo">Por tipo</button>
+          </div>
+        </div>
+        <div id="historial-grupos" class="historial-grupos" role="tabpanel" aria-labelledby="pestana-semana"></div>
+        <p id="historial-vacio" class="vacio" hidden>Todavía no hay entrenos. Empieza uno arriba o regístralo con ＋.</p>
+        <button type="button" id="ver-mas" class="boton-secundario ancho-justo ver-mas" hidden>Ver semanas anteriores</button>
+      </section>
+
+      <!-- 5 · Atajos del iPhone -->
+      <section id="atajos" class="seccion atajos" aria-labelledby="atajos-titulo">
+        <p id="atajos-titulo" class="etiqueta">Con el iPhone</p>
+        <p class="titular atajos-titular">Sin Watch, <span class="acento">con atajos.</span></p>
+        <p class="frase">
+          Un toque para empezar y otro para terminar. Los pasos llegan solos de Salud a las 21:30. Arma cada atajo una sola vez.
+        </p>
+        <div id="atajos-lista" class="atajos-lista"></div>
+      </section>
+
+      <footer class="pie-seccion">Goat · Movimiento</footer>
     </main>
+
+    <!-- Acción flotante: registrar un entreno ya hecho -->
+    <div class="accion-flotante" data-con-contenido data-fondo-hoja hidden>
+      <button type="button" id="flotante-registrar" class="boton-vidrio"><span aria-hidden="true">＋</span>Registrar a mano</button>
+    </div>
+
+    <!-- ═══ Hoja inferior: registrar / editar / terminar ═══ -->
+    <div id="velo" class="velo"></div>
+    <div id="hoja" class="hoja sin-scrollbar" role="dialog" aria-modal="true" aria-labelledby="hoja-titulo" tabindex="-1">
+      <div id="hoja-manija" class="hoja-manija" aria-hidden="true"><span></span></div>
+      <h2 id="hoja-titulo" class="titular hoja-titulo">Registrar</h2>
+
+      <form id="form-sesion" class="form-registro" novalidate hidden>
+        <div>
+          <p class="etiqueta campo-titulo">Qué hiciste</p>
+          <div class="chips" data-chips="tipo" role="radiogroup" aria-label="Tipo"></div>
+        </div>
+        <div data-campo="rutina" hidden>
+          <p class="etiqueta campo-titulo">Rutina</p>
+          <div class="chips" data-chips="rutina" role="radiogroup" aria-label="Rutina"></div>
+        </div>
+        <div>
+          <p class="etiqueta campo-titulo">Qué día</p>
+          <div class="chips" data-chips="dia" role="radiogroup" aria-label="Día"></div>
+          <label class="otro-dia" data-campo="otro-dia" hidden>
+            <span class="solo-lector">Fecha</span>
+            <input name="fecha" type="date" class="entrada" />
+          </label>
+        </div>
+        <div class="horas">
+          <label class="hora-campo">
+            <span class="etiqueta">Empezó</span>
+            <input name="inicio" type="time" class="hora-grande titular cifras" required />
+          </label>
+          <span class="horas-flecha" aria-hidden="true">→</span>
+          <label class="hora-campo">
+            <span class="etiqueta">Terminó</span>
+            <input name="fin" type="time" class="hora-grande titular cifras" required />
+          </label>
+        </div>
+        <p class="resumen-horas" data-resumen aria-live="polite"></p>
+        <div data-campo="distancia" hidden>
+          <label class="campo-grande">
+            <span class="etiqueta">Distancia (opcional)</span>
+            <span class="distancia-fila">
+              <input name="distancia" class="titular cifras entrada-mediana" inputmode="decimal" autocomplete="off" placeholder="0,0" />
+              <span class="unidad">km</span>
+            </span>
+          </label>
+          <p class="nota cifras" data-ritmo></p>
+        </div>
+        <label class="campo-grande">
+          <span class="etiqueta campo-titulo-bloque">Notas (opcional)</span>
+          <textarea name="notas" class="entrada" maxlength="500" rows="2" placeholder="Cómo te fue, pesos, ruta…"></textarea>
+        </label>
+        <div class="botones">
+          <button type="submit" class="boton-principal" data-guardar>Guardar</button>
+          <button type="button" class="boton-secundario boton-peligro" data-borrar hidden>Borrar</button>
+        </div>
+      </form>
+
+      <form id="form-terminar" class="form-registro" novalidate hidden>
+        <p class="frase hoja-frase" data-resumen></p>
+        <label class="campo-grande">
+          <span class="etiqueta">¿Cuánto recorriste? (opcional)</span>
+          <span class="distancia-fila">
+            <input name="distancia" class="titular cifras entrada-grande" inputmode="decimal" autocomplete="off" placeholder="0,0" />
+            <span class="unidad">km</span>
+          </span>
+        </label>
+        <p class="nota cifras" data-ritmo></p>
+        <div class="botones">
+          <button type="submit" class="boton-principal" data-guardar>Terminar</button>
+          <button type="button" class="boton-secundario" data-sin-distancia>Terminar sin distancia</button>
+        </div>
+      </form>
+    </div>
 
     <!-- Si la base de datos aún no tiene tablas -->
     <main id="falta-base" class="contenedor pantalla-simple" hidden>
@@ -68,8 +269,70 @@
       <p id="aviso" class="aviso" role="status" aria-live="polite"></p>
     </div>
 
+    <!-- ═══ Plantillas: js/ejercicio/pagina.js las copia y llena con textContent ═══ -->
     <template id="plantilla-chip">
       <button type="button" class="chip" role="radio" aria-checked="false"></button>
+    </template>
+
+    <template id="plantilla-barra">
+      <div class="dia-col">
+        <span class="cifras dia-valor"></span>
+        <span class="dia-carril"><span class="dia-barra"></span></span>
+        <span class="dia-letra"></span>
+      </div>
+    </template>
+
+    <template id="plantilla-tipo">
+      <li class="tipo-item">
+        <span class="tipo-emoji" aria-hidden="true"></span>
+        <span class="tipo-nombre"></span>
+        <span class="tipo-valor cifras"></span>
+      </li>
+    </template>
+
+    <template id="plantilla-grupo">
+      <section class="grupo">
+        <div class="grupo-cabeza">
+          <p class="etiqueta grupo-titulo"></p>
+          <p class="etiqueta cifras grupo-total"></p>
+        </div>
+        <div class="lista-agrupada"></div>
+      </section>
+    </template>
+
+    <template id="plantilla-sesion">
+      <button type="button" class="fila sesion-fila">
+        <span class="fila-icono" aria-hidden="true"></span>
+        <span class="fila-texto">
+          <span class="fila-titulo"></span>
+          <span class="fila-detalle sesion-cuando cifras"></span>
+          <span class="fila-detalle sesion-extra cifras"></span>
+        </span>
+        <span class="fila-valor sesion-duracion"></span>
+        <span class="fila-flecha" aria-hidden="true">›</span>
+      </button>
+    </template>
+
+    <template id="plantilla-atajo">
+      <details class="atajo tarjeta">
+        <summary class="atajo-resumen">
+          <span class="atajo-emoji" aria-hidden="true"></span>
+          <span class="atajo-textos">
+            <span class="atajo-nombre"></span>
+            <span class="atajo-para"></span>
+          </span>
+          <span class="atajo-flecha" aria-hidden="true">›</span>
+        </summary>
+        <div class="atajo-cuerpo">
+          <ol class="atajo-pasos"></ol>
+          <div class="atajo-auto" hidden>
+            <p class="etiqueta atajo-subtitulo"></p>
+            <ol class="atajo-pasos atajo-auto-pasos"></ol>
+          </div>
+          <p class="etiqueta atajo-subtitulo">Permisos que pedirá iOS</p>
+          <ul class="atajo-permisos"></ul>
+        </div>
+      </details>
     </template>
   </body>
 </html>

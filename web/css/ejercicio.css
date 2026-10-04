@@ -1,1 +1,761 @@
-/* Goat · Ejercicio (ejercicio.html). Lo llena el objetivo de .claude/objetivos/H-ejercicio.md. */
+/* Goat · Movimiento (ejercicio.html). Estilo Apple Fitness sobre el sistema de Goat:
+   negro, un solo acento naranja (lo accionable, hoy, lo que falta) y --anillo-cuerpo SOLO en el anillo de la meta y su leyenda. */
+
+/* ── Barra ─────────────────────────────────────────────────────────────── */
+
+.pastilla-nube {
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  background: rgb(255 255 255 / 0.08);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--texto-2);
+  transition: transform 0.15s var(--curva);
+}
+
+.pastilla-nube:active {
+  transform: scale(0.95);
+}
+
+/* "MOVIMIENTO." es largo: Archivo comprimido para que llene el ancho sin salirse en un iPhone. */
+.cabecera-seccion .titular {
+  font-size: clamp(3rem, 16.5vw, 10rem);
+  font-stretch: 72%;
+  white-space: nowrap;
+}
+
+/* ── 1 · Entreno ───────────────────────────────────────────────────────── */
+
+.empezar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.empezar-titulo {
+  font-size: clamp(2.75rem, 13vw, 5rem);
+  animation: subir 0.8s var(--curva) both;
+}
+
+.chips-grandes .chip {
+  padding: 0.7rem 1.1rem;
+  font-size: 0.9375rem;
+}
+
+.campo-rutina {
+  animation: subir 0.5s var(--curva) both;
+}
+
+.boton-grande {
+  padding: 1.15rem;
+  font-size: 1.125rem;
+}
+
+.boton-grande span:first-child {
+  font-size: 0.85em;
+}
+
+.nota {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--texto-2);
+}
+
+.corriendo {
+  animation: subir 0.6s var(--curva) both;
+}
+
+.en-vivo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.punto-vivo {
+  width: 0.6rem;
+  height: 0.6rem;
+  flex: none;
+  border-radius: 50%;
+  background: var(--acento);
+  box-shadow: 0 0 0 0 rgb(255 106 31 / 0.6);
+  animation: vivo 1.6s ease-out infinite;
+}
+
+/* El número grande que corre. Archivo comprimido para que quepa "1:05:09" en un iPhone. */
+.crono {
+  margin-top: 1.5rem;
+  font-size: clamp(5rem, 27vw, 11.5rem);
+  font-stretch: 78%;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.crono.largo {
+  font-size: clamp(4.25rem, 21vw, 10rem);
+}
+
+/* Da una vuelta por minuto (como el segundero de un reloj). */
+.segundero {
+  height: 3px;
+  margin-top: 1.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+}
+
+.segundero span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--texto);
+  transform-origin: left;
+  animation: segundero 60s linear infinite;
+  animation-delay: var(--retraso, 0s);
+}
+
+.segundero span.quieto {
+  animation: none;
+  transform: scaleX(0);
+}
+
+.corriendo > .nota {
+  margin-top: 1rem;
+}
+
+.aviso-olvido {
+  max-width: 34ch;
+  margin-top: 1rem;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--acento);
+}
+
+.olvidado .punto-vivo {
+  background: var(--texto-3);
+  animation: none;
+}
+
+.olvidado .crono {
+  color: var(--texto-3);
+}
+
+.corriendo .botones {
+  margin-top: 2.25rem;
+}
+
+/* ── 2 · Semana ────────────────────────────────────────────────────────── */
+
+.rango {
+  color: var(--texto-3);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.anillo-meta {
+  width: 8.5rem;
+  flex: none;
+  transform: rotate(-90deg);
+}
+
+.anillo-meta circle {
+  fill: none;
+  stroke: var(--anillo-cuerpo);
+  stroke-width: 16;
+}
+
+.anillo-meta-fondo {
+  stroke-opacity: 0.16;
+}
+
+.anillo-meta-progreso {
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.6s var(--curva);
+}
+
+/* Segunda vuelta (más entrenos que la meta), un poco más oscura como en el Apple Watch. */
+.anillo-meta .extra {
+  stroke: color-mix(in srgb, var(--anillo-cuerpo) 68%, #000);
+  transition-delay: 0.9s;
+}
+
+.anillo-meta .sin-avance {
+  visibility: hidden;
+}
+
+.meta-texto {
+  min-width: 0;
+}
+
+.leyenda {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.leyenda-color {
+  width: 1.25rem;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: var(--anillo-cuerpo);
+}
+
+.meta-numero {
+  margin-top: 0.5rem;
+  font-size: clamp(3.5rem, 17vw, 6rem);
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.meta-de {
+  color: var(--texto-3);
+}
+
+.meta-texto .frase {
+  margin-top: 0.75rem;
+  font-size: 1rem;
+}
+
+.cifras-semana {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--linea);
+  padding-top: 1.5rem;
+}
+
+.cifras-semana dd {
+  margin-top: 0.5rem;
+  font-size: clamp(1.6rem, 7.5vw, 2.4rem);
+  text-transform: none;
+  white-space: nowrap;
+}
+
+/* Barras L–D (minutos por día y pasos por día). Hoy en naranja. */
+.dias-barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-top: 2.5rem;
+}
+
+.dia-col {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dia-valor {
+  min-height: 1.1em;
+  font-size: 0.7rem;
+  color: var(--texto-3);
+  white-space: nowrap;
+}
+
+.dia-carril {
+  display: flex;
+  width: 100%;
+  max-width: 2.25rem;
+  height: 6.5rem;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.05);
+}
+
+.dia-barra {
+  display: block;
+  width: 100%;
+  height: var(--alto, 0%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.28);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.9s var(--curva);
+  transition-delay: calc(var(--i, 0) * 0.06s);
+}
+
+.visto .dia-barra {
+  transform: scaleY(1);
+}
+
+.dia-letra {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--texto-3);
+}
+
+.dia-col.hoy .dia-barra {
+  background: var(--acento);
+}
+
+.dia-col.hoy .dia-letra,
+.dia-col.hoy .dia-valor {
+  color: var(--acento);
+}
+
+.dia-col.futuro .dia-letra {
+  opacity: 0.45;
+}
+
+.tipos-semana {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.tipos-semana:empty {
+  display: none;
+}
+
+.tipo-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  background: var(--superficie-2);
+  font-size: 0.8125rem;
+}
+
+.tipo-nombre {
+  font-weight: 600;
+}
+
+.tipo-valor {
+  color: var(--texto-2);
+}
+
+/* ── 3 · Pasos ─────────────────────────────────────────────────────────── */
+
+.pasos .cifra-gigante {
+  margin-top: 0.5rem;
+}
+
+.dias-pasos {
+  max-width: 34rem;
+}
+
+.pasos .explicacion {
+  max-width: 36ch;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  color: var(--texto-2);
+}
+
+.enlace {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-weight: 600;
+  color: var(--acento);
+  text-decoration: none;
+}
+
+/* ── 4 · Historial ─────────────────────────────────────────────────────── */
+
+.historial-cabeza {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.historial-cabeza .pestanas {
+  width: min(100%, 15rem);
+}
+
+.grupo + .grupo {
+  margin-top: 1.25rem;
+}
+
+.grupo-cabeza {
+  align-items: baseline;
+}
+
+.grupo-titulo {
+  flex: none;
+  white-space: nowrap;
+}
+
+.grupo-total {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-align: right;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+  color: var(--texto-3);
+}
+
+.sesion-fila .fila-texto {
+  display: flex;
+  flex-direction: column;
+}
+
+.sesion-extra:empty {
+  display: none;
+}
+
+.sesion-duracion {
+  align-self: flex-start;
+  padding-top: 0.1rem;
+}
+
+.sin-fin .sesion-duracion {
+  color: var(--acento);
+}
+
+.ver-mas {
+  margin: 2rem auto 0;
+  display: block;
+  padding-inline: 1.5rem;
+}
+
+/* ── 5 · Atajos ────────────────────────────────────────────────────────── */
+
+.atajos-titular {
+  margin-bottom: 1rem;
+  font-size: clamp(2.75rem, 12vw, 5.5rem);
+}
+
+.atajos-lista {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 2.5rem;
+}
+
+.atajo {
+  padding: 0;
+}
+
+.atajo-resumen {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.1rem 1.25rem;
+  cursor: pointer;
+  list-style: none;
+  transition: transform 0.15s var(--curva);
+}
+
+.atajo-resumen::-webkit-details-marker {
+  display: none;
+}
+
+.atajo-resumen:active {
+  transform: scale(0.98);
+}
+
+.atajo-emoji {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  place-items: center;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.08);
+  font-size: 1.4rem;
+}
+
+.atajo-textos {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.atajo-nombre {
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.atajo-para {
+  font-size: 0.8125rem;
+  color: var(--texto-2);
+}
+
+.atajo-flecha {
+  flex: none;
+  font-size: 1.4rem;
+  color: var(--texto-3);
+  transition: transform 0.3s var(--curva);
+}
+
+.atajo[open] .atajo-flecha {
+  transform: rotate(90deg);
+}
+
+.atajo-cuerpo {
+  border-top: 1px solid var(--linea);
+  padding: 1.25rem 1.25rem 1.5rem 1.5rem;
+  animation: subir 0.4s var(--curva) both;
+}
+
+.atajo-pasos,
+.atajo-permisos {
+  padding-left: 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--texto-2);
+}
+
+.atajo-pasos li + li,
+.atajo-permisos li + li {
+  margin-top: 0.6rem;
+}
+
+.atajo-pasos li::marker {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--texto-3);
+}
+
+.atajo-permisos {
+  list-style: disc;
+}
+
+.atajo-subtitulo {
+  margin: 1.5rem 0 0.75rem;
+}
+
+/* ── Acción flotante de vidrio ("＋ Registrar a mano") ─────────────────── */
+
+.boton-vidrio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 999px;
+  padding: 0.9rem 1.4rem;
+  background: rgb(40 40 44 / 0.72);
+  -webkit-backdrop-filter: blur(30px) saturate(1.4);
+  backdrop-filter: blur(30px) saturate(1.4);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.7);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  pointer-events: auto;
+  transition: transform 0.15s var(--curva), background-color 0.2s;
+}
+
+.boton-vidrio:active {
+  transform: scale(0.96);
+}
+
+.boton-vidrio span {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* ── Hoja: registrar, editar, terminar ─────────────────────────────────── */
+
+.otro-dia {
+  display: block;
+  max-width: 14rem;
+  margin-top: 0.75rem;
+}
+
+.horas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
+  gap: 0.6rem;
+}
+
+.hora-campo {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.horas-flecha {
+  padding-bottom: 1.35rem;
+  font-size: 1.25rem;
+  color: var(--texto-3);
+}
+
+/* Selector de hora grande (en el iPhone abre la rueda de hora). */
+.hora-grande {
+  display: block;
+  width: 100%;
+  min-height: 4.5rem;
+  border-radius: 16px;
+  padding: 0.55rem 0.7rem;
+  background: rgb(255 255 255 / 0.06);
+  font-size: 2.35rem;
+  font-stretch: 82%;
+  text-transform: none;
+  color-scheme: dark;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: box-shadow 0.2s;
+}
+
+.hora-grande:focus {
+  box-shadow: inset 0 0 0 1.5px var(--acento);
+}
+
+.hora-grande::-webkit-date-and-time-value {
+  margin: 0;
+  text-align: left;
+}
+
+.hora-grande::-webkit-calendar-picker-indicator {
+  width: 0.9rem;
+  margin-left: 0.2rem;
+  padding: 0;
+  opacity: 0.5;
+}
+
+.resumen-horas {
+  margin-top: -0.75rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.resumen-horas.error {
+  color: var(--acento);
+}
+
+.distancia-fila {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.distancia-fila input {
+  min-width: 0;
+  flex: 1;
+}
+
+.unidad {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--texto-2);
+}
+
+.campo-titulo-bloque {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.hoja-frase {
+  margin-top: -0.5rem;
+}
+
+/* ── Tablet ────────────────────────────────────────────────────────────── */
+
+@media (min-width: 48rem) {
+  .anillo-meta {
+    width: 10.5rem;
+  }
+
+  .meta {
+    gap: 2.25rem;
+  }
+
+  .dia-carril {
+    height: 8.5rem;
+  }
+
+  .hora-grande {
+    font-size: 2.75rem;
+  }
+
+  .atajos-lista {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+/* ── Computador ────────────────────────────────────────────────────────── */
+
+@media (min-width: 64rem) {
+  /* Entreno y semana, lado a lado. */
+  .tablero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--linea);
+  }
+
+  .tablero > .seccion {
+    border-top: 0;
+  }
+
+  .tablero > .seccion + .seccion {
+    border-left: 1px solid var(--linea);
+  }
+
+  .crono {
+    font-size: clamp(6rem, 11vw, 10rem);
+  }
+
+  .crono.largo {
+    font-size: clamp(5rem, 8.5vw, 8.5rem);
+  }
+
+  .pasos {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .historial-grupos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 1.5rem 2rem;
+  }
+
+  .historial-grupos .grupo + .grupo {
+    margin-top: 0;
+  }
+
+  .historial-grupos .grupo-cabeza {
+    position: static;
+  }
+}
+
+/* ── Animaciones ───────────────────────────────────────────────────────── */
+
+@keyframes vivo {
+  70% {
+    box-shadow: 0 0 0 0.55rem rgb(255 106 31 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(255 106 31 / 0);
+  }
+}
+
+@keyframes segundero {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segundero {
+    display: none;
+  }
+
+  .punto-vivo {
+    animation: none;
+  }
+}

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Goat · Desbloqueo</title>
+    <title>Goat · Tu tiempo</title>
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
     <meta name="theme-color" content="#000000" />
@@ -33,17 +33,132 @@
     <main id="contenido" class="contenedor" data-fondo-hoja hidden>
       <header class="barra-seccion">
         <a class="volver" href="index.html"><span aria-hidden="true">‹</span>Hoy</a>
-        <div class="barra-acciones"></div>
+        <div class="barra-acciones">
+          <p id="barra-estado" class="etiqueta cifras barra-estado" aria-hidden="true"></p>
+        </div>
       </header>
 
       <section class="cabecera-seccion">
         <p class="etiqueta">Goat · Desbloqueo</p>
         <h1 class="titular">Tu tiempo.</h1>
-        <p class="cabecera-texto">Pronto.</p>
+        <p id="cabecera-texto" class="cabecera-texto">Registra al día y gana minutos para cada app.</p>
       </section>
 
-      <footer class="pie-seccion"></footer>
+      <div class="dos-bloques">
+        <!-- 1. ¿Está abierta la puerta? y qué falta registrar -->
+        <section class="seccion estado" aria-labelledby="estado-titulo">
+          <p class="etiqueta">La puerta, hoy</p>
+          <h2 id="estado-titulo" class="titular estado-titular"><span id="estado-palabra"></span></h2>
+          <p id="estado-frase" class="frase"></p>
+          <ul id="faltan-lista" class="faltan-lista" aria-label="Lo que falta registrar"></ul>
+        </section>
+
+        <!-- 2. Niveles: cuánto da cada puntaje -->
+        <section class="seccion niveles" aria-labelledby="niveles-titulo">
+          <div class="seccion-cabeza">
+            <h2 id="niveles-titulo" class="etiqueta">Niveles</h2>
+            <button type="button" id="editar-niveles" class="boton-borde">Editar</button>
+          </div>
+          <div class="puntaje">
+            <p class="titular cifras puntaje-numero"><span id="puntaje"></span><span class="puntaje-unidad">pts</span></p>
+            <div class="puntaje-lado">
+              <div class="progreso" aria-hidden="true"><div id="puntaje-relleno" class="progreso-relleno"></div></div>
+              <p id="pista" class="puntaje-pista"></p>
+            </div>
+          </div>
+          <ol id="niveles-lista" class="lista-agrupada niveles-lista"></ol>
+        </section>
+      </div>
+
+      <!-- 3. Una bolsa por app, con su anillo -->
+      <section class="seccion apps" aria-labelledby="apps-titulo">
+        <div class="seccion-cabeza">
+          <h2 id="apps-titulo" class="etiqueta">Tus apps</h2>
+          <p id="apps-nota" class="etiqueta cifras apps-nota"></p>
+        </div>
+        <ul id="apps-lista" class="apps-rejilla"></ul>
+      </section>
+
+      <div class="dos-bloques">
+        <!-- 4. Pase de emergencia -->
+        <section class="seccion pase" aria-labelledby="pase-titulo">
+          <p class="etiqueta">Pase de emergencia</p>
+          <h2 id="pase-titulo" class="titular pase-titular"></h2>
+          <p id="pase-frase" class="frase"></p>
+          <button type="button" id="usar-pase" class="boton-principal ancho-justo pase-boton">🆘 Usar pase · 10 min</button>
+        </section>
+
+        <!-- 5. Juegos que cuentan -->
+        <section class="seccion juegos" aria-labelledby="juegos-titulo">
+          <p id="juegos-titulo" class="etiqueta">Tus juegos</p>
+          <p class="frase juegos-frase">TikTok, Instagram y YouTube siempre cuentan. Agrega los juegos que quieras frenar: cada uno tiene su bolsa.</p>
+          <ul id="juegos-lista" class="lista-agrupada juegos-lista"></ul>
+          <p id="juegos-vacio" class="juegos-vacio" hidden>Todavía no agregas juegos.</p>
+          <form id="form-juego" class="form-juego" autocomplete="off">
+            <label class="solo-lector" for="juego-nombre">Nombre del juego</label>
+            <input id="juego-nombre" name="nombre" class="entrada" maxlength="30" placeholder="Ej. Clash Royale" enterkeyhint="done" />
+            <button type="submit" class="boton-principal ancho-justo">Agregar</button>
+          </form>
+        </section>
+      </div>
+
+      <!-- 6. Uso de hoy, como Tiempo en pantalla -->
+      <section class="seccion uso" aria-labelledby="uso-titulo">
+        <div class="seccion-cabeza">
+          <h2 id="uso-titulo" class="etiqueta">Uso de hoy</h2>
+          <p id="uso-total" class="etiqueta cifras"></p>
+        </div>
+        <div class="uso-grafica">
+          <div id="uso-horas" class="uso-horas" role="img" aria-label="Minutos de uso por hora"></div>
+          <div class="uso-eje cifras" aria-hidden="true">
+            <span>04</span><span>10</span><span>16</span><span>22</span>
+          </div>
+        </div>
+        <ol id="uso-lista" class="lista-agrupada uso-lista" aria-label="Aperturas de hoy"></ol>
+        <p id="uso-vacio" class="vacio" hidden>Hoy no has abierto ninguna app.</p>
+      </section>
+
+      <!-- 7. Cómo se conecta con el iPhone -->
+      <section class="seccion guia" aria-labelledby="guia-titulo">
+        <p class="etiqueta">En tu iPhone</p>
+        <h2 id="guia-titulo" class="titular guia-titular">Fricción, <span class="acento">no candado.</span></h2>
+        <div id="guia-friccion" class="guia-friccion"></div>
+
+        <p class="etiqueta guia-subtitulo">Texto de cada automatización</p>
+        <ul id="guia-textos" class="guia-textos" aria-label="Texto que va en cada automatización"></ul>
+
+        <div id="guia-atajos" class="guia-atajos"></div>
+      </section>
+
+      <footer class="pie-seccion">
+        <p>Los minutos se renuevan cada día a las 04:00. Cada intento de abrir una app queda anotado aquí.</p>
+      </footer>
     </main>
+
+    <!-- Hoja inferior: usar el pase o editar los niveles (js/piezas/hoja.js) -->
+    <div id="velo" class="velo"></div>
+    <div id="hoja" class="hoja sin-scrollbar" role="dialog" aria-modal="true" aria-labelledby="hoja-titulo" tabindex="-1">
+      <div id="hoja-manija" class="hoja-manija" aria-hidden="true"><span></span></div>
+      <h2 id="hoja-titulo" class="titular hoja-titulo"></h2>
+
+      <form id="form-pase" class="form-registro" hidden>
+        <p class="hoja-texto">10 minutos extra para una sola app. Hay uno por día y se renueva a las 04:00.</p>
+        <div>
+          <p class="etiqueta campo-titulo">¿Para cuál?</p>
+          <div class="chips" data-chips="app" role="radiogroup" aria-label="App"></div>
+        </div>
+        <button type="submit" class="boton-principal" data-guardar>Usar 10 min</button>
+      </form>
+
+      <form id="form-niveles" class="form-registro" hidden>
+        <p class="hoja-texto">Minutos por app que ganas en cada nivel. Un nivel más alto nunca da menos que el anterior.</p>
+        <div id="niveles-editar" class="niveles-editar"></div>
+        <div class="botones">
+          <button type="submit" class="boton-principal" data-guardar>Guardar</button>
+          <button type="button" class="boton-secundario" id="restablecer-niveles">Volver a 30 · 60 · 90</button>
+        </div>
+      </form>
+    </div>
 
     <!-- Si la base de datos aún no tiene tablas -->
     <main id="falta-base" class="contenedor pantalla-simple" hidden>
@@ -68,8 +183,122 @@
       <p id="aviso" class="aviso" role="status" aria-live="polite"></p>
     </div>
 
+    <!-- ═══ Plantillas: js/desbloqueo/pagina.js las copia y llena con textContent ═══ -->
     <template id="plantilla-chip">
       <button type="button" class="chip" role="radio" aria-checked="false"></button>
+    </template>
+
+    <template id="plantilla-falta">
+      <li class="falta">
+        <a class="falta-enlace">
+          <span class="falta-izquierda">
+            <span class="falta-emoji" aria-hidden="true"></span>
+            <span class="titular falta-texto"></span>
+          </span>
+          <span class="falta-flecha" aria-hidden="true">→</span>
+        </a>
+      </li>
+    </template>
+
+    <template id="plantilla-nivel">
+      <li class="fila nivel">
+        <span class="fila-icono nivel-icono" aria-hidden="true"></span>
+        <span class="fila-texto">
+          <span class="fila-titulo"><span class="nivel-nombre"></span><span class="nivel-ahora" hidden>Ahora</span></span>
+          <span class="fila-detalle nivel-detalle"></span>
+        </span>
+        <span class="fila-valor cifras nivel-minutos"></span>
+      </li>
+    </template>
+
+    <template id="plantilla-app">
+      <li class="app-tarjeta aparece">
+        <div class="app-cabeza">
+          <span class="app-emoji" aria-hidden="true"></span>
+          <h3 class="app-nombre"></h3>
+          <span class="app-abierta" hidden><span class="solo-lector">Abierta ahora</span></span>
+        </div>
+        <div class="app-anillo">
+          <svg class="app-svg" viewBox="0 0 120 120" aria-hidden="true">
+            <circle class="app-pista" cx="60" cy="60" r="52" />
+            <circle class="app-relleno" cx="60" cy="60" r="52" />
+          </svg>
+          <p class="app-centro">
+            <span class="titular cifras app-numero"></span>
+            <span class="app-unidad">min</span>
+          </p>
+        </div>
+        <p class="app-detalle cifras"></p>
+        <button type="button" class="boton-secundario app-pase" hidden>🆘 Usar pase</button>
+      </li>
+    </template>
+
+    <template id="plantilla-juego">
+      <li class="fila juego">
+        <span class="fila-icono" aria-hidden="true">🎮</span>
+        <span class="fila-texto">
+          <span class="fila-titulo juego-nombre"></span>
+          <span class="fila-detalle juego-texto"></span>
+        </span>
+        <button type="button" class="juego-quitar">Quitar</button>
+      </li>
+    </template>
+
+    <template id="plantilla-hora">
+      <span class="uso-hora"><span class="uso-barra"></span></span>
+    </template>
+
+    <template id="plantilla-sesion">
+      <li class="fila sesion">
+        <span class="fila-icono sesion-emoji" aria-hidden="true"></span>
+        <span class="fila-texto">
+          <span class="fila-titulo sesion-app"></span>
+          <span class="fila-detalle cifras sesion-horas"></span>
+        </span>
+        <span class="fila-valor cifras sesion-minutos"></span>
+      </li>
+    </template>
+
+    <template id="plantilla-texto-app">
+      <li class="guia-texto"><span class="guia-texto-nombre"></span><code class="guia-texto-valor"></code></li>
+    </template>
+
+    <template id="plantilla-parrafo">
+      <p class="frase guia-parrafo"></p>
+    </template>
+
+    <template id="plantilla-atajo">
+      <details class="guia-atajo">
+        <summary class="guia-resumen">
+          <span class="guia-emoji" aria-hidden="true"></span>
+          <span class="guia-cabeza">
+            <span class="guia-nombre"></span>
+            <span class="guia-para"></span>
+          </span>
+          <span class="guia-flecha" aria-hidden="true">⌄</span>
+        </summary>
+        <div class="guia-cuerpo">
+          <p class="etiqueta">Pasos</p>
+          <ol class="guia-pasos"></ol>
+          <div class="guia-automatizacion">
+            <p class="etiqueta">Automatización</p>
+            <p class="guia-disparador"></p>
+            <ol class="guia-pasos guia-pasos-auto"></ol>
+          </div>
+          <p class="guia-permisos"></p>
+        </div>
+      </details>
+    </template>
+
+    <template id="plantilla-paso">
+      <li></li>
+    </template>
+
+    <template id="plantilla-nivel-editar">
+      <div class="nivel-editar">
+        <p class="etiqueta campo-titulo"></p>
+        <div class="chips" role="radiogroup"></div>
+      </div>
     </template>
   </body>
 </html>

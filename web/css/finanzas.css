@@ -1,1 +1,737 @@
-/* Goat · Finanzas (finanzas.html). Lo llena el objetivo de .claude/objetivos/A-finanzas.md. */
+/* Goat · Finanzas (finanzas.html). Va después de base.css y comun.css.
+   Siempre oscuro, un solo acento naranja (lo accionable y lo que falta), dinero siempre .sensible. */
+
+/* ── Titular con máscara: la palabra sube desde abajo ──────────────────── */
+
+.cabecera-seccion .titular {
+  overflow: hidden;
+  padding-top: 0.08em;
+  animation: none;
+}
+
+.titular-linea {
+  display: block;
+  animation: desde-abajo 0.95s var(--curva) 0.1s both;
+}
+
+/* ── Piezas pequeñas ───────────────────────────────────────────────────── */
+
+/* "＋ Cuenta", "＋ Deuda": acción secundaria en texto naranja. */
+.enlace-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--acento);
+  transition: opacity 0.2s, transform 0.15s var(--curva);
+}
+
+.enlace-accion:active {
+  transform: scale(0.95);
+}
+
+/* "Abonar", "Cobrar", "Pagar". */
+.boton-pildora {
+  flex: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.05rem;
+  background: rgb(255 106 31 / 0.14);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--acento);
+  transition: background-color 0.2s, transform 0.15s var(--curva);
+}
+
+.boton-pildora:hover {
+  background: rgb(255 106 31 / 0.22);
+}
+
+.boton-pildora:active {
+  transform: scale(0.95);
+}
+
+.nota {
+  margin-top: 0.6rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--texto-3);
+}
+
+/* Números grandes que se encogen según su largo (--largo lo pone pagina.js). */
+.saldo-total,
+.deudas-total {
+  margin-top: 0.5rem;
+  font-size: min(calc(var(--ancho-cifra) / (var(--largo, 4) * 0.62)), var(--tope-cifra));
+}
+
+.deudas-total {
+  margin-top: 2rem;
+}
+
+/* ── 1. Saldos ─────────────────────────────────────────────────────────── */
+
+.cuentas-rejilla {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 2.5rem;
+}
+
+.cuenta-tarjeta {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 9rem;
+  flex-direction: column;
+  gap: 1.25rem;
+  text-align: left;
+  container-type: inline-size;
+  transition: transform 0.15s var(--curva), background-color 0.2s;
+}
+
+.cuenta-tarjeta:hover {
+  background: #232326;
+}
+
+.cuenta-tarjeta:active {
+  transform: scale(0.97);
+}
+
+.cuenta-cabeza {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.cuenta-icono {
+  display: grid;
+  width: 2.1rem;
+  height: 2.1rem;
+  flex: none;
+  place-items: center;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.08);
+  font-size: 1.1rem;
+}
+
+.cuenta-textos {
+  min-width: 0;
+}
+
+.cuenta-nombre,
+.cuenta-banco {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cuenta-nombre {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.cuenta-banco {
+  font-size: 0.75rem;
+  color: var(--texto-2);
+}
+
+.cuenta-pie {
+  display: block;
+  margin-top: auto;
+}
+
+.cuenta-rotulo {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+}
+
+.cuenta-saldo {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--fuente-titular);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  /* Cabe siempre en su tarjeta: el ancho de la tarjeta (cqi) repartido entre los caracteres. */
+  font-size: min(1.85rem, calc(100cqi / (var(--largo, 6) * 0.64)));
+}
+
+.cuenta-cupo {
+  display: block;
+  margin-top: -0.4rem;
+}
+
+.cuenta-cupo .progreso {
+  display: block;
+  margin-bottom: 0.45rem;
+}
+
+.cuenta-cupo .progreso-relleno {
+  display: block;
+}
+
+.cuenta-cupo-texto {
+  font-size: 0.75rem;
+  color: var(--texto-2);
+}
+
+.cuenta-tarjeta.archivada {
+  opacity: 0.5;
+}
+
+/* "Nueva cuenta" y "Archivadas": tarjeta de contorno punteado. */
+.cuenta-nueva {
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1.5px dashed rgb(255 255 255 / 0.14);
+  background: transparent;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--texto-2);
+}
+
+.cuenta-nueva:hover {
+  background: rgb(255 255 255 / 0.03);
+  color: var(--texto);
+}
+
+.cuenta-nueva-mas {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--acento);
+}
+
+.cuenta-archivadas .cuenta-nueva-mas {
+  font-size: 1.25rem;
+  color: var(--texto-2);
+}
+
+/* ── 2. El mes ─────────────────────────────────────────────────────────── */
+
+.mes-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mes-nav .boton-circulo span {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.mes-nav .boton-circulo:disabled {
+  opacity: 0.3;
+}
+
+.mes-cifras {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.75rem 1.25rem;
+}
+
+.mes-numero {
+  margin-top: 0.75rem;
+  white-space: nowrap;
+  text-transform: none;
+  font-size: min(calc((var(--ancho-cifra) - 1.25rem) / 2 / (var(--largo, 4) * 0.62)), 4.25rem);
+}
+
+.mes-neto {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--linea);
+  padding-top: 1.25rem;
+}
+
+.mes-neto .cifras {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.mes-cifras .frase {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
+.mes-categorias {
+  margin-top: 3rem;
+}
+
+.categoria {
+  padding: 0.75rem 0;
+}
+
+.categoria + .categoria {
+  border-top: 1px solid var(--linea);
+}
+
+.categoria-fila {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.categoria-emoji {
+  flex: none;
+  font-size: 1.05rem;
+}
+
+.categoria-nombre {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoria-pct {
+  flex: none;
+  font-size: 0.8125rem;
+  color: var(--texto-3);
+}
+
+.categoria-monto {
+  flex: none;
+  min-width: 5.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.categoria-carril {
+  height: 6px;
+  margin-top: 0.6rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+}
+
+/* Barras de mayor a menor que se llenan al verse (--ancho: 0 a 1 respecto a la mayor). */
+.categoria-barra {
+  width: calc(var(--ancho, 0) * 100%);
+  height: 100%;
+  border-radius: inherit;
+  background: rgb(255 255 255 / 0.4);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.1s var(--curva);
+  transition-delay: calc(var(--i, 0) * 0.06s);
+}
+
+.categoria:first-child .categoria-barra {
+  background: var(--texto);
+}
+
+.categorias.visto .categoria-barra {
+  transform: scaleX(1);
+}
+
+/* ── 3. Movimientos ────────────────────────────────────────────────────── */
+
+.movimientos-cuantos {
+  color: var(--texto-3);
+}
+
+.controles {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Chips de tipo en una sola fila que se desliza (celular). */
+.chips-fila {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin-inline: calc(-1 * var(--margen));
+  padding: 0.25rem var(--margen);
+  scroll-padding-inline: var(--margen);
+}
+
+.chips-fila .chip {
+  flex: none;
+}
+
+.controles-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.buscador {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+}
+
+.buscador svg {
+  position: absolute;
+  top: 50%;
+  left: 0.85rem;
+  color: var(--texto-3);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.buscador .entrada {
+  padding-block: 0.6rem;
+  padding-left: 2.35rem;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.buscador .entrada::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+.pestanas-chicas {
+  flex: none;
+}
+
+.pestanas-chicas button {
+  padding-inline: 0.75rem;
+  font-size: 0.75rem;
+}
+
+.lista-movimientos {
+  min-height: 2rem;
+}
+
+.grupo-cabeza {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--texto-2);
+}
+
+.grupo-titulo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grupo-subtotal {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Filas: los <li> envuelven cada .fila, así que el separador va entre <li>. */
+.lista-agrupada > li + li .fila {
+  box-shadow: inset 3.9rem 1px 0 var(--superficie-2), inset 0 1px 0 var(--linea);
+}
+
+.movimiento .fila-icono {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+}
+
+.movimiento .fila-titulo,
+.movimiento .fila-detalle {
+  display: block;
+}
+
+.movimiento .fila-valor {
+  font-size: 0.9375rem;
+}
+
+.fila-valor.neutro {
+  color: var(--texto-3);
+}
+
+.ver-mas {
+  margin-top: 1.5rem;
+}
+
+/* ── 4. Deudas ─────────────────────────────────────────────────────────── */
+
+.pestanas-deudas {
+  max-width: 22rem;
+}
+
+.deudas-rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  margin-top: 2.5rem;
+}
+
+.deuda-tarjeta {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 0.9rem;
+  transition: opacity 0.3s;
+}
+
+.deuda-abrir {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+  margin: -0.35rem;
+  border-radius: 14px;
+  padding: 0.35rem;
+  width: calc(100% + 0.7rem);
+  text-align: left;
+  transition: background-color 0.2s, transform 0.15s var(--curva);
+}
+
+.deuda-abrir:active {
+  background: rgb(255 255 255 / 0.05);
+  transform: scale(0.98);
+}
+
+.deuda-icono {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  flex: none;
+  place-items: center;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.08);
+  font-size: 1.2rem;
+}
+
+.deuda-textos {
+  min-width: 0;
+  flex: 1;
+}
+
+.deuda-nombre,
+.deuda-tipo {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deuda-nombre {
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.deuda-tipo {
+  font-size: 0.8125rem;
+  color: var(--texto-2);
+}
+
+.deuda-saldo {
+  margin-top: 0.25rem;
+  white-space: nowrap;
+  text-transform: none;
+  font-size: clamp(2.25rem, 11vw, 3rem);
+}
+
+.deuda-detalle {
+  display: flex;
+  min-height: 1.2em;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  font-size: 0.8125rem;
+  color: var(--texto-2);
+}
+
+.deuda-detalle:has(.deuda-cuota[hidden]):has(.deuda-proximo:empty) {
+  display: none;
+}
+
+/* Lo que falta pronto (pago en 3 días o menos) va en naranja. */
+.deuda-proximo.pronto {
+  font-weight: 600;
+  color: var(--acento);
+}
+
+.deuda-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+.deuda-avance {
+  font-size: 0.8125rem;
+  color: var(--texto-2);
+}
+
+.deuda-tarjeta.pagada {
+  opacity: 0.55;
+}
+
+.deuda-tarjeta.pagada .progreso-relleno {
+  background: var(--texto-2);
+}
+
+/* ── Hoja ──────────────────────────────────────────────────────────────── */
+
+.abono-deuda {
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
+  background: rgb(255 255 255 / 0.05);
+}
+
+.abono-nombre {
+  margin-top: 0.35rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.abono-saldo {
+  margin-top: 0.15rem;
+  font-size: 0.875rem;
+  color: var(--texto-2);
+}
+
+.nota-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.nota-tarjeta .nota {
+  margin-top: 0;
+  font-size: 0.9375rem;
+  color: var(--texto-2);
+}
+
+/* Segundo toque para borrar: el botón se vuelve naranja. */
+.boton-secundario.confirmar {
+  color: var(--acento);
+  box-shadow: inset 0 0 0 1px var(--acento);
+}
+
+/* Al lado del botón flotante no debe quedar nada tapado. */
+.pie-seccion p {
+  max-width: 34ch;
+}
+
+/* ── Tablet ────────────────────────────────────────────────────────────── */
+
+@media (min-width: 48rem) {
+  .cuentas-rejilla {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .deudas-rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chips-fila {
+    flex-wrap: wrap;
+    overflow: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+
+  .mes-categorias {
+    margin-top: 3.5rem;
+  }
+}
+
+/* ── Computador ────────────────────────────────────────────────────────── */
+
+@media (min-width: 64rem) {
+  /* Saldos: el total a la izquierda, las cuentas a la derecha. */
+  #saldos {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    /* La última fila absorbe el alto de las cuentas: la frase queda pegada al total. */
+    grid-template-rows: auto auto 1fr;
+    column-gap: 4rem;
+    align-items: start;
+  }
+
+  #saldos > .seccion-cabeza {
+    grid-column: 1 / -1;
+  }
+
+  #saldos > .saldo-total,
+  #saldos > .frase {
+    grid-column: 1;
+  }
+
+  #saldos > .cuentas-rejilla {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 0;
+  }
+
+  /* El mes: cifras a la izquierda, categorías a la derecha. */
+  .mes-cuerpo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .mes-categorias {
+    margin-top: 0;
+  }
+
+  /* Movimientos: filtros a la izquierda (fijos al bajar), lista a la derecha. */
+  #movimientos {
+    display: grid;
+    grid-template-columns: 19rem minmax(0, 1fr);
+    column-gap: 3.5rem;
+    align-items: start;
+  }
+
+  #movimientos > .seccion-cabeza {
+    grid-column: 1 / -1;
+  }
+
+  #movimientos > .controles {
+    position: sticky;
+    top: calc(var(--arriba) + 76px);
+    grid-column: 1;
+    grid-row: 2 / span 3;
+  }
+
+  #movimientos > .lista-movimientos,
+  #movimientos > .vacio,
+  #movimientos > .ver-mas {
+    grid-column: 2;
+  }
+
+  #movimientos .grupo:first-child .grupo-cabeza {
+    padding-top: 0.25rem;
+  }
+
+  .controles-fila {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .deudas-rejilla {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .titular-linea {
+    animation: none;
+  }
+
+  .categoria-barra {
+    transform: none;
+    transition: none;
+  }
+}

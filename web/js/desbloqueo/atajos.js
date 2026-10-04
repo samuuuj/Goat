@@ -21,7 +21,7 @@ export const ATAJOS = [
       ...CONECTAR_GOAT,
       "Agrega «Texto» y escribe: la variable url, luego /desbloqueo/gate?app= y al final la variable «Entrada del atajo» (sin espacios).",
       `Agrega «Obtener contenido de URL» con ese Texto. Método: GET. ${ENCABEZADO}`,
-      "Agrega «Obtener valor del diccionario»: Obtener Valor para la clave datos.accion en «Contenido de URL».",
+      "Agrega «Obtener valor del diccionario»: Obtener Valor para la clave datos.accion en «Contenido de URL». (Si tu iPhone no acepta el punto, usa dos acciones: primero la clave datos y luego accion.)",
       "Agrega «Si»: «Valor del diccionario» · es · bloquear. Lo que sigue va DENTRO del Si:",
       "«Ir a la pantalla de inicio».",
       "«Obtener valor del diccionario»: Valor para mensaje en «Contenido de URL». Luego «Mostrar notificación» con ese Valor del diccionario.",

@@ -62,6 +62,21 @@ export function desbloqueoCorto(estado) {
   };
 }
 
+/** La frase del día a partir del resumen de calculo.js (la usan la API, widgets.html y la tarjeta de Hoy). */
+export function fraseDe(resumen, ahora = new Date()) {
+  return elegirFrase({
+    fecha: resumen.fecha,
+    franja: franjaDe(Number(horaBogota(ahora).slice(0, 2))),
+    score: Math.round(Number(resumen.score) || 0),
+    scoreAyer: resumen.scoreAyer,
+    racha: Math.max(0, Math.round(Number(resumen.racha) || 0)),
+    pendientes: (resumen.pendientes ?? []).length,
+    tipoDia: resumen.tipoDia,
+    diaSemana: diaSemana(resumen.fecha),
+    dia: nombreDia(resumen.fecha),
+  });
+}
+
 /** Lo que dicen los widgets de la pantalla bloqueada. Nunca dinero ni frases largas. */
 function textosBloqueo({ score, racha, pendientes, rutina }) {
   const fuego = racha > 0 ? ` · 🔥${racha}` : "";
@@ -91,17 +106,7 @@ export function armarWidget({ resumen, rutina = null, sueno = null, desbloqueo =
     lista: lista.slice(0, 3).map((p) => `${p.emoji} ${corto(p.texto, 32)}`),
   };
   const hora = horaBogota(ahora);
-  const frase = elegirFrase({
-    fecha,
-    franja: franjaDe(Number(hora.slice(0, 2))),
-    score,
-    scoreAyer: resumen.scoreAyer,
-    racha,
-    pendientes: lista.length,
-    tipoDia: resumen.tipoDia,
-    diaSemana: diaSemana(fecha),
-    dia: nombreDia(fecha),
-  });
+  const frase = fraseDe(resumen, ahora);
 
   const datos = {
     v: VERSION_WIDGET,

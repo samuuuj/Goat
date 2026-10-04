@@ -1,5 +1,10 @@
-// Dato corto para la tarjeta de esta sección en Hoy (sin montos). null = sin dato.
+// Dato corto para la tarjeta "Widgets." en Hoy: la frase del día (la misma que muestran los widgets). Sin montos.
 
-export async function miniDato(_sesion) {
-  return null;
+import { cargarRegistros } from "../supabase/datos.js";
+import { construirResumen } from "../logica/calculo.js";
+import { fraseDe } from "./logica.js";
+
+export async function miniDato(sesion) {
+  const ahora = new Date();
+  return fraseDe(construirResumen(await cargarRegistros(sesion.user.id, ahora), ahora), ahora);
 }

@@ -1,19 +1,9 @@
 // Conectar iPhone: funciones puras (sin pantalla ni internet). Las usan conectar.html, mini.js, bienvenida.js y las pruebas.
 
-/**
- * Grupos del asistente, en el orden en que conviene armarlos: primero la base (⚙️ Goat), después lo que corre
- * solo cada día y al final la puerta del desbloqueo (necesita que los demás registren).
- */
-export const MODULOS = Object.freeze([
-  Object.freeze({ id: "conectar", emoji: "⚙️", nombre: "Base" }),
-  Object.freeze({ id: "notificaciones", emoji: "🔔", nombre: "Avisos" }),
-  Object.freeze({ id: "sueno", emoji: "🌙", nombre: "Tu noche" }),
-  Object.freeze({ id: "rutina", emoji: "🗓️", nombre: "Tu día" }),
-  Object.freeze({ id: "ejercicio", emoji: "🏃", nombre: "Movimiento" }),
-  Object.freeze({ id: "finanzas", emoji: "💸", nombre: "Dinero" }),
-  Object.freeze({ id: "desbloqueo", emoji: "🔓", nombre: "Tu tiempo" }),
-  Object.freeze({ id: "widgets", emoji: "🧩", nombre: "Widgets" }),
-]);
+import { ATAJOS, GRUPOS } from "./guias.js";
+
+/** Grupos del asistente, en el orden en que conviene armarlos (web/js/conectar/guias.js). */
+export const MODULOS = GRUPOS;
 
 // ── Primer uso ───────────────────────────────────────────────────────────
 
@@ -23,75 +13,47 @@ export function necesitaBienvenida({ marcaLocal = false, ajustes = {} } = {}) {
   return ajustes?.bienvenida?.completada !== true;
 }
 
-// ── Atajos de todos los módulos ──────────────────────────────────────────
+// ── Atajos (todas las guías viven en web/js/conectar/guias.js, D-063) ──────
 
 const texto = (valor) => typeof valor === "string" && valor.trim().length > 0;
 const lista = (valor) => (Array.isArray(valor) ? valor : []);
 
 /**
- * Une los ATAJOS de cada módulo en grupos para el asistente.
- * `cargados`: [{ modulo: "finanzas", atajos: [...] }]. Un módulo sin atajos se omite.
- * Un id repetido o un atajo sin id, nombre o pasos es un error de programación: se lanza con un mensaje claro.
- * Devuelve [{ modulo, emoji, nombre, atajos: [{ ...atajo, modulo, requisitos, automatizaciones, permisos, prueba }] }].
+ * Agrupa las guías para el asistente, en el orden de `grupos`.
+ * Un id repetido, un atajo sin nombre o sin pasos ni automatizaciones, o un grupo que no existe es un error de
+ * programación: se lanza con un mensaje claro. Devuelve [{ modulo (id del grupo), emoji, nombre, intro, atajos }].
  */
-export function unirAtajos(cargados) {
-  const vistos = new Map(); // id → módulo
-  const grupos = [];
-  for (const { modulo, atajos } of cargados ?? []) {
-    if (atajos == null) continue;
-    if (!Array.isArray(atajos)) throw new Error(`El módulo ${modulo} debe exportar ATAJOS como lista`);
-    const normalizados = atajos.map((atajo, i) => {
-      if (!texto(atajo?.id)) throw new Error(`El atajo ${i + 1} de ${modulo} no tiene id`);
-      if (vistos.has(atajo.id)) {
-        throw new Error(`Atajo repetido: "${atajo.id}" está en ${vistos.get(atajo.id)} y en ${modulo}`);
-      }
-      vistos.set(atajo.id, modulo);
-      if (!texto(atajo.nombre)) throw new Error(`El atajo "${atajo.id}" no tiene nombre`);
-      if (!Array.isArray(atajo.pasos) || atajo.pasos.length === 0) throw new Error(`El atajo "${atajo.id}" no tiene pasos`);
-      const automatizaciones = Array.isArray(atajo.automatizaciones)
-        ? atajo.automatizaciones
-        : atajo.automatizacion
-          ? [atajo.automatizacion]
-          : [];
-      return {
-        ...atajo,
-        modulo,
-        emoji: texto(atajo.emoji) ? atajo.emoji : "⚡",
-        para: texto(atajo.para) ? atajo.para : "",
-        requisitos: lista(atajo.requisitos),
-        automatizaciones: automatizaciones.filter((a) => a && texto(a.disparador)),
-        permisos: lista(atajo.permisos),
-        prueba: atajo.prueba && texto(atajo.prueba.ruta) ? { metodo: atajo.prueba.metodo ?? "GET", ruta: atajo.prueba.ruta } : null,
-      };
+export function agruparAtajos(atajos = ATAJOS, grupos = GRUPOS) {
+  const vistos = new Set();
+  const porGrupo = new Map(grupos.map((g) => [g.id, []]));
+  atajos.forEach((atajo, i) => {
+    if (!texto(atajo?.id)) throw new Error(`El atajo ${i + 1} no tiene id`);
+    if (vistos.has(atajo.id)) throw new Error(`Atajo repetido: "${atajo.id}"`);
+    vistos.add(atajo.id);
+    if (!texto(atajo.nombre)) throw new Error(`El atajo "${atajo.id}" no tiene nombre`);
+    if (!porGrupo.has(atajo.grupo)) throw new Error(`El atajo "${atajo.id}" está en un grupo que no existe: ${atajo.grupo}`);
+    const pasos = lista(atajo.pasos);
+    const automatizaciones = lista(atajo.automatizaciones).filter((a) => a && texto(a.disparador));
+    if (pasos.length === 0 && automatizaciones.length === 0) throw new Error(`El atajo "${atajo.id}" no tiene pasos`);
+    porGrupo.get(atajo.grupo).push({
+      ...atajo,
+      emoji: texto(atajo.emoji) ? atajo.emoji : "⚡",
+      para: texto(atajo.para) ? atajo.para : "",
+      pasos,
+      requisitos: lista(atajo.requisitos),
+      automatizaciones,
+      permisos: lista(atajo.permisos),
+      prueba: atajo.prueba && texto(atajo.prueba.ruta) ? { metodo: atajo.prueba.metodo ?? "GET", ruta: atajo.prueba.ruta } : null,
     });
-    if (normalizados.length === 0) continue;
-    const info = MODULOS.find((m) => m.id === modulo) ?? { emoji: "⚡", nombre: modulo };
-    grupos.push({ modulo, emoji: info.emoji, nombre: info.nombre, atajos: normalizados });
-  }
-  const orden = (modulo) => {
-    const i = MODULOS.findIndex((m) => m.id === modulo);
-    return i < 0 ? MODULOS.length : i;
-  };
-  return grupos.sort((a, b) => orden(a.modulo) - orden(b.modulo));
+  });
+  return grupos
+    .map((g) => ({ modulo: g.id, emoji: g.emoji, nombre: g.nombre, intro: g.intro ?? "", atajos: porGrupo.get(g.id) }))
+    .filter((g) => g.atajos.length > 0);
 }
 
-/**
- * Lee web/js/<modulo>/atajos.js de cada módulo y los une. Un archivo que no carga se omite (avisa en la consola)
- * para que el asistente siga funcionando; un id repetido sí es un error.
- */
-export async function cargarAtajos(importar = (modulo) => import(`../${modulo}/atajos.js`)) {
-  const cargados = await Promise.all(
-    MODULOS.map(async ({ id }) => {
-      try {
-        const archivo = await importar(id);
-        return { modulo: id, atajos: archivo?.ATAJOS ?? [] };
-      } catch (error) {
-        console.warn(`[conectar] no cargó ${id}/atajos.js`, error);
-        return { modulo: id, atajos: [] };
-      }
-    }),
-  );
-  return unirAtajos(cargados);
+/** Las guías agrupadas (async por compatibilidad con quien ya la usaba así). */
+export async function cargarAtajos() {
+  return agruparAtajos();
 }
 
 /** Todos los atajos en una sola lista. */

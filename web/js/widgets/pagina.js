@@ -8,6 +8,7 @@ import { cargarWidget } from "./datos.js";
 import { ejemploWidget } from "./logica.js";
 import { pintarVitrina, widgetAtajos } from "./vista.js";
 import { ATAJOS, GUIA_BLOQUEO, GUIA_SCRIPTABLE } from "./atajos.js";
+import { activarCopiar, pintarPasos } from "../piezas/guia.js";
 
 const $ = (id) => document.getElementById(id);
 const pagina = await iniciarPagina({ alReintentar: () => location.reload() });
@@ -133,25 +134,9 @@ function pintarGuias() {
       }),
     );
   cortos($("pasos-bloqueo"), GUIA_BLOQUEO);
-  const botones = ATAJOS.find((a) => a.id === "widgets-botones");
-  cortos($("pasos-atajos"), botones.pasos);
-
-  $("guias-atajos").replaceChildren(
-    ...ATAJOS.filter((a) => a.id !== "widgets-botones").map((atajo) => {
-      const guia = clonar("plantilla-guia");
-      guia.querySelector(".guia-emoji").textContent = atajo.emoji;
-      guia.querySelector(".guia-nombre").textContent = `Atajo “${atajo.nombre}”`;
-      guia.querySelector(".guia-para").textContent = atajo.para;
-      guia.querySelector(".guia-pasos").replaceChildren(
-        ...atajo.pasos.map((texto) => {
-          const li = document.createElement("li");
-          li.textContent = texto;
-          return li;
-        }),
-      );
-      return guia;
-    }),
-  );
+  const botones = ATAJOS.find((a) => a.id === "goat-botones");
+  if (botones) pintarPasos($("pasos-atajos"), botones.pasos);
+  activarCopiar($("pasos-atajos"));
 
   $("w-atajo").replaceChildren(widgetAtajos(1));
   $("w-atajos-mediano").replaceChildren(widgetAtajos(4));

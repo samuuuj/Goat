@@ -965,3 +965,27 @@
     font-size: clamp(5rem, 8.5vw, 8rem);
   }
 }
+
+/* Guías nuevas (js/piezas/guia.js): pasos como tarjetas. */
+.pasos-guia {
+  margin-top: 1rem;
+}
+
+.grupo-intro {
+  margin: -0.25rem 0 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--texto-2);
+}
+
+.retirados {
+  margin-top: 1.5rem;
+}
+
+.retirados .puntos {
+  padding: 0 1rem 1rem;
+}
+
+#atajo-guia .ga-resumen {
+  margin-top: 0;
+}

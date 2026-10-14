@@ -675,3 +675,199 @@ a.fila:active {
     transform: scale(0.9);
   }
 }
+
+/* ── Guías de atajos (js/piezas/guia.js) ───────────────────────────────── */
+/* Pensadas para leerse en el iPhone mientras armas el atajo: un paso = una tarjeta, frases cortas,
+   lo que hay que escribir en una caja con botón Copiar. */
+
+.ga-resumen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.15rem;
+  margin-top: 0.5rem;
+}
+
+.ga-resumen dt {
+  margin-top: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+}
+
+.ga-resumen dd {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--texto);
+}
+
+.ga-bloque {
+  margin-top: 1.75rem;
+}
+
+.ga-bloque-titulo {
+  margin-bottom: 0.75rem;
+}
+
+.ga-disparador {
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: var(--acento);
+}
+
+.ga-mapa {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-radius: 16px;
+  padding: 1rem 1rem 1rem 2.25rem;
+  background: var(--superficie-2);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--texto-2);
+  overflow-wrap: anywhere;
+}
+
+.ga-mapa li::marker {
+  color: var(--texto-3);
+}
+
+.ga-mapa li.dentro {
+  margin-left: 1rem;
+  color: var(--texto);
+}
+
+.ga-pasos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+}
+
+.ga-paso {
+  border-radius: 18px;
+  padding: 1rem;
+  background: var(--superficie);
+  box-shadow: inset 0 0 0 1px var(--linea);
+  overflow-wrap: anywhere;
+}
+
+.ga-paso-cabeza {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.ga-numero {
+  display: grid;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--acento);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: #000;
+}
+
+.ga-paso-titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.ga-hacer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+  padding-left: 1.1rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--texto);
+}
+
+.ga-hacer li::marker {
+  color: var(--acento);
+}
+
+.ga-escribir {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+}
+
+.ga-escribir-titulo {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+}
+
+.ga-copiable {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 12px;
+  padding: 0.35rem 0.35rem 0.35rem 0.85rem;
+  background: var(--superficie-2);
+}
+
+.ga-copiable-valor {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ga-copiable-valor[data-espacio]::after {
+  content: " ␣";
+  color: var(--texto-3);
+}
+
+.ga-copiar {
+  flex: none;
+  min-height: 2.25rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  background: var(--acento);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #000;
+  transition: transform 0.15s var(--curva), background-color 0.25s;
+}
+
+.ga-copiar:active {
+  transform: scale(0.94);
+}
+
+.ga-copiar.copiado {
+  background: var(--texto);
+}
+
+.ga-nota {
+  margin-top: 0.75rem;
+  border-left: 2px solid var(--acento);
+  padding-left: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--texto-2);
+}
+
+.ga-puntos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-left: 1.1rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}

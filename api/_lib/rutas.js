@@ -10,5 +10,6 @@ import ejercicio from "../_rutas/ejercicio.js";
 import notificaciones from "../_rutas/notificaciones.js";
 import widget from "../_rutas/widget.js";
 import conectar from "../_rutas/conectar.js";
+import asistente from "../_rutas/asistente.js";
 
-export const RUTAS = unirRutas(central, finanzas, sueno, desbloqueo, rutina, ejercicio, notificaciones, widget, conectar);
+export const RUTAS = unirRutas(central, finanzas, sueno, desbloqueo, rutina, ejercicio, notificaciones, widget, conectar, asistente);

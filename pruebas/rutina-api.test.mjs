@@ -234,3 +234,29 @@ test("las consultas de rutina y tareas siempre van filtradas por el usuario", as
   for (const l of deDatos) if (l.metodo === "GET") assert.match(l.ruta, new RegExp(`user_id=eq.${A}`));
   for (const l of deDatos.filter((x) => x.metodo === "POST")) assert.match(l.ruta, /on_conflict=bloque_id%2Cfecha/);
 });
+
+test("POST rutina/plan: alerta en minutos desde ahora, solo futuras y una vez al día", async () => {
+  const falso = base();
+  const token = await conToken(falso);
+  const ahora = a(MARTES, "06:20");
+  const r = await llamar(falso, "POST rutina/plan", { token, cuerpo: {}, ahora });
+  assert.equal(r.estado, 200);
+  const { recordatorios } = r.cuerpo.datos;
+  assert.ok(recordatorios.length > 3);
+  for (const b of recordatorios) {
+    assert.ok(Date.parse(b.alerta) > ahora.getTime(), `alerta pasada: ${b.titulo}`);
+    assert.equal(b.en_minutos, Math.round((Date.parse(b.alerta) - ahora.getTime()) / 60_000), b.titulo);
+  }
+  // Minutos distintos: cada recordatorio suena a su hora, no todos juntos.
+  assert.equal(new Set(recordatorios.map((b) => b.en_minutos)).size, recordatorios.length);
+
+  const otraVez = await llamar(falso, "POST rutina/plan", { token, cuerpo: {}, ahora: a(MARTES, "06:25") });
+  assert.deepEqual(otraVez.cuerpo.datos.recordatorios, []);
+  assert.equal(otraVez.cuerpo.datos.ya_estaba, true);
+
+  const repetir = await llamar(falso, "POST rutina/plan", { token, cuerpo: { repetir: true }, ahora: a(MARTES, "06:25") });
+  assert.ok(repetir.cuerpo.datos.recordatorios.length > 0);
+
+  const manana = await llamar(falso, "POST rutina/plan", { token, cuerpo: {}, ahora: a("2026-10-07", "06:20") });
+  assert.ok(manana.cuerpo.datos.recordatorios.length > 0);
+});

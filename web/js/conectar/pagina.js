@@ -4,7 +4,7 @@
 // El token solo vive en memoria de esta página: no va a localStorage ni a la base (allá solo está su hash).
 //
 // Rutas: #paso-<id> (asistente en ese paso) · #asistente (desde el principio) · #ajustes ·
-//        sin nada: el asistente si no lo has terminado, Ajustes si ya.
+//        #atajo-<id> (la guía de ese atajo abierta) · sin nada: el asistente si no lo has terminado, Ajustes si ya.
 
 import { iniciarPagina } from "../piezas/pagina.js";
 import { alVerse, avisar, clonar } from "../piezas/ui.js";
@@ -15,7 +15,8 @@ import { leerMetas } from "../logica/calculo.js";
 import { APPS_FIJAS, APP_VALIDA, MAX_JUEGOS, MAX_NOMBRE_JUEGO, ajustesDesbloqueo, slugApp } from "../desbloqueo/logica.js";
 import { guardarDesbloqueo } from "../desbloqueo/datos.js";
 import { marcarDispositivo } from "./bienvenida.js";
-import { ATAJOS as ATAJOS_BASE } from "./atajos.js";
+import { ATAJOS as GUIAS, RETIRADOS } from "./guias.js";
+import { activarCopiar, pintarGuia, pintarPasos } from "../piezas/guia.js";
 import { PASOS, PERMISOS, indicePaso } from "./pasos.js";
 import {
   cargarConectar,
@@ -104,6 +105,10 @@ function enrutar() {
   if (hash === "ajustes") return mostrarAjustes();
   if (hash === "asistente") return mostrarAsistente(0);
   if (hash.startsWith("paso-")) return mostrarAsistente(indicePaso(hash.slice(5)));
+  if (hash.startsWith("atajo-")) {
+    mostrarAsistente(indicePaso("atajos"));
+    return abrirAtajo(hash.slice(6));
+  }
   return terminado() ? mostrarAjustes() : mostrarAsistente(0);
 }
 
@@ -174,9 +179,11 @@ function pintarPaso(id) {
 /** Lo que no cambia: permisos, pasos de los atajos base y la dirección de Goat. */
 function pintarFijos() {
   $("url-goat").value = urlBase(location.origin);
-  const base = Object.fromEntries(ATAJOS_BASE.map((a) => [a.id, a]));
-  llenarLista($("pasos-goat"), base["conectar-goat"]?.pasos ?? []);
-  llenarLista($("pasos-probar"), base["conectar-probar"]?.pasos ?? []);
+  const guia = Object.fromEntries(GUIAS.map((a) => [a.id, a]));
+  pintarPasos($("pasos-goat"), guia["conectar-goat"]?.pasos ?? []);
+  pintarPasos($("pasos-probar"), guia["conectar-probar"]?.pasos ?? []);
+  activarCopiar($("asistente"));
+  pintarRetirados();
 
   $("permisos-lista").replaceChildren(
     ...PERMISOS.map((permiso, i) => {
@@ -191,6 +198,11 @@ function pintarFijos() {
       return item;
     }),
   );
+}
+
+/** Atajos viejos que ya hace «🐐 Goat»: para que no queden repetidos en el iPhone. */
+function pintarRetirados() {
+  llenarLista($("retirados-lista"), RETIRADOS.map((r) => `${r.nombre}: ${r.motivo}`));
 }
 
 function llenarLista(lista, textos) {
@@ -329,6 +341,7 @@ function pintarAtajos() {
       const caja = clonar("plantilla-grupo");
       const hechos = grupo.atajos.filter((a) => marcados[a.id] === true).length;
       caja.querySelector(".grupo-nombre").textContent = `${grupo.emoji} ${grupo.nombre}`;
+      caja.querySelector(".grupo-intro").textContent = grupo.intro;
       caja.querySelector(".grupo-cuenta").textContent = `${hechos} de ${grupo.atajos.length}`;
       caja.querySelector(".grupo-lista").replaceChildren(
         ...grupo.atajos.map((atajo) => {
@@ -377,23 +390,8 @@ function abrirAtajo(id) {
   $("hoja").classList.add("con-acciones");
   $("hoja-emoji").textContent = atajo.emoji;
   $("hoja-titulo").textContent = `${atajo.nombre}.`;
-  $("atajo-para").textContent = atajo.para;
 
-  const requisitos = $("atajo-requisitos");
-  requisitos.hidden = atajo.requisitos.length === 0;
-  llenarLista(requisitos.querySelector(".puntos"), atajo.requisitos);
-
-  llenarLista($("atajo-pasos"), atajo.pasos);
-
-  $("atajo-autos").replaceChildren(
-    ...atajo.automatizaciones.map((auto, i, todas) => {
-      const caja = clonar("plantilla-auto");
-      caja.querySelector(".auto-etiqueta").textContent = todas.length > 1 ? `Automatización ${i + 1} de ${todas.length}` : "Automatización";
-      caja.querySelector(".auto-disparador").textContent = auto.disparador;
-      llenarLista(caja.querySelector(".pasos-lista"), Array.isArray(auto.pasos) ? auto.pasos : []);
-      return caja;
-    }),
-  );
+  pintarGuia($("atajo-guia"), atajo);
 
   const permisos = $("atajo-permisos");
   permisos.hidden = atajo.permisos.length === 0;

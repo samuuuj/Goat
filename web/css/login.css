@@ -1,8 +1,11 @@
 /* Goat · pantalla de entrada (login.html). */
 
+/* La columna nunca pasa del ancho de la pantalla: sin minmax(0, …) la columna crecía con "GOAT." y en el
+   iPhone todo quedaba corrido a la derecha y cortado (el titular se medía antes de cargar la letra). */
 .login {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-height: 100svh;
   overflow: hidden;
 }
@@ -11,6 +14,7 @@
 
 .login-marca {
   position: relative;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   padding: calc(var(--arriba) + 14px) 1.25rem 0;
@@ -78,6 +82,7 @@
 
 .login-formulario {
   position: relative;
+  min-width: 0;
   display: flex;
   align-items: flex-end;
   padding: 2.5rem 1.25rem calc(var(--abajo) + 24px);
@@ -278,7 +283,7 @@
 
 @media (min-width: 64rem) {
   .login {
-    grid-template-columns: 1.15fr 1fr;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   }
 
   .login-marca {

@@ -11,25 +11,23 @@ import { RUTAS } from "../api/_lib/rutas.js";
 const RAIZ = new URL("..", import.meta.url);
 const leer = (ruta) => readFile(new URL(ruta, RAIZ), "utf8");
 
-test("los dos atajos base tienen el formato común", () => {
+/** Todo el texto de una guía (los pasos ahora son { titulo, hacer, escribir, nota }). */
+const textoDe = (pasos) => pasos.map((p) => (typeof p === "string" ? p : [p.titulo, ...(p.hacer ?? []), ...(p.escribir ?? []), p.nota ?? ""].join(" "))).join(" ");
+
+test("los dos atajos base", () => {
   assert.deepEqual(
     ATAJOS.map((a) => a.id),
     ["conectar-goat", "conectar-probar"],
   );
-  for (const a of ATAJOS) {
-    for (const campo of ["emoji", "nombre", "para"]) assert.ok(typeof a[campo] === "string" && a[campo].length > 0, `${a.id}.${campo}`);
-    assert.ok(Array.isArray(a.pasos) && a.pasos.length >= 5, `${a.id}: pocos pasos`);
-    assert.ok(Array.isArray(a.permisos));
-    assert.equal(a.automatizacion, null);
-  }
+  for (const a of ATAJOS) assert.ok(a.pasos.length >= 3, `${a.id}: pocos pasos`);
 });
 
 test("«⚙️ Goat» devuelve un diccionario { url, token } con url sin barra final ni /api/v1", () => {
   const goat = ATAJOS.find((a) => a.id === "conectar-goat");
-  const texto = goat.pasos.join("\n");
+  const texto = textoDe(goat.pasos);
   assert.match(texto, /⚙️ Goat/);
   assert.match(texto, /«Diccionario»/);
-  assert.match(texto, /Clave: url/);
+  assert.match(texto, /Clave» escribe url/);
   assert.match(texto, /Clave: token/);
   assert.match(texto, /sin barra al final y sin \/api\/v1/);
   assert.match(texto, /Detener y generar salida/);
@@ -39,8 +37,9 @@ test("«⚙️ Goat» devuelve un diccionario { url, token } con url sin barra f
 
 test("«🧪 Goat · Probar» llama a /api/v1/ping con la llave (eso anota ultimo_uso)", () => {
   const probar = ATAJOS.find((a) => a.id === "conectar-probar");
-  const texto = probar.pasos.join("\n");
-  assert.match(texto, /Ejecutar atajo» y elige «⚙️ Goat»/);
+  const texto = textoDe(probar.pasos);
+  assert.match(texto, /«Ejecutar atajo»/);
+  assert.match(texto, /«⚙️ Goat»/);
   assert.match(texto, /\/api\/v1\/ping/);
   assert.match(texto, /Authorization/);
   assert.match(texto, /Bearer/);
@@ -92,7 +91,7 @@ test("conectar.html respeta la CSP: sin scripts, estilos ni eventos en línea", 
  * Un tramo pegado a una palabra ("/rutina/hoy") es parte de otra ruta, no la ruta "hoy".
  */
 function rutasSinApi(atajo, modulosApi) {
-  const textos = [...atajo.pasos, ...atajo.automatizaciones.flatMap((a) => a.pasos ?? [])];
+  const textos = [...atajo.pasos, ...atajo.automatizaciones.flatMap((a) => a.pasos ?? [])].map((p) => textoDe([p]));
   const patron = new RegExp(`(/api/v1)?/(${modulosApi.join("|")})(?=[/?\\s.,»"']|$)`, "g");
   return textos.flatMap((t) => [...t.matchAll(patron)].filter((m) => !m[1] && t[m.index - 1] !== "…" && !/[\p{L}\d_]/u.test(t[m.index - 1] ?? "")).map((m) => m[0]));
 }

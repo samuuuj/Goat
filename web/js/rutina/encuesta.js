@@ -3,7 +3,21 @@
 // Todo se dibuja con createElement + textContent (CSP estricta: nada de innerHTML ni estilos en línea).
 
 import { chips } from "../piezas/chips.js";
-import { DIAS, ENCUESTA_BASE, aHora, aMinutos, bloquesDelDia, choques, duracionTexto, emojiDe, enlaceSeguro, generarPlantilla, textoDias } from "./logica.js";
+import {
+  DIAS,
+  ENCUESTA_BASE,
+  aHora,
+  aMinutos,
+  bloquesDelDia,
+  choques,
+  duracionTexto,
+  emojiDe,
+  enlaceSeguro,
+  generarPlantilla,
+  inicioTrabajo,
+  mananaEnOrden,
+  textoDias,
+} from "./logica.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -310,7 +324,7 @@ const PASOS = [
     pintar() {
       const lista = el("ul", "encuesta-indice");
       for (const [emoji, texto] of [
-        ["⏰", "Levantarte, caminar y desayunar"],
+        ["⏰", "Tu mañana en orden: levantarte, caminar, desayunar y bañarte"],
         ["🎯", "Trabajo útil con pausas"],
         ["🏋️", "Comidas, ejercicio y estudio"],
         ["🏫", "Clases presenciales y virtuales"],
@@ -345,9 +359,9 @@ const PASOS = [
   {
     id: "caminata",
     titulo: "¿Caminas al despertar?",
-    ayuda: "Queda como obligatoria: es lo primero que te activa.",
+    ayuda: "Queda como obligatoria: es lo primero que te activa. Cuenta la ida y la vuelta a casa.",
     pintar(r) {
-      const minutos = dependiente([campoMinutos("Cuánto", r.caminata.minutos, (m) => (r.caminata.minutos = m), { min: 10, max: 120, rapidas: [20, 30, 45, 60] })], () => r.caminata.activa);
+      const minutos = dependiente([campoMinutos("¿Cuánto te demoras caminando, ida y vuelta?", r.caminata.minutos, (m) => (r.caminata.minutos = m), { min: 10, max: 120, rapidas: [20, 30, 45, 60] })], () => r.caminata.activa);
       return [
         siNo("¿Caminas al despertar?", r.caminata.activa, (v) => {
           r.caminata.activa = v;
@@ -359,22 +373,44 @@ const PASOS = [
   },
   {
     id: "desayuno",
-    titulo: "Desayuno.",
-    ayuda: "Preparar y comer, sin afán. Va justo después de caminar.",
+    titulo: "Desayuno y baño.",
+    ayuda: "Van en orden: al volver de caminar preparas el desayuno, desayunas y te bañas. Cada cosa empieza cuando termina la anterior.",
     pintar(r) {
-      return [
-        campoMinutos("Preparar", r.desayuno.preparar, (m) => (r.desayuno.preparar = m), { min: 0, max: 60, rapidas: [0, 10, 15, 20] }),
-        campoMinutos("Comer", r.desayuno.comer, (m) => (r.desayuno.comer = m), { min: 10, max: 60, rapidas: [15, 20, 30] }),
+      const resumen = el("p", "campo-ayuda");
+      const pintarResumen = () => {
+        const { fin } = mananaEnOrden(r, aMinutos(r.despertar.habil) ?? 360);
+        resumen.textContent = `Entre semana terminas tu mañana a las ${aHora(fin)}. Ahí empieza tu trabajo útil.`;
+      };
+      const con = (fn) => (m) => {
+        fn(m);
+        pintarResumen();
+      };
+      const bano = dependiente(
+        [campoMinutos("¿Cuánto te demoras bañándote y vistiéndote?", r.bano.minutos, con((m) => (r.bano.minutos = m)), { min: 5, max: 60, rapidas: [10, 15, 20, 30] })],
+        () => r.bano.activo,
+      );
+      const nodos = [
+        campoMinutos("¿Cuánto te demoras preparando el desayuno?", r.desayuno.preparar, con((m) => (r.desayuno.preparar = m)), { min: 0, max: 60, rapidas: [0, 10, 15, 20] }),
+        campoMinutos("¿Cuánto te demoras desayunando?", r.desayuno.comer, con((m) => (r.desayuno.comer = m)), { min: 10, max: 60, rapidas: [15, 20, 30] }),
+        siNo("¿Te bañas después de desayunar?", r.bano.activo, (v) => {
+          r.bano.activo = v;
+          bano.actualizar();
+          pintarResumen();
+        }, { emoji: "🚿", titulo: "Sí, me baño" }, { emoji: "⏭️", titulo: "En otro momento" }),
+        bano.caja,
+        resumen,
       ];
+      pintarResumen();
+      return nodos;
     },
   },
   {
     id: "trabajo",
     titulo: "Trabajo útil.",
-    ayuda: "Bloques de foco con pausas en medio. Si un día tienes clase a esa hora, Goat lo corre solo.",
+    ayuda: "Bloques de foco con pausas en medio. Empieza solo cuando terminas tu mañana; si un día tienes clase a esa hora, Goat lo corre.",
     pintar(r) {
       const horas = el("div", "campo-encuesta");
-      horas.append(el("p", "etiqueta", "Cuántas horas"));
+      horas.append(el("p", "etiqueta", "¿Cuántas horas de trabajo útil al día?"));
       const fila = el("div", "chips");
       fila.setAttribute("role", "radiogroup");
       fila.setAttribute("aria-label", "Cuántas horas");
@@ -382,8 +418,11 @@ const PASOS = [
       selector.opciones([2, 3, 4, 5, 6].map((h) => ({ valor: String(h), texto: `${h} h` })));
       selector.poner(String(r.trabajo.horas));
       horas.append(fila);
+      const desde = el("div", "campo-encuesta");
+      desde.append(el("p", "etiqueta", "Empieza a las"), el("p", "titular cifras hora-grande", inicioTrabajo(r)));
+      desde.append(el("p", "campo-ayuda", "Justo cuando terminas tu mañana (levantarte, caminar, desayunar y bañarte). Si cambias esos tiempos, se corre solo."));
       return [
-        campoHora("Desde", r.trabajo.inicio, (v) => (r.trabajo.inicio = v), ["07:30", "08:00", "08:30", "09:00"]),
+        desde,
         horas,
         campoOpciones(
           "Ritmo",
@@ -394,18 +433,18 @@ const PASOS = [
           r.trabajo.ritmo,
           (v) => (r.trabajo.ritmo = v),
         ),
-        campoDias("Qué días", r.trabajo.dias, (d) => (r.trabajo.dias = d)),
+        campoDias("¿Qué días?", r.trabajo.dias, (d) => (r.trabajo.dias = d)),
       ];
     },
   },
   {
     id: "almuerzo",
     titulo: "Almuerzo.",
-    ayuda: "Una hora fija ayuda a no saltártelo.",
+    ayuda: "Una hora fija ayuda a no saltártelo. No lo preparas tú, así que no lleva tiempo de cocina. Si a esa hora tienes clase virtual, puedes almorzar en clase: no es choque.",
     pintar(r) {
       return [
-        campoHora("A qué hora", r.almuerzo.hora, (v) => (r.almuerzo.hora = v), ["12:00", "12:30", "13:00"]),
-        campoMinutos("Cuánto", r.almuerzo.minutos, (m) => (r.almuerzo.minutos = m), { min: 15, max: 120, rapidas: [30, 45, 60] }),
+        campoHora("¿A qué hora almuerzas?", r.almuerzo.hora, (v) => (r.almuerzo.hora = v), ["12:00", "12:30", "13:00"]),
+        campoMinutos("¿Cuánto te demoras almorzando?", r.almuerzo.minutos, (m) => (r.almuerzo.minutos = m), { min: 15, max: 120, rapidas: [30, 45, 60] }),
       ];
     },
   },
@@ -416,9 +455,9 @@ const PASOS = [
     pintar(r) {
       const detalle = dependiente(
         [
-          campoDias("Qué días", r.ejercicio.dias, (d) => (r.ejercicio.dias = d)),
-          campoHora("A qué hora", r.ejercicio.hora, (v) => (r.ejercicio.hora = v), ["06:30", "17:00", "18:00", "19:00"]),
-          campoMinutos("Cuánto", r.ejercicio.minutos, (m) => (r.ejercicio.minutos = m), { min: 15, max: 180, rapidas: [45, 60, 90] }),
+          campoDias("¿Qué días entrenas?", r.ejercicio.dias, (d) => (r.ejercicio.dias = d)),
+          campoHora("¿A qué hora empiezas?", r.ejercicio.hora, (v) => (r.ejercicio.hora = v), ["06:30", "17:00", "18:00", "19:00"]),
+          campoMinutos("¿Cuánto dura tu entreno?", r.ejercicio.minutos, (m) => (r.ejercicio.minutos = m), { min: 15, max: 180, rapidas: [45, 60, 90] }),
           interruptor("Obligatorio", "Si no lo marcas 30 min después de terminar, aparece en lo que falta.", r.ejercicio.obligatorio !== false, (v) => (r.ejercicio.obligatorio = v)),
         ],
         () => r.ejercicio.activo,
@@ -435,15 +474,16 @@ const PASOS = [
   {
     id: "cena",
     titulo: "Cena y caminata.",
-    ayuda: "Una caminata corta después de cenar también queda como obligatoria.",
+    ayuda: "La cena la cocinas tú: Goat te aparta el rato de prepararla antes. Una caminata corta después de cenar queda como obligatoria.",
     pintar(r) {
       const caminata = dependiente(
-        [campoMinutos("Cuánto caminas", r.caminataNoche.minutos, (m) => (r.caminataNoche.minutos = m), { min: 10, max: 90, rapidas: [15, 20, 30] })],
+        [campoMinutos("¿Cuánto caminas después de cenar?", r.caminataNoche.minutos, (m) => (r.caminataNoche.minutos = m), { min: 10, max: 90, rapidas: [15, 20, 30] })],
         () => r.caminataNoche.activa,
       );
       return [
-        campoHora("Cena", r.cena.hora, (v) => (r.cena.hora = v), ["18:30", "19:00", "19:30", "20:00"]),
-        campoMinutos("Cuánto", r.cena.minutos, (m) => (r.cena.minutos = m), { min: 15, max: 90, rapidas: [20, 30, 45] }),
+        campoHora("¿A qué hora te sientas a cenar?", r.cena.hora, (v) => (r.cena.hora = v), ["18:30", "19:00", "19:30", "20:00"]),
+        campoMinutos("¿Cuánto te demoras preparando la cena?", r.cena.preparar ?? 20, (m) => (r.cena.preparar = m), { min: 0, max: 60, rapidas: [0, 15, 20, 30] }),
+        campoMinutos("¿Cuánto te demoras cenando?", r.cena.minutos, (m) => (r.cena.minutos = m), { min: 15, max: 90, rapidas: [20, 30, 45] }),
         siNo("¿Caminas después de cenar?", r.caminataNoche.activa, (v) => {
           r.caminataNoche.activa = v;
           caminata.actualizar();
@@ -459,9 +499,9 @@ const PASOS = [
     pintar(r) {
       const detalle = dependiente(
         [
-          campoDias("Qué días", r.estudio.dias, (d) => (r.estudio.dias = d)),
-          campoHora("A qué hora", r.estudio.hora, (v) => (r.estudio.hora = v), ["19:00", "20:00", "21:00"]),
-          campoMinutos("Cuánto", r.estudio.minutos, (m) => (r.estudio.minutos = m), { min: 25, max: 240, rapidas: [50, 90, 120] }),
+          campoDias("¿Qué días estudias?", r.estudio.dias, (d) => (r.estudio.dias = d)),
+          campoHora("¿A qué hora empiezas?", r.estudio.hora, (v) => (r.estudio.hora = v), ["19:00", "20:00", "21:00"]),
+          campoMinutos("¿Cuánto estudias?", r.estudio.minutos, (m) => (r.estudio.minutos = m), { min: 25, max: 240, rapidas: [50, 90, 120] }),
         ],
         () => r.estudio.activo,
       );
@@ -575,6 +615,10 @@ function vistaPrevia(filas) {
 export function abrirEncuesta({ respuestas = null, reemplaza = false, alCrear }) {
   const r = structuredClone({ ...ENCUESTA_BASE, ...(respuestas ?? {}) });
   for (const clave of ["clasesPresenciales", "clasesVirtuales", "trabajosUni"]) r[clave] = Array.isArray(r[clave]) ? r[clave] : [];
+  // El trabajo útil ya no se pregunta: empieza cuando termina la mañana (una hora vieja guardada no manda).
+  r.trabajo = { ...ENCUESTA_BASE.trabajo, ...r.trabajo, inicio: null };
+  r.bano = { ...ENCUESTA_BASE.bano, ...r.bano };
+  r.cena = { ...ENCUESTA_BASE.cena, ...r.cena };
 
   const caja = $("encuesta");
   const cuerpo = $("encuesta-cuerpo");

@@ -10,6 +10,7 @@ import { sumarDias } from "../logica/calculo.js";
 import { cargarSueno, guardarEvento, guardarMetas } from "./datos.js";
 import { NOMBRE_FUENTE, duracionCorta, horaDe, momentoDesdeHora, resumenSueno } from "./logica.js";
 import { ATAJOS } from "./atajos.js";
+import { pintarGuia } from "../piezas/guia.js";
 
 const $ = (id) => document.getElementById(id);
 const HORA_MS = 3_600_000;
@@ -374,16 +375,6 @@ function pintarEstado() {
   $("estado-salud").textContent = salud?.creado_en ? cuando(salud.creado_en) : "Todavía no. Llega con ☀️ Desperté.";
 }
 
-function llenarLista(lista, textos) {
-  lista.replaceChildren(
-    ...textos.map((texto) => {
-      const item = clonar("plantilla-item");
-      item.textContent = texto;
-      return item;
-    }),
-  );
-}
-
 function pintarGuias() {
   $("guias").replaceChildren(
     ...ATAJOS.map((atajo) => {
@@ -391,24 +382,7 @@ function pintarGuias() {
       guia.querySelector(".guia-emoji").textContent = atajo.emoji;
       guia.querySelector(".guia-nombre").textContent = atajo.nombre;
       guia.querySelector(".guia-para").textContent = atajo.para;
-      const requisitos = atajo.requisitos ?? [];
-      guia.querySelector(".guia-requisitos-bloque").hidden = requisitos.length === 0;
-      llenarLista(guia.querySelector(".guia-requisitos"), requisitos);
-      llenarLista(guia.querySelector(".guia-pasos"), atajo.pasos);
-
-      const automatizaciones = atajo.automatizaciones ?? (atajo.automatizacion ? [atajo.automatizacion] : []);
-      guia.querySelector(".guia-automatizaciones").replaceChildren(
-        ...automatizaciones.map((auto) => {
-          const bloque = clonar("plantilla-automatizacion");
-          bloque.querySelector(".guia-disparador").textContent = auto.disparador;
-          llenarLista(bloque.querySelector(".guia-pasos"), auto.pasos);
-          return bloque;
-        }),
-      );
-
-      const permisos = atajo.permisos ?? [];
-      guia.querySelector(".guia-permisos-bloque").hidden = permisos.length === 0;
-      llenarLista(guia.querySelector(".guia-permisos"), permisos);
+      pintarGuia(guia.querySelector(".atajo-guia"), atajo, { conPara: false });
       return guia;
     }),
   );

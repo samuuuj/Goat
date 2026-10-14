@@ -284,7 +284,21 @@ export function duracionTexto(minutos) {
 
 // ── Choques de horario ───────────────────────────────────────────────────
 
-/** Pares de bloques que se cruzan algún día: [{ a, b, dias, desde, hasta }]. Tocarse (fin = inicio) no es choque. */
+/**
+ * Cruces que tienen sentido y no se avisan: en una clase virtual puedes comer en casa (falla 12).
+ * Pares de tipos, en cualquier orden.
+ */
+export const CRUCES_PERMITIDOS = [
+  ["clase_virtual", "almuerzo"],
+  ["clase_virtual", "desayuno"],
+  ["clase_virtual", "cena"],
+];
+const cruceNormal = (a, b) => CRUCES_PERMITIDOS.some(([x, y]) => (a.tipo === x && b.tipo === y) || (a.tipo === y && b.tipo === x));
+
+/**
+ * Pares de bloques que se cruzan algún día: [{ a, b, dias, desde, hasta }]. Tocarse (fin = inicio) no es choque,
+ * ni los cruces permitidos (comer durante una clase virtual).
+ */
 export function choques(bloques) {
   const activos = bloques.filter((b) => b.activo !== false && b.tipo !== "libre").map((b) => ({ ...b, ...minutosDe(b) }));
   const lista = [];
@@ -292,6 +306,7 @@ export function choques(bloques) {
     for (let j = i + 1; j < activos.length; j++) {
       const a = activos[i];
       const b = activos[j];
+      if (cruceNormal(a, b)) continue;
       const dias = (a.dias ?? []).map(Number).filter((d) => (b.dias ?? []).map(Number).includes(d));
       if (dias.length === 0) continue;
       const desde = Math.max(a.inicioMin, b.inicioMin);
@@ -309,10 +324,12 @@ export const ENCUESTA_BASE = {
   despertar: { habil: "06:00", finDeSemana: null }, // null = la misma hora todos los días
   caminata: { activa: true, minutos: 45 },
   desayuno: { preparar: 20, comer: 20 },
-  trabajo: { activo: true, inicio: "08:00", horas: 4, ritmo: "50/10", dias: HABILES },
+  bano: { activo: true, minutos: 20 },
+  // inicio null = justo cuando termina la mañana (falla 10: no se pregunta suelto, se calcula).
+  trabajo: { activo: true, inicio: null, horas: 4, ritmo: "50/10", dias: HABILES },
   almuerzo: { hora: "12:30", minutos: 60 },
   ejercicio: { activo: true, dias: HABILES, hora: "17:00", minutos: 60, obligatorio: true },
-  cena: { hora: "19:00", minutos: 30 },
+  cena: { hora: "19:00", minutos: 30, preparar: 20 }, // Samuel cocina desayuno y cena; el almuerzo no (falla 13).
   caminataNoche: { activa: true, minutos: 20 },
   estudio: { activo: true, dias: HABILES, hora: "20:00", minutos: 90 },
   clasesPresenciales: [], // [{ materia, dias, inicio, fin, lugar }]
@@ -349,6 +366,35 @@ function duracionEntre(inicio, fin) {
 }
 
 /**
+ * La mañana en orden, cada cosa cuando termina la anterior (falla 10):
+ * levantarte (10 min) → caminar (ida y vuelta) → preparar desayuno → desayunar → bañarte.
+ * Devuelve [{ titulo, tipo, inicio, minutos, obligatorio }] desde la hora de levantarse.
+ */
+export function mananaEnOrden(r, despertar) {
+  const pasos = [];
+  let t = despertar;
+  const poner = (titulo, tipo, minutos, obligatorio = false) => {
+    pasos.push({ titulo, tipo, inicio: t, minutos, obligatorio });
+    t += minutos;
+  };
+  poner("Levantarte", "despertar", 10);
+  if (r.caminata?.activa) poner("Caminar", "caminar", entre(r.caminata.minutos, 5, 180, 45), true);
+  const preparar = entre(r.desayuno?.preparar ?? 20, 0, 120, 20);
+  if (preparar >= 5) poner("Preparar desayuno", "desayuno", preparar);
+  poner("Desayunar", "desayuno", entre(r.desayuno?.comer ?? 20, 5, 120, 20));
+  if (r.bano?.activo !== false && r.bano) poner("Bañarte", "otro", entre(r.bano.minutos, 5, 90, 20));
+  return { pasos, fin: t };
+}
+
+/** A qué hora empieza el trabajo útil: la elegida a mano, o cuando termina tu mañana de semana. */
+export function inicioTrabajo(respuestas = {}) {
+  const r = { ...ENCUESTA_BASE, ...respuestas };
+  const manual = aMinutos(r.trabajo?.inicio);
+  if (manual !== null) return aHora(manual);
+  return aHora(mananaEnOrden(r, aMinutos(r.despertar?.habil) ?? 360).fin);
+}
+
+/**
  * Arma la plantilla semanal a partir de las respuestas de la encuesta.
  * Primero los bloques fijos (mañana, comidas, ejercicio, clases, trabajos de la U, estudio, dormir) y después
  * el trabajo útil en ciclos (50/10 o 25/5) que se salta solo los ratos en que hay otra cosa ese día.
@@ -375,26 +421,14 @@ export function generarPlantilla(respuestas = {}) {
     });
   };
 
-  // Mañana: levantarse → caminar → preparar desayuno → desayunar. Si el fin de semana te levantas a otra hora, va aparte.
+  // Mañana en orden (mananaEnOrden). Si el fin de semana te levantas a otra hora, va aparte.
   const habil = aMinutos(r.despertar?.habil) ?? 360;
   const finde = aMinutos(r.despertar?.finDeSemana);
   const grupos = finde === null || finde === habil ? [[TODOS, habil]] : [[HABILES, habil], [[6, 7], finde]];
   for (const [dias, hora] of grupos) {
-    let t = hora;
-    agregar({ titulo: "Levantarte", tipo: "despertar", dias, hora_inicio: aHora(t), duracion_min: 10 });
-    t += 10;
-    if (r.caminata?.activa) {
-      const min = entre(r.caminata.minutos, 5, 180, 45);
-      agregar({ titulo: "Caminar", tipo: "caminar", dias, hora_inicio: aHora(t), duracion_min: min, obligatorio: true });
-      t += min;
+    for (const paso of mananaEnOrden(r, hora).pasos) {
+      agregar({ titulo: paso.titulo, tipo: paso.tipo, dias, hora_inicio: aHora(paso.inicio), duracion_min: paso.minutos, obligatorio: paso.obligatorio });
     }
-    const preparar = entre(r.desayuno?.preparar ?? 20, 0, 120, 20);
-    const comer = entre(r.desayuno?.comer ?? 20, 5, 120, 20);
-    if (preparar >= 5) {
-      agregar({ titulo: "Preparar desayuno", tipo: "desayuno", dias, hora_inicio: aHora(t), duracion_min: preparar });
-      t += preparar;
-    }
-    agregar({ titulo: "Desayunar", tipo: "desayuno", dias, hora_inicio: aHora(t), duracion_min: comer });
   }
 
   agregar({ titulo: "Almuerzo", tipo: "almuerzo", dias: TODOS, hora_inicio: r.almuerzo?.hora ?? "12:30", duracion_min: r.almuerzo?.minutos ?? 60 });
@@ -413,6 +447,10 @@ export function generarPlantilla(respuestas = {}) {
 
   const cena = aMinutos(r.cena?.hora) ?? 1140;
   const minCena = entre(r.cena?.minutos ?? 30, 5, 120, 30);
+  const prepararCena = entre(r.cena?.preparar ?? 0, 0, 120, 0);
+  if (prepararCena >= 5) {
+    agregar({ titulo: "Preparar cena", tipo: "cena", dias: TODOS, hora_inicio: aHora(cena - prepararCena), duracion_min: prepararCena });
+  }
   agregar({ titulo: "Cena", tipo: "cena", dias: TODOS, hora_inicio: aHora(cena), duracion_min: minCena });
   if (r.caminataNoche?.activa) {
     agregar({
@@ -471,7 +509,7 @@ export function generarPlantilla(respuestas = {}) {
 
   agregar({ titulo: "A dormir", tipo: "dormir", dias: TODOS, hora_inicio: r.dormir?.hora ?? "22:00", duracion_min: 15 });
 
-  const trabajo = r.trabajo?.activo ? bloquesDeTrabajo(r.trabajo, fijos) : [];
+  const trabajo = r.trabajo?.activo ? bloquesDeTrabajo({ ...r.trabajo, inicio: inicioTrabajo(r) }, fijos) : [];
   return [...fijos, ...trabajo]
     .map((b) => ({ ...b, ...minutosDe(b) }))
     .sort((a, b) => a.inicioMin - b.inicioMin || a.dias[0] - b.dias[0])

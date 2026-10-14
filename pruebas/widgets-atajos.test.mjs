@@ -9,25 +9,13 @@ import { RUTAS } from "../api/_lib/rutas.js";
 
 const leer = (ruta) => readFileSync(new URL(`../${ruta}`, import.meta.url), "utf8");
 
-test("los atajos de Widgets tienen el formato común y su ruta de prueba existe", () => {
-  assert.deepEqual(ATAJOS.map((a) => a.id), ["widgets-comi", "widgets-estudio", "widgets-botones"]);
-  for (const atajo of ATAJOS) {
-    for (const campo of ["id", "emoji", "nombre", "para"]) assert.equal(typeof atajo[campo], "string", `${atajo.id}.${campo}`);
-    assert.ok(atajo.pasos.length >= 3 && atajo.pasos.every((p) => typeof p === "string" && p.length > 10), atajo.id);
-    assert.ok(Array.isArray(atajo.permisos));
-    assert.equal(atajo.automatizacion, null);
-    assert.ok(RUTAS[`${atajo.prueba.metodo} ${atajo.prueba.ruta}`], `${atajo.id}: ruta de prueba inexistente`);
-    assert.doesNotMatch(JSON.stringify(atajo), /sb_secret_|service_role|\$\s?\d/);
-  }
-  // Los dos atajos que abren una hoja usan el atajo base y una acción que Hoy entiende.
-  for (const [id, accion] of [["widgets-comi", "comida"], ["widgets-estudio", "estudio"]]) {
-    const pasos = ATAJOS.find((a) => a.id === id).pasos.join(" ");
-    assert.match(pasos, /⚙️ Goat/);
-    assert.match(pasos, new RegExp(`/index\\.html#registrar=${accion}`));
-  }
-  assert.equal(BOTONES_ATAJOS.length, 4);
+test("Widgets: botones directos de 🐐 Goat, guía de Scriptable y de la pantalla bloqueada", () => {
+  assert.deepEqual(ATAJOS.map((a) => a.id), ["goat-botones"]);
+  assert.deepEqual(BOTONES_ATAJOS.map((b) => b.nombre), ["Dinero", "Comí", "Terminé", "¿Qué hago?"]);
   assert.equal(GUIA_SCRIPTABLE.length, 5);
   assert.ok(GUIA_BLOQUEO.length >= 3);
+  assert.doesNotMatch(JSON.stringify({ ATAJOS, GUIA_SCRIPTABLE, GUIA_BLOQUEO }), /sb_secret_|service_role|\$\s?\d/);
+  assert.ok(RUTAS["POST asistente"]);
 });
 
 test("widgets.html respeta la CSP: sin scripts ni estilos en línea, y la página no usa innerHTML", () => {

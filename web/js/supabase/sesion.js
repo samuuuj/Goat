@@ -91,11 +91,16 @@ export const supabase = configFaltante
       },
     });
 
+/** Si renovar la sesión tarda más que esto (mala señal), se sigue sin ella: mejor el login que el anillo eterno. */
+const ESPERA_SESION_MS = 8000;
+
 /** Sesión guardada en este dispositivo, o null. */
 export async function sesionActual() {
   if (!supabase) return null;
-  const { data } = await supabase.auth.getSession();
-  return data.session;
+  const tarde = new Promise((listo) => setTimeout(() => listo({ data: { session: null }, tarde: true }), ESPERA_SESION_MS));
+  const respuesta = await Promise.race([supabase.auth.getSession(), tarde]);
+  if (respuesta.tarde) console.warn("[sesion] renovar la sesión tardó demasiado");
+  return respuesta.data?.session ?? null;
 }
 
 /** Para páginas privadas: sin sesión, al login. */

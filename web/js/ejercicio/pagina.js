@@ -38,6 +38,7 @@ import {
 import { cargar, encolar, leerCola, sincronizar } from "./datos.js";
 import { crearFormulario } from "./formulario.js";
 import { ATAJOS } from "./atajos.js";
+import { pintarGuia } from "../piezas/guia.js";
 import { marcarCubiertos } from "../rutina/datos.js";
 
 const $ = (id) => document.getElementById(id);
@@ -439,27 +440,13 @@ function crearFila(s) {
 // 5 · Atajos del iPhone
 
 function pintarAtajos() {
-  const lista = (ol, pasos) =>
-    ol.replaceChildren(
-      ...pasos.map((texto) => {
-        const li = document.createElement("li");
-        li.textContent = texto;
-        return li;
-      }),
-    );
   $("atajos-lista").replaceChildren(
     ...ATAJOS.map((atajo) => {
       const el = clonar("plantilla-atajo");
       el.querySelector(".atajo-emoji").textContent = atajo.emoji;
       el.querySelector(".atajo-nombre").textContent = atajo.nombre;
       el.querySelector(".atajo-para").textContent = atajo.para;
-      lista(el.querySelector(".atajo-pasos"), atajo.pasos);
-      if (atajo.automatizacion) {
-        el.querySelector(".atajo-auto").hidden = false;
-        el.querySelector(".atajo-auto .atajo-subtitulo").textContent = `Automatización · ${atajo.automatizacion.disparador}`;
-        lista(el.querySelector(".atajo-auto-pasos"), atajo.automatizacion.pasos);
-      }
-      lista(el.querySelector(".atajo-permisos"), atajo.permisos.length ? atajo.permisos : ["Ninguno"]);
+      pintarGuia(el.querySelector(".atajo-guia"), atajo, { conPara: false });
       return el;
     }),
   );

@@ -181,7 +181,7 @@
                 <span class="copiable-clave">token</span>
                 <span class="copiable-valor">tu llave, la de arriba</span>
               </div>
-              <ol id="pasos-goat" class="pasos-lista"></ol>
+              <ol id="pasos-goat" class="pasos-guia"></ol>
             </div>
 
             <div class="bloque">
@@ -189,7 +189,7 @@
               <p class="bloque-texto">Arma «🧪 Goat · Probar», toca «Probar conexión» y córrelo en tu iPhone.</p>
               <details class="desplegable">
                 <summary>Pasos de «🧪 Goat · Probar»</summary>
-                <ol id="pasos-probar" class="pasos-lista"></ol>
+                <ol id="pasos-probar" class="pasos-guia"></ol>
               </details>
               <button type="button" id="probar-conexion" class="boton-secundario boton-probar">Probar conexión</button>
               <p id="conexion-estado" class="estado-prueba" role="status" aria-live="polite"></p>
@@ -226,7 +226,7 @@
               <span class="linea"><span>Tus</span></span>
               <span class="linea"><span>atajos.</span></span>
             </h1>
-            <p class="paso-texto">Ármalos una vez, sin prisa. Cada uno trae sus pasos, su automatización y un botón para probarlo.</p>
+            <p class="paso-texto">Casi todo pasa por un solo atajo: «🐐 Goat». Arma en orden, uno a la vez: cada uno trae para qué sirve, cómo debe quedar y un botón para probarlo.</p>
             <div class="avance-atajos" data-avance>
               <p class="titular cifras avance-numero"><span data-hechos>0</span><span class="avance-de">/<span data-total>0</span></span></p>
               <div class="avance-lado">
@@ -237,6 +237,10 @@
           </div>
           <div class="paso-cuerpo">
             <div id="grupos" class="grupos"></div>
+            <details class="desplegable retirados">
+              <summary>¿Armaste atajos viejos? Bórralos</summary>
+              <ul id="retirados-lista" class="puntos"></ul>
+            </details>
           </div>
         </section>
 
@@ -374,16 +378,7 @@
       <h2 id="hoja-titulo" class="titular hoja-titulo"></h2>
 
       <div id="hoja-atajo" hidden>
-        <p id="atajo-para" class="hoja-texto"></p>
-        <div id="atajo-requisitos" class="hoja-bloque">
-          <p class="etiqueta">Antes</p>
-          <ul class="puntos"></ul>
-        </div>
-        <div class="hoja-bloque">
-          <p class="etiqueta">Pasos</p>
-          <ol id="atajo-pasos" class="pasos-lista"></ol>
-        </div>
-        <div id="atajo-autos"></div>
+        <div id="atajo-guia" class="guia"></div>
         <div id="atajo-permisos" class="hoja-bloque">
           <p class="etiqueta">iOS te pedirá</p>
           <ul class="puntos"></ul>
@@ -469,6 +464,7 @@
           <span class="etiqueta grupo-nombre"></span>
           <span class="etiqueta cifras grupo-cuenta"></span>
         </h2>
+        <p class="grupo-intro"></p>
         <ul class="lista-agrupada grupo-lista"></ul>
       </section>
     </template>
@@ -485,14 +481,6 @@
           <span class="solo-lector atajo-estado"></span>
         </button>
       </li>
-    </template>
-
-    <template id="plantilla-auto">
-      <div class="hoja-bloque auto">
-        <p class="etiqueta auto-etiqueta">Automatización</p>
-        <p class="auto-disparador"></p>
-        <ol class="pasos-lista"></ol>
-      </div>
     </template>
 
     <template id="plantilla-resumen">

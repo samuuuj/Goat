@@ -26,6 +26,7 @@ import {
   slugApp,
 } from "./logica.js";
 import { ATAJOS, GUIA } from "./atajos.js";
+import { pintarGuia as pintarGuiaAtajo } from "../piezas/guia.js";
 
 const $ = (id) => document.getElementById(id);
 const HORA_MS = 3_600_000;
@@ -448,14 +449,7 @@ function pintarGuia() {
   );
 
   const bloques = [
-    ...ATAJOS.map((a) => ({
-      emoji: a.emoji,
-      nombre: a.nombre,
-      para: a.para,
-      pasos: a.pasos,
-      automatizacion: a.automatizacion,
-      permisos: a.permisos,
-    })),
+    ...ATAJOS,
     { emoji: "🔐", nombre: GUIA.candado.titulo, para: "Un límite que no puedes saltarte, con código de Tiempo en pantalla.", pasos: GUIA.candado.pasos },
     { emoji: "🧭", nombre: GUIA.safari.titulo, para: "Para que la web de TikTok o Instagram no sea la salida fácil.", pasos: GUIA.safari.pasos },
   ];
@@ -466,27 +460,8 @@ function pintarGuia() {
       detalle.querySelector(".guia-emoji").textContent = b.emoji;
       detalle.querySelector(".guia-nombre").textContent = b.nombre;
       detalle.querySelector(".guia-para").textContent = b.para;
-      llenarPasos(detalle.querySelector(".guia-pasos"), b.pasos);
-      const auto = detalle.querySelector(".guia-automatizacion");
-      auto.hidden = !b.automatizacion;
-      if (b.automatizacion) {
-        detalle.querySelector(".guia-disparador").textContent = b.automatizacion.disparador;
-        llenarPasos(detalle.querySelector(".guia-pasos-auto"), b.automatizacion.pasos);
-      }
-      const permisos = detalle.querySelector(".guia-permisos");
-      permisos.hidden = !b.permisos?.length;
-      if (b.permisos?.length) permisos.textContent = `iOS te pedirá: ${b.permisos.join(" · ")}.`;
+      pintarGuiaAtajo(detalle.querySelector(".atajo-guia"), b, { conPara: false });
       return detalle;
-    }),
-  );
-}
-
-function llenarPasos(lista, pasos) {
-  lista.replaceChildren(
-    ...pasos.map((texto) => {
-      const li = clonar("plantilla-paso");
-      li.textContent = texto;
-      return li;
     }),
   );
 }

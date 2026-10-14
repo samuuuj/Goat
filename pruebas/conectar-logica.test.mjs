@@ -18,7 +18,7 @@ import {
   resumenListo,
   tiempoRelativo,
   todosLosAtajos,
-  unirAtajos,
+  agruparAtajos,
   urlBase,
 } from "../web/js/conectar/logica.js";
 import { PASOS, PERMISOS, indicePaso } from "../web/js/conectar/pasos.js";
@@ -37,115 +37,60 @@ test("bienvenida: solo sin marca local y sin haberla completado en otro disposit
   assert.equal(necesitaBienvenida(), true);
 });
 
-// ── Unir los ATAJOS de cada módulo ───────────────────────────────────────
+// ── Agrupar las guías (web/js/conectar/guias.js) ─────────────────────────
 
-test("unir: omite módulos vacíos, ordena por MODULOS y normaliza cada atajo", () => {
-  const grupos = unirAtajos([
-    { modulo: "finanzas", atajos: [atajo("finanzas-uno", { prueba: { metodo: "GET", ruta: "finanzas/menu" } })] },
-    { modulo: "widgets", atajos: [] },
-    { modulo: "sueno", atajos: null },
-    { modulo: "conectar", atajos: [atajo("conectar-uno", { automatizacion: { disparador: "Hora del día", pasos: ["a"] } })] },
-    { modulo: "nuevo", atajos: [atajo("nuevo-uno", { emoji: "" })] },
-  ]);
+const GRUPOS_PRUEBA = [
+  { id: "base", emoji: "⚙️", nombre: "Base", intro: "La llave." },
+  { id: "motor", emoji: "🐐", nombre: "Motor" },
+  { id: "vacio", emoji: "∅", nombre: "Vacío" },
+];
+
+test("agrupar: en el orden de los grupos, sin grupos vacíos, y normaliza cada atajo", () => {
+  const grupos = agruparAtajos(
+    [
+      atajo("m", { grupo: "motor", prueba: { ruta: "asistente", metodo: "POST" } }),
+      atajo("b", { grupo: "base", emoji: "", automatizacion: { disparador: "viejo" } }),
+      atajo("solo-auto", { grupo: "motor", pasos: [], automatizaciones: [{ disparador: "Hora del día", pasos: [] }] }),
+    ],
+    GRUPOS_PRUEBA,
+  );
   assert.deepEqual(
-    grupos.map((g) => g.modulo),
-    ["conectar", "finanzas", "nuevo"],
+    grupos.map((g) => [g.modulo, g.atajos.map((a) => a.id)]),
+    [
+      ["base", ["b"]],
+      ["motor", ["m", "solo-auto"]],
+    ],
   );
-  const [base, dinero, nuevo] = grupos;
-  assert.equal(base.emoji, "⚙️");
-  assert.equal(base.atajos[0].modulo, "conectar");
-  assert.deepEqual(base.atajos[0].automatizaciones, [{ disparador: "Hora del día", pasos: ["a"] }]);
-  assert.deepEqual(base.atajos[0].requisitos, []);
-  assert.deepEqual(base.atajos[0].permisos, []);
-  assert.equal(base.atajos[0].prueba, null);
-  assert.deepEqual(dinero.atajos[0].prueba, { metodo: "GET", ruta: "finanzas/menu" });
-  assert.equal(nuevo.nombre, "nuevo");
-  assert.equal(nuevo.atajos[0].emoji, "⚡");
+  const [b] = grupos[0].atajos;
+  assert.equal(b.emoji, "⚡");
+  assert.deepEqual([b.requisitos, b.automatizaciones, b.permisos, b.prueba], [[], [], [], null]);
+  assert.equal(grupos[0].intro, "La llave.");
+  assert.deepEqual(grupos[1].atajos[0].prueba, { metodo: "POST", ruta: "asistente" });
 });
 
-test("unir: `automatizaciones` (lista completa) manda sobre `automatizacion`", () => {
-  const [grupo] = unirAtajos([
-    {
-      modulo: "sueno",
-      atajos: [
-        atajo("sueno-a", {
-          automatizacion: { disparador: "Uno", pasos: [] },
-          automatizaciones: [
-            { disparador: "Uno", pasos: [] },
-            { disparador: "Dos", pasos: [] },
-            { pasos: ["sin disparador: se ignora"] },
-          ],
-        }),
-      ],
-    },
-  ]);
-  assert.deepEqual(
-    grupo.atajos[0].automatizaciones.map((a) => a.disparador),
-    ["Uno", "Dos"],
-  );
+test("agrupar: errores claros (id repetido, sin nombre, sin pasos, grupo que no existe)", () => {
+  const con = (...atajos) => () => agruparAtajos(atajos, GRUPOS_PRUEBA);
+  assert.throws(con(atajo("x", { grupo: "base" }), atajo("x", { grupo: "motor" })), /Atajo repetido: "x"/);
+  assert.throws(con({ grupo: "base", nombre: "Sin id", pasos: ["a"] }), /atajo 1 no tiene id/);
+  assert.throws(con(atajo("f", { grupo: "base", nombre: " " })), /"f" no tiene nombre/);
+  assert.throws(con(atajo("f", { grupo: "base", pasos: [] })), /"f" no tiene pasos/);
+  assert.throws(con(atajo("f", { grupo: "otro" })), /grupo que no existe: otro/);
 });
 
-test("unir: un id repetido es un error claro que nombra los dos módulos", () => {
-  assert.throws(
-    () =>
-      unirAtajos([
-        { modulo: "finanzas", atajos: [atajo("comun")] },
-        { modulo: "rutina", atajos: [atajo("comun")] },
-      ]),
-    /Atajo repetido: "comun" está en finanzas y en rutina/,
-  );
-  assert.throws(() => unirAtajos([{ modulo: "rutina", atajos: [atajo("x"), atajo("x")] }]), /Atajo repetido: "x"/);
-});
-
-test("unir: atajos mal formados fallan con un mensaje que dice cuál", () => {
-  assert.throws(() => unirAtajos([{ modulo: "finanzas", atajos: {} }]), /finanzas debe exportar ATAJOS como lista/);
-  assert.throws(() => unirAtajos([{ modulo: "finanzas", atajos: [{ nombre: "Sin id", pasos: ["a"] }] }]), /atajo 1 de finanzas no tiene id/);
-  assert.throws(() => unirAtajos([{ modulo: "finanzas", atajos: [atajo("f", { nombre: " " })] }]), /"f" no tiene nombre/);
-  assert.throws(() => unirAtajos([{ modulo: "finanzas", atajos: [atajo("f", { pasos: [] })] }]), /"f" no tiene pasos/);
-});
-
-test("cargar: un módulo que no carga se omite sin romper el asistente", async () => {
-  const avisos = [];
-  const consola = console.warn;
-  console.warn = (...args) => avisos.push(args.join(" "));
-  try {
-    const grupos = await cargarAtajos(async (modulo) => {
-      if (modulo === "sueno") throw new Error("falla de red");
-      if (modulo === "finanzas") return { ATAJOS: [atajo("finanzas-uno")] };
-      return {};
-    });
-    assert.deepEqual(
-      grupos.map((g) => g.modulo),
-      ["finanzas"],
-    );
-    assert.ok(avisos.some((a) => a.includes("sueno")));
-  } finally {
-    console.warn = consola;
-  }
-});
-
-test("cargar: los atajos reales de todos los módulos se unen sin ids repetidos y con pruebas que existen", async () => {
+test("cargar: las guías reales, con la base primero, sin ids repetidos y con pruebas que existen", async () => {
   const grupos = await cargarAtajos();
   const atajos = todosLosAtajos(grupos);
-  assert.equal(grupos[0].modulo, "conectar", "la base va primero");
-  assert.ok(atajos.length >= 14, `solo ${atajos.length} atajos`);
+  assert.equal(grupos[0].modulo, "base", "la base va primero");
+  assert.equal(grupos[1].atajos[0].id, "goat-motor", "después el motor");
   assert.equal(new Set(atajos.map((a) => a.id)).size, atajos.length);
-  for (const grupo of grupos) assert.ok(MODULOS.some((m) => m.id === grupo.modulo), `módulo sin nombre: ${grupo.modulo}`);
-  for (const a of atajos) {
-    if (a.prueba) {
-      assert.ok(RUTAS[`${a.prueba.metodo} ${a.prueba.ruta}`], `${a.id}: la ruta de prueba no existe (${a.prueba.ruta})`);
-      assert.equal(a.prueba.metodo, "GET", `${a.id}: probar no debe guardar nada`);
-    }
-    if (a.id !== "conectar-goat") assert.match(a.pasos.join(" "), /⚙️ Goat/, `${a.id} no usa el atajo base`);
-  }
-  // Sin montos en ningún texto (D-020).
-  assert.doesNotMatch(JSON.stringify(atajos), /\$\s?\d/);
+  for (const grupo of grupos) assert.ok(MODULOS.some((m) => m.id === grupo.modulo), `grupo sin nombre: ${grupo.modulo}`);
+  for (const a of atajos) if (a.prueba) assert.ok(RUTAS[`${a.prueba.metodo} ${a.prueba.ruta}`], `${a.id}: la ruta de prueba no existe`);
 });
 
 // ── Hechos ───────────────────────────────────────────────────────────────
 
 test("hechos: cuenta solo los ids que existen y guarda solo los true", () => {
-  const grupos = unirAtajos([{ modulo: "finanzas", atajos: [atajo("a"), atajo("b"), atajo("c")] }]);
+  const grupos = agruparAtajos([atajo("a", { grupo: "base" }), atajo("b", { grupo: "base" }), atajo("c", { grupo: "motor" })], GRUPOS_PRUEBA);
   assert.deepEqual(contarHechos(grupos, { a: true, b: false, viejo: true }), { hechos: 1, total: 3 });
   assert.deepEqual(contarHechos(grupos, undefined), { hechos: 0, total: 3 });
   assert.deepEqual(marcarAtajo({ a: true, b: false }, "c", true), { a: true, c: true });

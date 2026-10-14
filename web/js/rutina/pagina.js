@@ -11,6 +11,7 @@ import * as L from "./logica.js";
 import * as D from "./datos.js";
 import { abrirEncuesta } from "./encuesta.js";
 import { ATAJOS } from "./atajos.js";
+import { pintarGuia } from "../piezas/guia.js";
 
 const $ = (id) => document.getElementById(id);
 const MINUTO = 60_000;
@@ -783,25 +784,7 @@ function pintarAtajos() {
       caja.querySelector(".atajo-emoji").textContent = atajo.emoji;
       caja.querySelector(".atajo-nombre").textContent = atajo.nombre;
       caja.querySelector(".atajo-para").textContent = atajo.para;
-      caja.querySelector(".atajo-pasos").replaceChildren(
-        ...atajo.pasos.map((p) => {
-          const li = document.createElement("li");
-          li.textContent = p;
-          return li;
-        }),
-      );
-      const auto = caja.querySelector(".atajo-auto");
-      if (atajo.automatizacion) {
-        caja.querySelector(".atajo-disparador").textContent = atajo.automatizacion.disparador;
-        caja.querySelector(".atajo-auto-pasos").replaceChildren(
-          ...atajo.automatizacion.pasos.map((p) => {
-            const li = document.createElement("li");
-            li.textContent = p;
-            return li;
-          }),
-        );
-      } else auto.hidden = true;
-      caja.querySelector(".atajo-permisos").textContent = atajo.permisos.length ? `iOS te pedirá: ${atajo.permisos.join(" · ")}` : "";
+      pintarGuia(caja.querySelector(".atajo-guia"), atajo, { conPara: false });
       return caja;
     }),
   );

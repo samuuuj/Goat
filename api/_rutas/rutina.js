@@ -49,10 +49,16 @@ async function cargarDia(db, ahora, fecha = diaLogico(ahora)) {
   return { fecha, tipo, festivo: festivos[0]?.nombre ?? null, items: estadoDelDia(bloques, checks, ahora, { fecha, tipo }) };
 }
 
-/** Un bloque como lo usa Atajos: fechas ISO 8601 con zona de Bogotá, título del recordatorio y notas con el id. */
-function paraAtajo(b) {
+/**
+ * Un bloque como lo usa Atajos: fechas ISO 8601 con zona de Bogotá, título del recordatorio y notas con el id.
+ * `en_minutos`: minutos desde ahora hasta la alerta. "☀️ Plan del día" la arma con «Ajustar fecha» sobre la
+ * fecha actual: así no depende de cómo el iPhone lee una fecha escrita (con «Obtener fechas de» la alerta
+ * ISO quedaba a las 12:00 p. m. y todos los recordatorios sonaban juntos).
+ */
+function paraAtajo(b, ahora = new Date()) {
   const emoji = emojiDe(b.tipo);
   const rango = `${aHora(b.inicioMin)}–${aHora(b.finMin)}`;
+  const alerta = b.inicio - (Number(b.aviso_min) || 0) * 60_000;
   return {
     id: b.id,
     titulo: b.titulo,
@@ -60,7 +66,8 @@ function paraAtajo(b) {
     emoji,
     inicio: isoBogota(b.inicio),
     fin: isoBogota(b.fin),
-    alerta: isoBogota(b.inicio - (Number(b.aviso_min) || 0) * 60_000),
+    alerta: isoBogota(alerta),
+    en_minutos: Math.max(0, Math.round((alerta - ahora.getTime()) / 60_000)),
     hora: aHora(b.inicioMin),
     duracion_min: Number(b.duracion_min),
     obligatorio: Boolean(b.obligatorio),
@@ -102,14 +109,24 @@ function paraTarea(t) {
   };
 }
 
+/**
+ * Lo de hoy para Atajos. Recordatorios: lo que falta por hacer y cuya alerta todavía no pasa (una alerta
+ * en el pasado sonaría apenas se crea). Las pausas van dentro del rango del trabajo útil.
+ */
+async function planDeHoy(db, ahora) {
+  const dia = await cargarDia(db, ahora);
+  const bloques = dia.items.map((b) => paraAtajo(b, ahora));
+  const recordatorios = bloques.filter(
+    (b) => b.marcable && b.estado !== "hecho" && b.estado !== "saltado" && Date.parse(b.alerta) > ahora.getTime(),
+  );
+  const obligatorios = bloques.filter((b) => b.obligatorio && b.marcable).length;
+  return { dia, bloques, recordatorios, obligatorios };
+}
+
 export default {
-  /** Bloques de hoy (para "☀️ Plan del día": un recordatorio por bloque con alerta a su hora). */
+  /** Bloques de hoy y los recordatorios que faltan (con su alerta a la hora de cada bloque). */
   "GET rutina/hoy": async ({ db, ahora }) => {
-    const dia = await cargarDia(db, ahora);
-    const bloques = dia.items.map(paraAtajo);
-    // Recordatorios: lo que falta por hacer hoy (las pausas van dentro del rango del trabajo útil).
-    const recordatorios = bloques.filter((b) => b.marcable && b.estado !== "hecho" && b.estado !== "saltado" && Date.parse(b.fin) > ahora.getTime());
-    const obligatorios = bloques.filter((b) => b.obligatorio && b.marcable).length;
+    const { dia, bloques, recordatorios, obligatorios } = await planDeHoy(db, ahora);
     const mensaje = bloques.length
       ? `🗓️ ${recordatorios.length} ${recordatorios.length === 1 ? "bloque" : "bloques"} por delante${obligatorios ? ` · ${obligatorios} obligatorios` : ""}`
       : "🗓️ Sin rutina: créala en Goat";
@@ -123,14 +140,36 @@ export default {
     });
   },
 
+  /**
+   * "☀️ Plan del día": los recordatorios por crear, UNA vez al día (perfil.ajustes.rutina_plan = fecha).
+   * Si se corre otra vez (la alarma y el botón, o dos toques), responde la lista vacía y no se duplican.
+   * { repetir: true } los vuelve a mandar (por ejemplo, si borraste la lista Goat).
+   */
+  "POST rutina/plan": async ({ db, cuerpo, ahora }) => {
+    const { dia, bloques, recordatorios } = await planDeHoy(db, ahora);
+    if (!bloques.length) return ok("🗓️ Sin rutina: créala en Goat", { recordatorios: [], ya_estaba: false });
+    const [perfil] = await db.select("perfil", { columnas: "ajustes", limite: 1 });
+    const ajustes = perfil?.ajustes && typeof perfil.ajustes === "object" ? perfil.ajustes : {};
+    const repetir = cuerpo.repetir === true || cuerpo.repetir === "true" || cuerpo.repetir === "si";
+    if (ajustes.rutina_plan === dia.fecha && !repetir) {
+      return ok("🗓️ Tu plan de hoy ya está en Recordatorios", { recordatorios: [], ya_estaba: true });
+    }
+    await db.update("perfil", { ajustes: { ...ajustes, rutina_plan: dia.fecha } });
+    const primero = recordatorios[0];
+    const mensaje = recordatorios.length
+      ? `🗓️ ${recordatorios.length} ${recordatorios.length === 1 ? "aviso" : "avisos"} · el primero: ${primero.emoji} ${primero.titulo} ${primero.hora}`
+      : "🗓️ Ya no quedan bloques por avisar hoy";
+    return ok(mensaje, { recordatorios, ya_estaba: false });
+  },
+
   /** Bloque actual y siguiente, con mensaje corto ("🚶 Caminar · 45 min"). */
   "GET rutina/ahora": async ({ db, ahora }) => {
     const dia = await cargarDia(db, ahora);
     const { actual, siguiente, mensaje } = ahoraYSiguiente(dia.items, ahora);
     return ok(mensaje, {
       fecha: dia.fecha,
-      actual: actual ? { ...paraAtajo(actual), quedan_min: Math.max(1, Math.ceil((actual.fin - ahora.getTime()) / 60_000)) } : null,
-      siguiente: siguiente ? paraAtajo(siguiente) : null,
+      actual: actual ? { ...paraAtajo(actual, ahora), quedan_min: Math.max(1, Math.ceil((actual.fin - ahora.getTime()) / 60_000)) } : null,
+      siguiente: siguiente ? paraAtajo(siguiente, ahora) : null,
       cumplimiento: resumenCumplimiento(dia.items),
     });
   },

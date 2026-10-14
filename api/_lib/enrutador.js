@@ -100,6 +100,9 @@ export async function atender(peticion, deps) {
     }
   }
 
+  // El atajo "🐐 Goat" muestra cualquier error (sin llave, servidor sin configurar…) y se detiene.
+  if (ruta === "asistente" && !resultado.cuerpo.ok) Object.assign(resultado.cuerpo, { tipo: "fin", pregunta: resultado.cuerpo.mensaje });
+
   // Registro de llamadas para depurar atajos, sin cuerpo (puede tener montos).
   if (usuario && config.lista && ruta !== "ping") {
     await baseDeDatos(config, usuario.id, { fetch: f })

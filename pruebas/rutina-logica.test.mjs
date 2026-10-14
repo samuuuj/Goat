@@ -22,6 +22,7 @@ import {
   siguiente,
   textoDias,
   tipoDia,
+  inicioTrabajo,
 } from "../web/js/rutina/logica.js";
 import { ENCUESTA_SAMUEL, plantillaSamuel } from "./ayuda/rutina.mjs";
 
@@ -66,23 +67,25 @@ test("la encuesta de Samuel arma una semana sin choques", () => {
   assert.deepEqual([calculo.lugar, calculo.aviso_min, calculo.dias], ["Bloque 5", 15, [2, 3]]);
 });
 
-test("lunes: la secuencia que pidió Samuel, con trabajo útil 50/10", () => {
+test("lunes: la mañana en orden (cada cosa cuando termina la anterior) y el trabajo útil justo después", () => {
   const lunes = bloquesDelDia(plantilla(), LUNES, "habil");
   assert.deepEqual(resumen(lunes), [
     "06:00 Levantarte",
     "06:10 Caminar",
     "06:55 Preparar desayuno",
     "07:15 Desayunar",
-    "08:00 Trabajo útil",
-    "08:50 Pausa",
-    "09:00 Trabajo útil",
-    "09:50 Pausa",
-    "10:00 Trabajo útil",
-    "10:50 Pausa",
-    "11:00 Trabajo útil",
+    "07:35 Bañarte",
+    "07:55 Trabajo útil",
+    "08:45 Pausa",
+    "08:55 Trabajo útil",
+    "09:45 Pausa",
+    "09:55 Trabajo útil",
+    "10:45 Pausa",
+    "10:55 Trabajo útil",
     "12:30 Almuerzo",
     "14:00 Inglés",
     "17:00 Ejercicio",
+    "18:40 Preparar cena",
     "19:00 Cena",
     "19:30 Caminar",
     "20:00 Estudiar",
@@ -95,9 +98,9 @@ test("martes y miércoles: clases presenciales y el trabajo útil se corre solo"
   const martes = resumen(bloquesDelDia(plantilla(), MARTES, "habil"));
   assert.ok(martes.includes("09:00 Cálculo"));
   assert.ok(martes.includes("14:00 Trabajos de la U"));
-  assert.ok(martes.includes("08:00 Trabajo útil"));
-  assert.ok(!martes.includes("09:00 Trabajo útil"), "el trabajo útil se cruzaba con la clase");
-  assert.ok(!martes.includes("08:50 Pausa"), "pausa sin trabajo después");
+  assert.ok(martes.includes("07:55 Trabajo útil"));
+  assert.ok(!martes.includes("08:55 Trabajo útil"), "el trabajo útil se cruzaba con la clase");
+  assert.ok(!martes.includes("08:45 Pausa"), "pausa sin trabajo después");
   const miercoles = resumen(bloquesDelDia(plantilla(), "2026-10-07", "habil"));
   assert.ok(miercoles.includes("09:00 Cálculo"));
   assert.ok(!miercoles.includes("14:00 Trabajos de la U"));
@@ -248,4 +251,17 @@ test("tareas: vencidas arriba, luego por fecha límite; las hechas no salen", ()
   assert.equal(paraCuando("hoy", ahora), "2026-10-06T23:59:00-05:00");
   assert.equal(paraCuando("manana", ahora), "2026-10-07T23:59:00-05:00");
   assert.equal(paraCuando("semana", ahora), "2026-10-11T23:59:00-05:00");
+});
+
+test("trabajo útil: se calcula con la mañana; con hora a mano, esa manda", () => {
+  assert.equal(inicioTrabajo(ENCUESTA_BASE), "07:55");
+  assert.equal(inicioTrabajo({ ...ENCUESTA_BASE, bano: { activo: false, minutos: 20 } }), "07:35");
+  assert.equal(inicioTrabajo({ ...ENCUESTA_BASE, trabajo: { ...ENCUESTA_BASE.trabajo, inicio: "09:00" } }), "09:00");
+});
+
+test("cruces permitidos: comer durante una clase virtual no es choque; dos clases sí", () => {
+  const base = { dias: [1], activo: true };
+  const clase = { ...base, titulo: "Inglés", tipo: "clase_virtual", hora_inicio: "12:00", duracion_min: 120 };
+  assert.deepEqual(choques([clase, { ...base, titulo: "Almuerzo", tipo: "almuerzo", hora_inicio: "12:30", duracion_min: 60 }]), []);
+  assert.equal(choques([clase, { ...base, titulo: "Cálculo", tipo: "clase_presencial", hora_inicio: "13:00", duracion_min: 60 }]).length, 1);
 });
